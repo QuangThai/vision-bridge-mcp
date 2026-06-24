@@ -1,9 +1,9 @@
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AtlasConfig } from "../config.js";
+import type { VisionProvider } from "../providers/types.js";
 import { analyzeImage } from "./analyze-image.js";
 import { ocrImage } from "./ocr-image.js";
-import type { VisionProvider } from "../providers/types.js";
 
 export interface GoldenFixture {
   id: string;
@@ -180,12 +180,12 @@ export async function runEval(
 
 export function renderEvalReport(report: EvalReport): string {
   const lines: string[] = [
-    `# Eval Report`,
-    ``,
+    "# Eval Report",
+    "",
     `**Provider:** ${report.provider} · **Model:** ${report.model}`,
     `**Timestamp:** ${report.timestamp}`,
     `**Results:** ${report.passed}/${report.total} passed (${report.failed} failed)`,
-    ``,
+    "",
   ];
 
   for (const result of report.results) {
@@ -201,7 +201,9 @@ export function renderEvalReport(report: EvalReport): string {
       lines.push(`**Text blocks:** ${result.details.text_blocks_count}`);
     }
     if (result.details.matches_expected_text.length > 0) {
-      lines.push(`**Matched expected text:** ${result.details.matches_expected_text.length}/${result.details.matches_expected_text.length + result.details.missing_expected_text.length}`);
+      const matched = result.details.matches_expected_text.length;
+      const total = matched + result.details.missing_expected_text.length;
+      lines.push(`**Matched expected text:** ${matched}/${total}`);
       lines.push(`  ${result.details.matches_expected_text.join(", ")}`);
     }
     if (result.details.errors?.length) {

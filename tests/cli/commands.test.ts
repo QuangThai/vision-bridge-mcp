@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   renderAnalyzeCliText,
+  renderCapabilitiesText,
   renderCompareCliText,
   renderOcrCliText,
   renderUiScreenshotCliText,
   runAnalyzeCommand,
+  runCapabilitiesCommand,
   runCompareCommand,
   runDoctorCommand,
   runOcrCommand,
@@ -92,6 +94,140 @@ describe("runDoctorCommand", () => {
     });
 
     expect(code).toBe(1);
+  });
+
+  it("reports main model capability when MAIN_MODEL_REF is set", async () => {
+    const logs: string[] = [];
+    const config: AtlasConfig = {
+      vision: {
+        provider: "openai-compatible",
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "sk-test-1234",
+        model: "gpt-4o-mini",
+        timeoutMs: 60_000,
+        maxImageMb: 10,
+        maxOutputTokens: 4_000,
+      },
+      atlas: {
+        allowedDirs: ["."],
+        storeHistory: false,
+        logLevel: "info",
+        logImageContent: false,
+        redactSecrets: true,
+        defaultDetailLevel: "standard",
+      },
+    };
+
+    const code = await runDoctorCommand({
+      loadConfig: () => config,
+      checkSharp: async () => true,
+      env: { MAIN_MODEL_REF: "deepseek/deepseek-v4-flash" },
+      getModelCapabilities: vi.fn(async () => ({
+        modelId: "deepseek-v4-flash",
+        providerId: "deepseek",
+        supportsVision: false,
+        supportsTools: true,
+        supportsReasoning: true,
+        inputModalities: ["text"],
+        outputModalities: ["text"],
+        contextWindow: 1_000_000,
+        maxOutputTokens: 8_000,
+        source: "models.dev" as const,
+      })),
+      createProvider: () => ({
+        name: "openai-compatible",
+        analyzeImage: vi.fn(),
+        compareImages: vi.fn(),
+        healthCheck: vi.fn(async () => ({
+          ok: true,
+          provider: "openai-compatible",
+          model: "gpt-4o-mini",
+          message: "Provider reachable.",
+        })),
+      }),
+      log: {
+        log: (message: string) => logs.push(message),
+        error: (message: string) => logs.push(message),
+      },
+    });
+
+    expect(code).toBe(0);
+    expect(logs.join("\n")).toContain("Main model: deepseek/deepseek-v4-flash");
+    expect(logs.join("\n")).toContain("Main model vision: no");
+    expect(logs.join("\n")).toContain("Atlas bridge: recommended");
+  });
+});
+
+describe("runCapabilitiesCommand", () => {
+  it("prints capability summary", async () => {
+    const logs: string[] = [];
+    const code = await runCapabilitiesCommand(["deepseek/deepseek-v4-flash"], {
+      getModelCapabilities: vi.fn(async () => ({
+        modelId: "deepseek-v4-flash",
+        providerId: "deepseek",
+        supportsVision: false,
+        supportsTools: true,
+        supportsReasoning: true,
+        inputModalities: ["text"],
+        outputModalities: ["text"],
+        contextWindow: 1_000_000,
+        maxOutputTokens: 8_000,
+        source: "models.dev" as const,
+      })),
+      log: {
+        log: (message: string) => logs.push(message),
+        error: (message: string) => logs.push(message),
+      },
+    });
+
+    expect(code).toBe(0);
+    expect(logs.join("\n")).toContain("Vision: no");
+    expect(logs.join("\n")).toContain("Atlas bridge recommended");
+  });
+
+  it("supports json output", async () => {
+    const logs: string[] = [];
+    const code = await runCapabilitiesCommand(["openai/gpt-4o-mini", "--json"], {
+      getModelCapabilities: vi.fn(async () => ({
+        modelId: "gpt-4o-mini",
+        providerId: "openai",
+        supportsVision: true,
+        supportsTools: true,
+        supportsReasoning: false,
+        inputModalities: ["text", "image"],
+        outputModalities: ["text"],
+        contextWindow: 128_000,
+        maxOutputTokens: 16_000,
+        source: "models.dev" as const,
+      })),
+      log: {
+        log: (message: string) => logs.push(message),
+        error: (message: string) => logs.push(message),
+      },
+    });
+
+    expect(code).toBe(0);
+    expect(logs.join("\n")).toContain('"supportsVision": true');
+  });
+});
+
+describe("renderCapabilitiesText", () => {
+  it("recommends atlas bridge for text-only models", () => {
+    const text = renderCapabilitiesText({
+      modelId: "glm-5.2",
+      providerId: "zhipu",
+      supportsVision: false,
+      supportsTools: true,
+      supportsReasoning: false,
+      inputModalities: ["text"],
+      outputModalities: ["text"],
+      contextWindow: 200_000,
+      maxOutputTokens: 8_000,
+      source: "models.dev",
+    });
+
+    expect(text).toContain("Vision: no");
+    expect(text).toContain("Atlas bridge recommended");
   });
 });
 

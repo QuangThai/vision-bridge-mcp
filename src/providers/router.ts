@@ -1,5 +1,4 @@
-import type { AtlasConfig } from "../config.js";
-import { validateProviderConfig } from "../config.js";
+import { type AtlasConfig, validateProviderConfig } from "../config.js";
 import { ProviderError } from "./errors.js";
 import { GeminiProvider } from "./gemini.js";
 import { OpenAICompatibleProvider } from "./openai-compatible.js";

@@ -13,6 +13,7 @@ import {
   ocrImageOutputSchema,
 } from "./extraction/schemas.js";
 import { ImageError } from "./image/errors.js";
+import { registerVisionInstructionsPrompt } from "./prompts/vision-instructions.js";
 import { ProviderError } from "./providers/errors.js";
 import type { FetchFn } from "./providers/types.js";
 import { PathPolicyError } from "./security/path-policy.js";
@@ -52,9 +53,10 @@ import {
   type OcrImageDependencies,
   ocrImage,
 } from "./tools/ocr-image.js";
+import { setupConsoleRedirection } from "./utils/console.js";
 
 export const analyzeImageMcpInputSchema = {
-  image_path: z.string().min(1),
+  image_path: z.string().optional(),
   image_url: z.string().url().optional(),
   prompt: z.string().optional(),
   mode: analyzeImageModeSchema.default("general"),
@@ -371,6 +373,7 @@ export function createAtlasMcpServer(dependencies: AtlasServerDependencies = {})
   registerOcrImageTool(server, dependencies);
   registerAnalyzeUiScreenshotTool(server, dependencies);
   registerCompareImagesTool(server, dependencies);
+  registerVisionInstructionsPrompt(server);
 
   return server;
 }
@@ -383,6 +386,9 @@ export async function connectAtlasMcpServer(
 }
 
 export async function serveStdio(dependencies: AtlasServerDependencies = {}): Promise<void> {
+  // Redirect console output to stderr to prevent MCP protocol corruption on stdout
+  setupConsoleRedirection();
+
   const server = createAtlasMcpServer(dependencies);
   const transport = new StdioServerTransport();
   await connectAtlasMcpServer(server, transport);

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createVisionProvider } from "../../src/providers/index.js";
-import { GeminiProvider } from "../../src/providers/gemini.js";
 import { loadConfig } from "../../src/config.js";
+import { GeminiProvider } from "../../src/providers/gemini.js";
+import { createVisionProvider } from "../../src/providers/index.js";
 
 function mockFetch(response: unknown): typeof fetch {
   return vi.fn().mockResolvedValue({
@@ -76,8 +76,9 @@ describe("GeminiProvider", () => {
     const callArgs = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(callArgs[1].body as string);
     expect(body.contents[0].role).toBe("user");
-    expect(body.contents[0].parts[0].text).toBe("Describe this image.");
-    expect(body.contents[0].parts[1].inlineData.mimeType).toBe("image/png");
+    // Per Gemini best practices: image BEFORE text for single-image prompts
+    expect(body.contents[0].parts[0].inlineData.mimeType).toBe("image/png");
+    expect(body.contents[0].parts[1].text).toBe("Describe this image.");
     expect(body.systemInstruction.parts[0].text).toBeTruthy();
   });
 

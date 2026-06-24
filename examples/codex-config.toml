@@ -1,0 +1,57 @@
+# Codex + custom provider (DeepSeek / GLM) + Atlas Vision auto-intercept
+#
+# Copy relevant sections to ~/.codex/config.toml (global) or .codex/config.toml (project).
+#
+# 1) Custom main model provider (OpenAI-compatible proxy)
+# 2) Atlas Vision MCP for on-demand tools
+# 3) UserPromptSubmit hook for automatic vision on text-only models
+
+# --- Main model (text-only via custom provider) ---
+model = "deepseek-v4-flash"
+model_provider = "deepseek-proxy"
+
+[model_providers.deepseek-proxy]
+name = "DeepSeek via proxy"
+base_url = "https://your-proxy.example.com/v1"
+env_key = "DEEPSEEK_API_KEY"
+wire_api = "responses"
+
+# Optional GLM profile example:
+# model = "glm-5.2"
+# model_provider = "glm-proxy"
+#
+# [model_providers.glm-proxy]
+# name = "GLM via proxy"
+# base_url = "https://your-glm-proxy.example.com/v1"
+# env_key = "GLM_API_KEY"
+# wire_api = "responses"
+
+# --- Atlas Vision MCP (on-demand tools) ---
+[mcp_servers.atlas-vision]
+command = "npx"
+args = ["-y", "atlas-vision-mcp"]
+
+[mcp_servers.atlas-vision.env]
+VISION_PROVIDER = "openai-compatible"
+VISION_BASE_URL = "https://api.openai.com/v1"
+VISION_API_KEY = "sk-your-vision-key"
+VISION_MODEL = "gpt-4o-mini"
+
+# --- Auto-intercept hook (runs before each prompt) ---
+# Codex passes `model` in hook stdin; Atlas maps it to models.dev via MAIN_MODEL_PROVIDER
+# or infers deepseek*/glm* prefixes. Override with MAIN_MODEL_REF if needed.
+#
+# Trust the hook on first run: open Codex and run /hooks
+
+[hooks]
+
+[[hooks.UserPromptSubmit]]
+hooks = [
+  { type = "command", command = "npx -y atlas-vision-mcp hook user-prompt --client codex", timeoutSec = 120, statusMessage = "Atlas vision intercept" },
+]
+
+# Set hook env once (recommended — Codex hooks inherit process env only):
+#   mkdir -p ~/.config/atlas-vision
+#   cp examples/atlas-vision.env.example ~/.config/atlas-vision/env
+#
+# Trust the hook on first run: open Codex and run /hooks

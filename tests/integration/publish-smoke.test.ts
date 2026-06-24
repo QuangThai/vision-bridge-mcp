@@ -4,6 +4,11 @@ import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { describe, expect, it, vi } from "vitest";
+import { runDoctorCommand, runServeCommand } from "../../src/cli/commands.js";
+import { runCli } from "../../src/cli/run.js";
+import { ConfigError } from "../../src/config.js";
+import { PACKAGE_NAME, VERSION } from "../../src/index.js";
+import { createAtlasMcpServer } from "../../src/server.js";
 
 vi.mock("../../src/cli/commands.js", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../../src/cli/commands.js")>();
@@ -12,12 +17,6 @@ vi.mock("../../src/cli/commands.js", async (importOriginal) => {
     runServeCommand: vi.fn(async () => 0),
   };
 });
-
-import { runDoctorCommand, runServeCommand } from "../../src/cli/commands.js";
-import { runCli } from "../../src/cli/run.js";
-import { ConfigError } from "../../src/config.js";
-import { PACKAGE_NAME, VERSION } from "../../src/index.js";
-import { createAtlasMcpServer } from "../../src/server.js";
 
 const TOOL_NAMES = [
   "analyze_image",

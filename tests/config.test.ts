@@ -22,6 +22,7 @@ describe("loadConfig", () => {
     expect(config.atlas.logLevel).toBe("info");
     expect(config.atlas.logImageContent).toBe(false);
     expect(config.atlas.redactSecrets).toBe(true);
+    expect(config.atlas.checkPii).toBe(false);
     expect(config.atlas.defaultDetailLevel).toBe("standard");
   });
 
@@ -32,6 +33,7 @@ describe("loadConfig", () => {
       ATLAS_ALLOWED_DIRS: "./src,./assets",
       ATLAS_LOG_IMAGE_CONTENT: "true",
       ATLAS_REDACT_SECRETS: "0",
+      ATLAS_CHECK_PII: "true",
     });
 
     expect(config.vision.apiKey).toBe("test-key");
@@ -39,6 +41,7 @@ describe("loadConfig", () => {
     expect(config.atlas.allowedDirs).toEqual(["./src", "./assets"]);
     expect(config.atlas.logImageContent).toBe(true);
     expect(config.atlas.redactSecrets).toBe(false);
+    expect(config.atlas.checkPii).toBe(true);
   });
 
   it("rejects invalid numeric limits", () => {

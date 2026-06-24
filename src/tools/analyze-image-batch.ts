@@ -4,7 +4,7 @@ import {
   analyzeImageBatchInputSchema,
   analyzeImageBatchOutputSchema,
 } from "../extraction/schemas.js";
-import { readImageFromPath } from "../image/read-image.js";
+import type { readImageFromPath } from "../image/read-image.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
 import { type AnalyzeImageDependencies, analyzeImage } from "./analyze-image.js";
 

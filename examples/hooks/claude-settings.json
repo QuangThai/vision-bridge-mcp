@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node hooks/atlas-vision-user-prompt.mjs --client claude",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

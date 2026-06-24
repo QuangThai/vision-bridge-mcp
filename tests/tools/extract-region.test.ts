@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import { loadConfig } from "../../src/config.js";
+import type { LoadedImage } from "../../src/image/read-image.js";
+import type { VisionProvider } from "../../src/providers/types.js";
+import { extractRegion } from "../../src/tools/extract-region.js";
 
 // Mock sharp to bypass actual image processing in unit tests
 vi.mock("sharp", () => {
@@ -20,10 +24,6 @@ vi.mock("sharp", () => {
 
   return { default: mockSharp };
 });
-import { loadConfig } from "../../src/config.js";
-import type { LoadedImage } from "../../src/image/read-image.js";
-import type { VisionProvider } from "../../src/providers/types.js";
-import { extractRegion } from "../../src/tools/extract-region.js";
 
 const testConfig = loadConfig({
   VISION_API_KEY: "sk-test",

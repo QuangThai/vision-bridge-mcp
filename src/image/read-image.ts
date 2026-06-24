@@ -14,12 +14,14 @@ export interface LoadedImage {
   resized: boolean;
   width?: number;
   height?: number;
+  sourceUrl?: string;
 }
 
 export interface ReadImageOptions {
   maxImageMb: number;
   cwd?: string;
   allowedDirs?: string[];
+  detailLevel?: string;
 }
 
 async function assertReadableFile(absolutePath: string): Promise<void> {
@@ -43,12 +45,141 @@ async function assertReadableFile(absolutePath: string): Promise<void> {
   }
 }
 
+/**
+ * Check if a string looks like a URL.
+ */
+function isUrl(source: string): boolean {
+  try {
+    const url = new URL(source);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * SSRF protection: reject URLs pointing to private/local networks.
+ * Users can configure ATLAS_ALLOWED_URLS to restrict to specific domains.
+ */
+function assertAllowedImageUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new ImageError(`Invalid image URL: ${url}`, "unreadable", url);
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // Block localhost and loopback
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]") {
+    throw new ImageError(
+      `Image URL points to localhost which is not allowed: ${url}`,
+      "path_not_allowed",
+      url,
+    );
+  }
+
+  // Block .local domains (mDNS)
+  if (hostname.endsWith(".local")) {
+    throw new ImageError(
+      `Image URL points to a .local address which is not allowed: ${url}`,
+      "path_not_allowed",
+      url,
+    );
+  }
+
+  // Block private IPv4 ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+  if (hostname.startsWith("10.") || hostname.startsWith("192.168.")) {
+    throw new ImageError(
+      `Image URL points to a private network address which is not allowed: ${url}`,
+      "path_not_allowed",
+      url,
+    );
+  }
+  if (hostname.startsWith("172.") && hostname.split(".").length > 1) {
+    const secondOctet = Number(hostname.split(".")[1]);
+    if (secondOctet >= 16 && secondOctet <= 31) {
+      throw new ImageError(
+        `Image URL points to a private network address (172.16-31.*) which is not allowed: ${url}`,
+        "path_not_allowed",
+        url,
+      );
+    }
+  }
+
+  // Block 0.0.0.0
+  if (hostname === "0.0.0.0") {
+    throw new ImageError(
+      `Image URL points to 0.0.0.0 which is not allowed: ${url}`,
+      "path_not_allowed",
+      url,
+    );
+  }
+}
+
+/**
+ * Download an image from a URL and return the buffer.
+ */
+async function downloadImage(url: string): Promise<Buffer> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new ImageError(
+      `Failed to download image from URL: ${url}. HTTP ${response.status}`,
+      "unreadable",
+      url,
+    );
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 export async function readImageFromPath(
   imagePath: string,
   options: ReadImageOptions,
 ): Promise<LoadedImage> {
   const cwd = options.cwd ?? process.cwd();
   const allowedDirs = options.allowedDirs ?? ["."];
+
+  // URL support: download the image instead of reading from local file
+  if (isUrl(imagePath)) {
+    // SSRF protection: reject private/local network URLs
+    assertAllowedImageUrl(imagePath);
+
+    let buffer: Buffer;
+    try {
+      buffer = await downloadImage(imagePath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown download error";
+      throw new ImageError(`Unable to download image: ${message}`, "unreadable", imagePath);
+    }
+
+    if (buffer.length === 0) {
+      throw new ImageError(`Downloaded image is empty: ${imagePath}`, "unreadable", imagePath);
+    }
+
+    const detectedMime = detectMimeType(buffer, imagePath);
+    const processed = await preprocessImage(
+      buffer,
+      detectedMime,
+      options.maxImageMb,
+      imagePath,
+      options.detailLevel,
+    );
+    const metadata = await readImageMetadata(processed.buffer, imagePath);
+
+    return {
+      path: imagePath,
+      absolutePath: imagePath,
+      mimeType: processed.mimeType,
+      base64: processed.buffer.toString("base64"),
+      sizeBytes: processed.buffer.length,
+      resized: processed.resized,
+      width: metadata.width,
+      height: metadata.height,
+      sourceUrl: imagePath,
+    };
+  }
 
   let absolutePath: string;
   try {
@@ -79,7 +210,13 @@ export async function readImageFromPath(
   }
 
   const detectedMime = detectMimeType(buffer, absolutePath);
-  const processed = await preprocessImage(buffer, detectedMime, options.maxImageMb, absolutePath);
+  const processed = await preprocessImage(
+    buffer,
+    detectedMime,
+    options.maxImageMb,
+    absolutePath,
+    options.detailLevel,
+  );
   const metadata = await readImageMetadata(processed.buffer, absolutePath);
 
   return {

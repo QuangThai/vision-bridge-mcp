@@ -106,10 +106,7 @@ describe("analyzeImageBatch", () => {
 
     const result = await analyzeImageBatch(
       {
-        images: [
-          { image_path: "./dashboard.png" },
-          { image_path: "./missing.png" },
-        ],
+        images: [{ image_path: "./dashboard.png" }, { image_path: "./missing.png" }],
       },
       {
         config: testConfig,
@@ -185,10 +182,7 @@ describe("analyzeImageBatch", () => {
 
     const result = await analyzeImageBatch(
       {
-        images: [
-          { image_path: "./img1.png" },
-          { image_path: "./img2.png" },
-        ],
+        images: [{ image_path: "./img1.png" }, { image_path: "./img2.png" }],
       },
       {
         config: testConfig,

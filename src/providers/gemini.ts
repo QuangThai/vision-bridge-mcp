@@ -1,4 +1,5 @@
 import type { AtlasConfig } from "../config.js";
+import { withRetry } from "../utils/retry.js";
 import { ProviderError } from "./errors.js";
 import { VISION_SYSTEM_PROMPT } from "./prompts.js";
 import type {
@@ -9,8 +10,10 @@ import type {
   RawVisionResult,
   VisionProvider,
 } from "./types.js";
+import { mapDetailToMediaResolution } from "./types.js";
 
 const DEFAULT_TEMPERATURE = 0.1;
+const GEMINI_DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 export interface GeminiProviderConfig {
   config: AtlasConfig["vision"];
@@ -38,6 +41,8 @@ interface GeminiRequest {
   generationConfig: {
     temperature: number;
     maxOutputTokens: number;
+    response_mime_type?: string;
+    media_resolution?: string;
   };
 }
 
@@ -56,12 +61,25 @@ interface GeminiResponse {
   };
 }
 
+/**
+ * Build the Gemini API URL.
+ * Uses the configured baseUrl if it looks like a Gemini endpoint,
+ * otherwise falls back to the default Gemini base URL.
+ */
 function buildGeminiUrl(baseUrl: string, model: string): string {
-  // Default to Google AI if no base URL override
-  if (!baseUrl || baseUrl === "https://api.openai.com/v1") {
-    baseUrl = "https://generativelanguage.googleapis.com/v1beta";
-  }
   const trimmed = baseUrl.replace(/\/+$/, "");
+
+  // If the configured URL already looks like a Gemini/Google endpoint, use it as-is
+  if (trimmed.includes("generativelanguage.googleapis.com") || trimmed.includes("googleapis.com")) {
+    return `${trimmed}/models/${model}:generateContent`;
+  }
+
+  // If configured URL is OpenAI default or empty, use Gemini default
+  if (!baseUrl || trimmed === "https://api.openai.com/v1") {
+    return `${GEMINI_DEFAULT_BASE_URL}/models/${model}:generateContent`;
+  }
+
+  // Otherwise, treat the configured URL as a custom base and append the model path
   return `${trimmed}/models/${model}:generateContent`;
 }
 
@@ -77,14 +95,15 @@ export class GeminiProvider implements VisionProvider {
   }
 
   async analyzeImage(input: AnalyzeImageInput): Promise<RawVisionResult> {
+    // Per Gemini best practices: place image BEFORE text for single-image prompts
     const parts: GeminiContentPart[] = [
-      { text: input.userPrompt },
       {
         inlineData: {
           mimeType: input.image.mimeType,
           data: input.image.base64,
         },
       },
+      { text: input.userPrompt },
     ];
 
     const contents: GeminiContent[] = [
@@ -94,14 +113,18 @@ export class GeminiProvider implements VisionProvider {
       },
     ];
 
+    const mediaResolution = mapDetailToMediaResolution(input.detailLevel);
+
     const body: GeminiRequest = {
       contents,
       systemInstruction: {
         parts: [{ text: input.systemPrompt ?? VISION_SYSTEM_PROMPT }],
       },
       generationConfig: {
-        temperature: DEFAULT_TEMPERATURE,
+        temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
         maxOutputTokens: this.visionConfig.maxOutputTokens,
+        response_mime_type: "application/json",
+        ...(mediaResolution ? { media_resolution: mediaResolution } : {}),
       },
     };
 
@@ -110,7 +133,6 @@ export class GeminiProvider implements VisionProvider {
 
   async compareImages(input: CompareImagesInput): Promise<RawVisionResult> {
     const parts: GeminiContentPart[] = [
-      { text: input.userPrompt },
       {
         inlineData: {
           mimeType: input.before.mimeType,
@@ -123,6 +145,7 @@ export class GeminiProvider implements VisionProvider {
           data: input.after.base64,
         },
       },
+      { text: input.userPrompt },
     ];
 
     const contents: GeminiContent[] = [
@@ -132,14 +155,18 @@ export class GeminiProvider implements VisionProvider {
       },
     ];
 
+    const mediaResolution = mapDetailToMediaResolution(input.detailLevel);
+
     const body: GeminiRequest = {
       contents,
       systemInstruction: {
         parts: [{ text: input.systemPrompt ?? VISION_SYSTEM_PROMPT }],
       },
       generationConfig: {
-        temperature: DEFAULT_TEMPERATURE,
+        temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
         maxOutputTokens: this.visionConfig.maxOutputTokens,
+        response_mime_type: "application/json",
+        ...(mediaResolution ? { media_resolution: mediaResolution } : {}),
       },
     };
 
@@ -209,45 +236,52 @@ export class GeminiProvider implements VisionProvider {
   private async generateContent(body: GeminiRequest): Promise<RawVisionResult> {
     const url = buildGeminiUrl(this.visionConfig.baseUrl, this.visionConfig.model);
 
-    const response = await this.fetchFn(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": this.visionConfig.apiKey,
+    const retryableRequest = withRetry(
+      async () => {
+        const response = await this.fetchFn(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": this.visionConfig.apiKey,
+          },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(this.visionConfig.timeoutMs),
+        });
+
+        const payload = (await response.json()) as GeminiResponse;
+
+        if (response.status === 403 || response.status === 401) {
+          throw new ProviderError(
+            "Authentication failed. Check VISION_API_KEY.",
+            "auth",
+            response.status,
+          );
+        }
+
+        if (!response.ok) {
+          const message = payload.error?.message ?? `HTTP ${response.status}`;
+          throw new ProviderError(`Gemini request failed: ${message}`, "http", response.status);
+        }
+
+        const text = payload.candidates?.[0]?.content?.parts
+          ?.map((p) => p.text ?? "")
+          .filter(Boolean)
+          .join("\n");
+
+        if (!text || text.trim().length === 0) {
+          throw new ProviderError("Gemini returned an empty response.", "invalid_response");
+        }
+
+        return {
+          text,
+          provider: this.name,
+          model: this.visionConfig.model,
+          raw: payload,
+        };
       },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.visionConfig.timeoutMs),
-    });
+      { maxRetries: this.visionConfig.retryMax },
+    );
 
-    const payload = (await response.json()) as GeminiResponse;
-
-    if (response.status === 403 || response.status === 401) {
-      throw new ProviderError(
-        "Authentication failed. Check VISION_API_KEY.",
-        "auth",
-        response.status,
-      );
-    }
-
-    if (!response.ok) {
-      const message = payload.error?.message ?? `HTTP ${response.status}`;
-      throw new ProviderError(`Gemini request failed: ${message}`, "http", response.status);
-    }
-
-    const text = payload.candidates?.[0]?.content?.parts
-      ?.map((p) => p.text ?? "")
-      .filter(Boolean)
-      .join("\n");
-
-    if (!text || text.trim().length === 0) {
-      throw new ProviderError("Gemini returned an empty response.", "invalid_response");
-    }
-
-    return {
-      text,
-      provider: this.name,
-      model: this.visionConfig.model,
-      raw: payload,
-    };
+    return retryableRequest();
   }
 }

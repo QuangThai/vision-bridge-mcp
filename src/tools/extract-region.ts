@@ -13,7 +13,7 @@ import {
 } from "../extraction/schemas.js";
 import { type LoadedImage, readImageFromPath } from "../image/read-image.js";
 import { createVisionProvider } from "../providers/router.js";
-import type { FetchFn, VisionProvider } from "../providers/types.js";
+import { type FetchFn, type VisionProvider, mapDetailLevel } from "../providers/types.js";
 import { sanitizeAnalyzeOutput } from "../security/sanitize-output.js";
 
 export const EXTRACT_REGION_TOOL_NAME = "extract_region";
@@ -111,12 +111,14 @@ export async function extractRegion(
   const raw = await provider.analyzeImage({
     image: { mimeType: croppedImage.mimeType, base64: croppedImage.base64 },
     userPrompt: buildExtractRegionPrompt(parsedInput),
+    detailLevel: mapDetailLevel(parsedInput.detail_level),
   });
 
   const parsedJson = extractJsonFromText(raw.text);
   const structured = normalizeAnalyzeImageOutput(parsedJson, raw, parsedInput.image_path, raw.text);
   const secured = sanitizeAnalyzeOutput(structured, {
     redactSecrets: dependencies.config.atlas.redactSecrets,
+    checkPii: dependencies.config.atlas.checkPii,
   });
   const validated = analyzeImageOutputSchema.parse(secured);
 

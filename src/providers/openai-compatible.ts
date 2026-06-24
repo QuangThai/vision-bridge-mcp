@@ -1,10 +1,12 @@
 import type { AtlasConfig } from "../config.js";
+import { withRetry } from "../utils/retry.js";
 import { ProviderError } from "./errors.js";
 import { VISION_SYSTEM_PROMPT } from "./prompts.js";
 import type {
   AnalyzeImageInput,
   CompareImagesInput,
   FetchFn,
+  ImageDetailLevel,
   ProviderHealth,
   RawVisionResult,
   VisionProvider,
@@ -27,6 +29,7 @@ interface ChatCompletionContentPart {
   text?: string;
   image_url?: {
     url: string;
+    detail?: ImageDetailLevel;
   };
 }
 
@@ -35,6 +38,7 @@ interface ChatCompletionRequest {
   messages: ChatCompletionMessage[];
   temperature: number;
   max_tokens: number;
+  response_format?: { type: "text" | "json_object" };
 }
 
 interface ChatCompletionResponse {
@@ -61,6 +65,19 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
+function buildImageUrl(
+  image: { mimeType: string; base64: string },
+  detailLevel?: ImageDetailLevel,
+): { url: string; detail?: ImageDetailLevel } {
+  const url: { url: string; detail?: ImageDetailLevel } = {
+    url: toDataUrl(image),
+  };
+  if (detailLevel && detailLevel !== "auto") {
+    url.detail = detailLevel;
+  }
+  return url;
+}
+
 export class OpenAICompatibleProvider implements VisionProvider {
   readonly name = "openai-compatible";
 
@@ -84,7 +101,7 @@ export class OpenAICompatibleProvider implements VisionProvider {
           { type: "text", text: input.userPrompt },
           {
             type: "image_url",
-            image_url: { url: toDataUrl(input.image) },
+            image_url: buildImageUrl(input.image, input.detailLevel),
           },
         ],
       },
@@ -105,11 +122,11 @@ export class OpenAICompatibleProvider implements VisionProvider {
           { type: "text", text: input.userPrompt },
           {
             type: "image_url",
-            image_url: { url: toDataUrl(input.before) },
+            image_url: buildImageUrl(input.before, input.detailLevel),
           },
           {
             type: "image_url",
-            image_url: { url: toDataUrl(input.after) },
+            image_url: buildImageUrl(input.after, input.detailLevel),
           },
         ],
       },
@@ -120,7 +137,7 @@ export class OpenAICompatibleProvider implements VisionProvider {
 
   async healthCheck(): Promise<ProviderHealth> {
     try {
-      const response = await this.request("/models", { method: "GET" });
+      const response = await this.rawRequest("/models", { method: "GET" });
 
       if (response.status === 401 || response.status === 403) {
         return {
@@ -161,51 +178,62 @@ export class OpenAICompatibleProvider implements VisionProvider {
     const body: ChatCompletionRequest = {
       model: this.visionConfig.model,
       messages,
-      temperature: DEFAULT_TEMPERATURE,
+      temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
       max_tokens: this.visionConfig.maxOutputTokens,
+      response_format: { type: "json_object" },
     };
 
-    const response = await this.request("/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const retryableRequest = withRetry(
+      async () => {
+        const response = await this.rawRequest("/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        const payload = (await response.json()) as ChatCompletionResponse;
+
+        if (response.status === 401 || response.status === 403) {
+          throw new ProviderError(
+            "Authentication failed. Check VISION_API_KEY.",
+            "auth",
+            response.status,
+          );
+        }
+
+        if (!response.ok) {
+          const message = payload.error?.message ?? `HTTP ${response.status}`;
+          throw new ProviderError(
+            `Vision provider request failed: ${message}`,
+            "http",
+            response.status,
+          );
+        }
+
+        const text = payload.choices?.[0]?.message?.content;
+        if (!text || text.trim().length === 0) {
+          throw new ProviderError(
+            "Vision provider returned an empty response.",
+            "invalid_response",
+          );
+        }
+
+        return {
+          text,
+          provider: this.name,
+          model: this.visionConfig.model,
+          raw: payload,
+        };
       },
-      body: JSON.stringify(body),
-    });
+      { maxRetries: this.visionConfig.retryMax },
+    );
 
-    const payload = (await response.json()) as ChatCompletionResponse;
-
-    if (response.status === 401 || response.status === 403) {
-      throw new ProviderError(
-        "Authentication failed. Check VISION_API_KEY.",
-        "auth",
-        response.status,
-      );
-    }
-
-    if (!response.ok) {
-      const message = payload.error?.message ?? `HTTP ${response.status}`;
-      throw new ProviderError(
-        `Vision provider request failed: ${message}`,
-        "http",
-        response.status,
-      );
-    }
-
-    const text = payload.choices?.[0]?.message?.content;
-    if (!text || text.trim().length === 0) {
-      throw new ProviderError("Vision provider returned an empty response.", "invalid_response");
-    }
-
-    return {
-      text,
-      provider: this.name,
-      model: this.visionConfig.model,
-      raw: payload,
-    };
+    return retryableRequest();
   }
 
-  private async request(path: string, init: RequestInit): Promise<Response> {
+  private async rawRequest(path: string, init: RequestInit): Promise<Response> {
     const url = joinBaseUrl(this.visionConfig.baseUrl, path);
     const headers = new Headers(init.headers);
     headers.set("Authorization", `Bearer ${this.visionConfig.apiKey}`);

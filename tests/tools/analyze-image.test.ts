@@ -186,18 +186,32 @@ describe("analyzeImage", () => {
     expect(result.structured.provider.model).toBe("gpt-4o-mini");
   });
 
-  it("rejects unsupported image_url in MVP", async () => {
+  it("accepts image_url as an alternative to image_path", async () => {
+    const result = await analyzeImage(
+      {
+        image_url: "https://example.com/image.png",
+      },
+      {
+        config: testConfig,
+        provider: createMockProvider("{}"),
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.structured.summary).toBeTruthy();
+    expect(result.structured.provider.model).toBe("gpt-4o-mini");
+  });
+
+  it("rejects when both image_path and image_url are missing", async () => {
     await expect(
       analyzeImage(
-        {
-          image_url: "https://example.com/image.png",
-        },
+        {},
         {
           config: testConfig,
           provider: createMockProvider("{}"),
           readImage: vi.fn(async () => mockImage),
         },
       ),
-    ).rejects.toThrow(/image_path is required/i);
+    ).rejects.toThrow(/required/i);
   });
 });

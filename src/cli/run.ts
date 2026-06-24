@@ -1,12 +1,14 @@
 import { PACKAGE_NAME, VERSION } from "../constants.js";
 import {
   runAnalyzeCommand,
+  runCapabilitiesCommand,
   runCompareCommand,
   runDoctorCommand,
   runEvalCommand,
   runOcrCommand,
   runServeCommand,
 } from "./commands.js";
+import { runHookCaptureImageCommand, runHookUserPromptCommand } from "./hook-commands.js";
 
 export function runCli(argv: string[] = process.argv.slice(2)): number | Promise<number> {
   const [command, ...rest] = argv;
@@ -19,15 +21,19 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("When run with no command (for example via npx), starts the MCP stdio server.");
     console.log("");
     console.log("Commands:");
-    console.log("  doctor   Check environment and provider connectivity");
-    console.log("  analyze  Analyze an image and return structured evidence");
+    console.log("  doctor        Check environment and provider connectivity");
+    console.log("  capabilities  Look up main-model vision support via models.dev");
+    console.log("  analyze       Analyze an image and return structured evidence");
     console.log("  ocr      Extract visible text from an image");
     console.log("  compare  Compare two images for visual differences");
     console.log("  eval     Run golden fixture evaluation against the provider");
+    console.log("  hook     Agent hook helpers (user-prompt, capture-image)");
     console.log("  serve    Start MCP server over stdio");
     console.log("");
     console.log("Examples:");
     console.log("  atlas-vision doctor");
+    console.log("  MAIN_MODEL_REF=deepseek/deepseek-v4-flash atlas-vision doctor");
+    console.log("  atlas-vision capabilities deepseek/deepseek-v4-flash");
     console.log("  atlas-vision analyze ./screenshot.png --mode error_screenshot --json");
     console.log("  atlas-vision serve --transport stdio");
     console.log("  atlas-vision ocr ./error.png --preserve-layout");
@@ -49,6 +55,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     return runDoctorCommand();
   }
 
+  if (command === "capabilities") {
+    return runCapabilitiesCommand(rest);
+  }
+
   if (command === "analyze") {
     return runAnalyzeCommand(rest);
   }
@@ -67,6 +77,20 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
 
   if (command === "serve") {
     return runServeCommand(rest);
+  }
+
+  if (command === "hook") {
+    const [subcommand, ...hookArgs] = rest;
+    if (subcommand === "user-prompt") {
+      return runHookUserPromptCommand(hookArgs);
+    }
+    if (subcommand === "capture-image") {
+      return runHookCaptureImageCommand(hookArgs);
+    }
+    console.error(
+      "Usage: atlas-vision hook <user-prompt|capture-image> [--client cursor|codex|claude|droid]",
+    );
+    return 1;
   }
 
   console.error(`Unknown command: ${command}`);

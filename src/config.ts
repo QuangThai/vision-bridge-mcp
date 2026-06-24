@@ -11,9 +11,11 @@ const rawEnvSchema = z.object({
   VISION_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
   VISION_API_KEY: z.string().default(""),
   VISION_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  VISION_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.1),
   VISION_TIMEOUT_MS: z.coerce.number().int().positive().max(600_000).default(60_000),
   VISION_MAX_IMAGE_MB: z.coerce.number().positive().max(100).default(10),
   VISION_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().max(128_000).default(4_000),
+  VISION_RETRY_MAX: z.coerce.number().int().min(0).max(10).default(3),
   ATLAS_ALLOWED_DIRS: z.string().default("."),
   ATLAS_STORE_HISTORY: z
     .enum(["true", "false", "1", "0"])
@@ -28,6 +30,10 @@ const rawEnvSchema = z.object({
     .enum(["true", "false", "1", "0"])
     .default("true")
     .transform((value) => value === "true" || value === "1"),
+  ATLAS_CHECK_PII: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
   ATLAS_DEFAULT_DETAIL_LEVEL: detailLevelSchema.default("standard"),
 });
 
@@ -41,9 +47,11 @@ export interface AtlasConfig {
     baseUrl: string;
     apiKey: string;
     model: string;
+    temperature: number;
     timeoutMs: number;
     maxImageMb: number;
     maxOutputTokens: number;
+    retryMax: number;
   };
   atlas: {
     allowedDirs: string[];
@@ -51,6 +59,7 @@ export interface AtlasConfig {
     logLevel: LogLevel;
     logImageContent: boolean;
     redactSecrets: boolean;
+    checkPii: boolean;
     defaultDetailLevel: DetailLevel;
   };
 }
@@ -87,14 +96,17 @@ function toRawEnv(env: NodeJS.ProcessEnv): Record<string, string | undefined> {
     "VISION_BASE_URL",
     "VISION_API_KEY",
     "VISION_MODEL",
+    "VISION_TEMPERATURE",
     "VISION_TIMEOUT_MS",
     "VISION_MAX_IMAGE_MB",
     "VISION_MAX_OUTPUT_TOKENS",
+    "VISION_RETRY_MAX",
     "ATLAS_ALLOWED_DIRS",
     "ATLAS_STORE_HISTORY",
     "ATLAS_LOG_LEVEL",
     "ATLAS_LOG_IMAGE_CONTENT",
     "ATLAS_REDACT_SECRETS",
+    "ATLAS_CHECK_PII",
     "ATLAS_DEFAULT_DETAIL_LEVEL",
   ] as const;
 
@@ -120,9 +132,11 @@ function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
       baseUrl: parsed.VISION_BASE_URL,
       apiKey: parsed.VISION_API_KEY,
       model: parsed.VISION_MODEL,
+      temperature: parsed.VISION_TEMPERATURE,
       timeoutMs: parsed.VISION_TIMEOUT_MS,
       maxImageMb: parsed.VISION_MAX_IMAGE_MB,
       maxOutputTokens: parsed.VISION_MAX_OUTPUT_TOKENS,
+      retryMax: parsed.VISION_RETRY_MAX,
     },
     atlas: {
       allowedDirs: parseAllowedDirs(parsed.ATLAS_ALLOWED_DIRS),
@@ -130,6 +144,7 @@ function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
       logLevel: parsed.ATLAS_LOG_LEVEL,
       logImageContent: parsed.ATLAS_LOG_IMAGE_CONTENT,
       redactSecrets: parsed.ATLAS_REDACT_SECRETS,
+      checkPii: parsed.ATLAS_CHECK_PII,
       defaultDetailLevel: parsed.ATLAS_DEFAULT_DETAIL_LEVEL,
     },
   };

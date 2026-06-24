@@ -18,7 +18,13 @@
       "width": 1920,
       "height": 1080,
       "type": "diagram",
-      "expected_text": ["AgentsView", "Local Runtime", "Enforcement Plane", "File Watcher", "PostgreSQL"],
+      "expected_text": [
+        "AgentsView",
+        "Local Runtime",
+        "Enforcement Plane",
+        "File Watcher",
+        "PostgreSQL"
+      ],
       "expected_elements": ["nodes", "edges", "labels", "legend"]
     },
     {
@@ -78,7 +84,14 @@
       "width": 1047,
       "height": 751,
       "type": "ui_dark",
-      "expected_text": ["Settings", "Dark mode", "Compact view", "Language", "Save Changes", "Notifications"],
+      "expected_text": [
+        "Settings",
+        "Dark mode",
+        "Compact view",
+        "Language",
+        "Save Changes",
+        "Notifications"
+      ],
       "expected_elements": ["sidebar", "toggles", "dropdown", "buttons", "dark theme"]
     }
   ]

@@ -25,3 +25,10 @@ export {
   sanitizeUiScreenshotOutput,
   type SanitizeOutputOptions,
 } from "./sanitize-output.js";
+export {
+  checkContentSafety,
+  formatContentSafetyWarnings,
+  type ContentSafetyFinding,
+  type ContentSafetyOptions,
+  type ContentSafetyResult,
+} from "./content-safety.js";

@@ -93,7 +93,16 @@ Full provider and security docs:
 
 Copy-paste examples live in [`examples/`](examples/) and [`docs/product/integration.md`](docs/product/integration.md).
 
-### OpenCode
+### Auto-intercept (text-only models + images)
+
+| Client | Install |
+| --- | --- |
+| **pi** | `pi install npm:atlas-vision-mcp` |
+| **Cursor / Codex / Claude / Droid** | User-prompt hooks — [`examples/HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
+
+Hook env file (no shell export): copy [`examples/atlas-vision.env.example`](examples/atlas-vision.env.example) → `~/.config/atlas-vision/env`
+
+### MCP only (manual tool calls)
 
 See [`examples/opencode.jsonc`](examples/opencode.jsonc).
 

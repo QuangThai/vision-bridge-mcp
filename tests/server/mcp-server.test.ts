@@ -172,6 +172,28 @@ describe("createAtlasMcpServer", () => {
     expect(analyzeTool?.description).toContain("untrusted evidence");
   });
 
+  it("registers vision_instructions prompt", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createAtlasMcpServer({ config: testConfig });
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+
+    const prompts = await client.listPrompts();
+    const visionPrompt = prompts.prompts.find((prompt) => prompt.name === "vision_instructions");
+
+    expect(visionPrompt).toBeDefined();
+    expect(visionPrompt?.description).toContain("text-only");
+
+    const result = await client.getPrompt({ name: "vision_instructions", arguments: {} });
+    const text = result.messages
+      .map((message) => ("text" in message.content ? message.content.text : ""))
+      .join("\n");
+    expect(text).toContain("analyze_image");
+    expect(text).toContain("ocr_image");
+  });
+
   it("registers ocr_image and returns structured OCR output", async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const ocr = vi.fn(async () => mockOcrResult);

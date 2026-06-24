@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "npx -y atlas-vision-mcp hook user-prompt --client cursor"
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "Write",
+        "command": "npx -y atlas-vision-mcp hook capture-image"
+      }
+    ]
+  }
+}

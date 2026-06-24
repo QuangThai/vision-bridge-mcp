@@ -1,57 +1,75 @@
-import type { AnalyzeImageOutput } from "../extraction/schemas.js";
-import type { OcrImageOutput } from "../extraction/schemas.js";
-import type { AnalyzeUiScreenshotOutput } from "../extraction/schemas.js";
+import type {
+  AnalyzeImageOutput,
+  AnalyzeUiScreenshotOutput,
+  OcrImageOutput,
+} from "../extraction/schemas.js";
+import { checkContentSafety, formatContentSafetyWarnings } from "./content-safety.js";
 import { buildPromptInjectionWarnings, tagUntrustedText } from "./prompt-injection.js";
-import { formatRedactionWarnings, redactSecrets } from "./redact.js";
+import { type RedactionFinding, formatRedactionWarnings, redactSecrets } from "./redact.js";
 
 export interface SanitizeOutputOptions {
   redactSecrets: boolean;
+  checkPii?: boolean;
+}
+
+function redactField(text: string, enabled: boolean, findings: RedactionFinding[]): string {
+  const result = redactSecrets(text, enabled);
+  if (result.redacted) {
+    findings.push(...result.findings);
+  }
+  return result.text;
+}
+
+function addInjectionWarnings(texts: string[], warnings: Set<string>): void {
+  for (const warning of buildPromptInjectionWarnings(texts)) {
+    warnings.add(warning);
+  }
+}
+
+function addRedactionWarnings(findings: RedactionFinding[], warnings: Set<string>): void {
+  if (findings.length === 0) return;
+  for (const warning of formatRedactionWarnings(findings)) {
+    warnings.add(warning);
+  }
+}
+
+function addPiiWarnings(combinedText: string, warnings: Set<string>, checkPii?: boolean): void {
+  if (!checkPii) return;
+  const safetyResult = checkContentSafety(combinedText);
+  for (const warning of formatContentSafetyWarnings(safetyResult)) {
+    warnings.add(warning);
+  }
 }
 
 export function sanitizeOcrOutput(
   output: OcrImageOutput,
   options: SanitizeOutputOptions,
 ): OcrImageOutput {
-  const redactionFindings = [];
-  const visibleText = output.visible_text.map((block) => {
-    const redacted = redactSecrets(block.text, options.redactSecrets);
-    if (redacted.redacted) {
-      redactionFindings.push(...redacted.findings);
-    }
+  const redactionFindings: RedactionFinding[] = [];
+  const visibleText = output.visible_text.map((block) => ({
+    ...block,
+    text: tagUntrustedText(redactField(block.text, options.redactSecrets, redactionFindings)),
+  }));
 
-    return {
-      ...block,
-      text: tagUntrustedText(redacted.text),
-    };
-  });
-
-  const layoutRedacted = redactSecrets(output.layout_text, options.redactSecrets);
-  if (layoutRedacted.redacted) {
-    redactionFindings.push(...layoutRedacted.findings);
-  }
-
-  const summaryRedacted = redactSecrets(output.summary, options.redactSecrets);
-  if (summaryRedacted.redacted) {
-    redactionFindings.push(...summaryRedacted.findings);
-  }
+  const layoutRedacted = redactField(output.layout_text, options.redactSecrets, redactionFindings);
+  const summaryRedacted = redactField(output.summary, options.redactSecrets, redactionFindings);
 
   const warnings = new Set(output.warnings);
-  for (const warning of buildPromptInjectionWarnings([
-    output.summary,
-    layoutRedacted.text,
-    ...visibleText.map((block) => block.text),
-  ])) {
-    warnings.add(warning);
-  }
-
-  for (const warning of formatRedactionWarnings(redactionFindings)) {
-    warnings.add(warning);
-  }
+  addInjectionWarnings(
+    [output.summary, layoutRedacted, ...visibleText.map((block) => block.text)],
+    warnings,
+  );
+  addRedactionWarnings(redactionFindings, warnings);
+  addPiiWarnings(
+    [summaryRedacted, layoutRedacted, ...visibleText.map((b) => b.text)].join(" "),
+    warnings,
+    options.checkPii,
+  );
 
   return {
     ...output,
-    summary: summaryRedacted.text,
-    layout_text: layoutRedacted.text,
+    summary: summaryRedacted,
+    layout_text: layoutRedacted,
     visible_text: visibleText,
     warnings: [...warnings],
   };
@@ -63,40 +81,42 @@ export function sanitizeAnalyzeOutput(
 ): AnalyzeImageOutput {
   const textsForInjection: string[] = [output.summary];
   const observations = output.observations.map((observation) => {
-    const redacted = redactSecrets(observation.content, options.redactSecrets);
-    textsForInjection.push(redacted.text);
+    const content = redactField(observation.content, options.redactSecrets, []);
+    textsForInjection.push(content);
     return {
       ...observation,
-      content: tagUntrustedText(redacted.text),
+      content: tagUntrustedText(content),
     };
   });
 
   const inferences = output.inferences.map((inference) => {
-    const redacted = redactSecrets(inference.content, options.redactSecrets);
-    textsForInjection.push(redacted.text);
+    const content = redactField(inference.content, options.redactSecrets, []);
+    textsForInjection.push(content);
     return {
       ...inference,
-      content: redacted.text,
+      content,
     };
   });
 
-  const securityNotes = new Set(output.security_notes);
-  for (const warning of buildPromptInjectionWarnings(textsForInjection)) {
-    securityNotes.add(warning);
-  }
+  const redactionFindings: RedactionFinding[] = [];
+  const summaryRedacted = redactField(output.summary, options.redactSecrets, redactionFindings);
 
-  if (options.redactSecrets) {
-    const redactedSummary = redactSecrets(output.summary, true);
-    if (redactedSummary.redacted) {
-      for (const warning of formatRedactionWarnings(redactedSummary.findings)) {
-        securityNotes.add(warning);
-      }
-    }
-  }
+  const securityNotes = new Set(output.security_notes);
+  addInjectionWarnings(textsForInjection, securityNotes);
+  addRedactionWarnings(redactionFindings, securityNotes);
+  addPiiWarnings(
+    [
+      output.summary,
+      ...observations.map((o) => o.content),
+      ...inferences.map((i) => i.content),
+    ].join(" "),
+    securityNotes,
+    options.checkPii,
+  );
 
   return {
     ...output,
-    summary: redactSecrets(output.summary, options.redactSecrets).text,
+    summary: summaryRedacted,
     observations,
     inferences,
     security_notes: [...securityNotes],
@@ -108,37 +128,37 @@ export function sanitizeUiScreenshotOutput(
   options: SanitizeOutputOptions,
 ): AnalyzeUiScreenshotOutput {
   const textsForInjection: string[] = [output.summary, output.layout.structure];
+  const redactionFindings: RedactionFinding[] = [];
   const uiElements = output.ui_elements.map((element) => {
-    const label = redactSecrets(element.label, options.redactSecrets);
-    const hint = redactSecrets(element.implementation_hint, options.redactSecrets);
-    textsForInjection.push(label.text, hint.text);
+    const label = redactField(element.label, options.redactSecrets, redactionFindings);
+    const hint = redactField(element.implementation_hint, options.redactSecrets, redactionFindings);
+    textsForInjection.push(label, hint);
 
     return {
       ...element,
-      label: tagUntrustedText(label.text),
-      implementation_hint: hint.text,
+      label: tagUntrustedText(label),
+      implementation_hint: hint,
     };
   });
 
-  const layoutStructure = redactSecrets(output.layout.structure, options.redactSecrets);
-  const uncertainties = new Set(output.uncertainties);
-  for (const warning of buildPromptInjectionWarnings(textsForInjection)) {
-    uncertainties.add(warning);
-  }
+  const summaryRedacted = redactField(output.summary, options.redactSecrets, redactionFindings);
+  const layoutStructure = redactField(
+    output.layout.structure,
+    options.redactSecrets,
+    redactionFindings,
+  );
 
-  if (options.redactSecrets && layoutStructure.redacted) {
-    for (const warning of formatRedactionWarnings(layoutStructure.findings)) {
-      uncertainties.add(warning);
-    }
-  }
+  const uncertainties = new Set(output.uncertainties);
+  addInjectionWarnings(textsForInjection, uncertainties);
+  addRedactionWarnings(redactionFindings, uncertainties);
 
   return {
     ...output,
-    summary: redactSecrets(output.summary, options.redactSecrets).text,
+    summary: summaryRedacted,
     ui_elements: uiElements,
     layout: {
       ...output.layout,
-      structure: layoutStructure.text,
+      structure: layoutStructure,
     },
     uncertainties: [...uncertainties],
   };

@@ -21,19 +21,11 @@ export const analyzeImageInputSchema = z
     output_format: z.literal("markdown_json").default("markdown_json"),
   })
   .superRefine((value, context) => {
-    if (!value.image_path?.trim()) {
+    if (!value.image_path?.trim() && !value.image_url?.trim()) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "image_path is required for MVP. Remote image_url support is not implemented yet.",
+        message: "Either image_path or image_url is required.",
         path: ["image_path"],
-      });
-    }
-
-    if (value.image_url) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "image_url is not supported in MVP. Use a local image_path.",
-        path: ["image_url"],
       });
     }
   });
@@ -337,11 +329,15 @@ export const analyzeImageBatchOutputSchema = z.object({
   items: z.array(analyzeImageBatchItemOutputSchema),
   total_processed: z.number().int(),
   failed_count: z.number().int().default(0),
-  errors: z.array(z.object({
-    index: z.number().int(),
-    image_path: z.string(),
-    error: z.string(),
-  })).default([]),
+  errors: z
+    .array(
+      z.object({
+        index: z.number().int(),
+        image_path: z.string(),
+        error: z.string(),
+      }),
+    )
+    .default([]),
   provider: z.object({
     name: z.string(),
     model: z.string(),

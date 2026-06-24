@@ -24,13 +24,13 @@ npx atlas-vision-mcp analyze ./path/to/image.png --json
 
 1. Bump `version` in `package.json` and `src/constants.ts` together.
 2. Commit the version bump.
-3. Tag: `git tag v0.2.0` (match package version).
+3. Tag: `git tag v0.2.1` (match package version).
 
 ## npm publish
 
 1. `npm login` (one-time).
 2. `npm publish --access public` (if scoped later, adjust accordingly).
-3. Confirm package page lists `README.md` and `dist/`.
+3. Confirm package page lists `README.md`, `dist/`, `extensions/`, and `hooks/`.
 
 `prepublishOnly` runs `pnpm build` automatically.
 
