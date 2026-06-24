@@ -53,7 +53,9 @@ describe("mime detection", () => {
 
   it("rejects unsupported formats", () => {
     expect(() => detectMimeType(Buffer.from("hello"), "file.txt")).toThrow(ImageError);
-    expect(() => detectMimeType(Buffer.from("hello"), "file.txt")).toThrow(/Unsupported image format/);
+    expect(() => detectMimeType(Buffer.from("hello"), "file.txt")).toThrow(
+      /Unsupported image format/,
+    );
   });
 });
 

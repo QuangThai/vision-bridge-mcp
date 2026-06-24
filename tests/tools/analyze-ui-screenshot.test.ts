@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { loadConfig } from "../../src/config.js";
 import { normalizeUiScreenshotOutput } from "../../src/extraction/normalize.js";
-import { analyzeUiScreenshot } from "../../src/tools/analyze-ui-screenshot.js";
 import type { LoadedImage } from "../../src/image/read-image.js";
 import type { VisionProvider } from "../../src/providers/types.js";
+import { analyzeUiScreenshot } from "../../src/tools/analyze-ui-screenshot.js";
 
 const testConfig = loadConfig({
   VISION_API_KEY: "sk-test",

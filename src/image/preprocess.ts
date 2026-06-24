@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { ImageError } from "./errors.js";
 import { assertWithinLimit } from "./limits.js";
-import { type SupportedMimeType } from "./mime.js";
+import type { SupportedMimeType } from "./mime.js";
 
 const MAX_RESIZE_ATTEMPTS = 6;
 const INITIAL_MAX_DIMENSION = 2048;
@@ -23,13 +23,15 @@ export async function preprocessImage(
     return { buffer, mimeType, resized: false };
   }
 
-  const metadata = await sharp(buffer).metadata().catch(() => {
-    throw new ImageError(
-      `Image is unreadable or corrupted.${filePath ? ` Path: ${filePath}` : ""}`,
-      "unreadable",
-      filePath,
-    );
-  });
+  const metadata = await sharp(buffer)
+    .metadata()
+    .catch(() => {
+      throw new ImageError(
+        `Image is unreadable or corrupted.${filePath ? ` Path: ${filePath}` : ""}`,
+        "unreadable",
+        filePath,
+      );
+    });
 
   let current = buffer;
   let currentMime = mimeType;

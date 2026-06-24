@@ -69,7 +69,10 @@ export function resolveImagePath(imagePath: string, cwd: string): string {
   return isAbsolute(imagePath) ? normalize(resolve(imagePath)) : normalize(resolve(cwd, imagePath));
 }
 
-export function assertPathAllowed(imagePath: string, options: PathPolicyOptions): ResolvedImagePath {
+export function assertPathAllowed(
+  imagePath: string,
+  options: PathPolicyOptions,
+): ResolvedImagePath {
   const cwd = normalize(resolve(options.cwd));
   const absolutePath = resolveImagePath(imagePath, cwd);
   const allowedRoots = options.allowedDirs.map((dir) => resolveAllowedRoot(dir, cwd));

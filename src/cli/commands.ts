@@ -1,14 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { ConfigError, loadConfig, validateProviderConfig, type AtlasConfig } from "../config.js";
-import { ImageError } from "../image/errors.js";
-import { PathPolicyError } from "../security/path-policy.js";
-import { createVisionProvider } from "../providers/router.js";
-import { ProviderError } from "../providers/errors.js";
-import type { FetchFn, VisionProvider } from "../providers/types.js";
-import { analyzeImage } from "../tools/analyze-image.js";
-import { analyzeUiScreenshot } from "../tools/analyze-ui-screenshot.js";
-import { compareImages } from "../tools/compare-images.js";
-import { ocrImage } from "../tools/ocr-image.js";
+import { type AtlasConfig, ConfigError, loadConfig, validateProviderConfig } from "../config.js";
 import {
   analyzeImageModeSchema,
   compareImagesFocusSchema,
@@ -18,7 +9,16 @@ import {
   uiTargetFrameworkSchema,
 } from "../extraction/schemas.js";
 import type { AnalyzeImageMode } from "../extraction/schemas.js";
+import { ImageError } from "../image/errors.js";
+import { ProviderError } from "../providers/errors.js";
+import { createVisionProvider } from "../providers/router.js";
+import type { FetchFn, VisionProvider } from "../providers/types.js";
+import { PathPolicyError } from "../security/path-policy.js";
 import { serveStdio } from "../server.js";
+import { analyzeImage } from "../tools/analyze-image.js";
+import { analyzeUiScreenshot } from "../tools/analyze-ui-screenshot.js";
+import { compareImages } from "../tools/compare-images.js";
+import { ocrImage } from "../tools/ocr-image.js";
 import { getFlagString, hasFlag, parseArgs } from "./parse-args.js";
 
 function resolveCliMode(value: string | undefined): AnalyzeImageMode {
@@ -349,9 +349,7 @@ export async function runOcrCommand(
 
   try {
     const config = load();
-    const preserveLayout = hasFlag(flags, "no-preserve-layout")
-      ? false
-      : true;
+    const preserveLayout = !hasFlag(flags, "no-preserve-layout");
     const result = await ocr(
       {
         image_path: imagePath,

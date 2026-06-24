@@ -164,9 +164,8 @@ export function validateProviderConfig(config: AtlasConfig): void {
   }
 
   if (!config.vision.baseUrl.trim()) {
-    throw new ConfigError(
-      "VISION_BASE_URL is required. Example: https://api.openai.com/v1",
-      ["VISION_BASE_URL: required"],
-    );
+    throw new ConfigError("VISION_BASE_URL is required. Example: https://api.openai.com/v1", [
+      "VISION_BASE_URL: required",
+    ]);
   }
 }

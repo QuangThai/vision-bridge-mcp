@@ -185,7 +185,11 @@ export class OpenAICompatibleProvider implements VisionProvider {
 
     if (!response.ok) {
       const message = payload.error?.message ?? `HTTP ${response.status}`;
-      throw new ProviderError(`Vision provider request failed: ${message}`, "http", response.status);
+      throw new ProviderError(
+        `Vision provider request failed: ${message}`,
+        "http",
+        response.status,
+      );
     }
 
     const text = payload.choices?.[0]?.message?.content;

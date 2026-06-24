@@ -1,9 +1,9 @@
-import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
+import { access, readFile } from "node:fs/promises";
+import { PathPolicyError, assertPathAllowed } from "../security/path-policy.js";
 import { ImageError } from "./errors.js";
 import { detectMimeType } from "./mime.js";
 import { preprocessImage, readImageMetadata } from "./preprocess.js";
-import { assertPathAllowed, PathPolicyError } from "../security/path-policy.js";
 
 export interface LoadedImage {
   path: string;
@@ -75,11 +75,7 @@ export async function readImageFromPath(
   }
 
   if (buffer.length === 0) {
-    throw new ImageError(
-      `Image file is empty: ${absolutePath}`,
-      "unreadable",
-      absolutePath,
-    );
+    throw new ImageError(`Image file is empty: ${absolutePath}`, "unreadable", absolutePath);
   }
 
   const detectedMime = detectMimeType(buffer, absolutePath);

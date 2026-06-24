@@ -1,5 +1,11 @@
 import { PACKAGE_NAME, VERSION } from "../constants.js";
-import { runAnalyzeCommand, runCompareCommand, runDoctorCommand, runOcrCommand, runServeCommand } from "./commands.js";
+import {
+  runAnalyzeCommand,
+  runCompareCommand,
+  runDoctorCommand,
+  runOcrCommand,
+  runServeCommand,
+} from "./commands.js";
 
 export function runCli(argv: string[] = process.argv.slice(2)): number | Promise<number> {
   const [command, ...rest] = argv;

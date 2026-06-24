@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadConfig } from "../../src/config.js";
-import { ProviderError } from "../../src/providers/errors.js";
-import { OpenAICompatibleProvider } from "../../src/providers/openai-compatible.js";
+import type { ProviderError } from "../../src/providers/errors.js";
 import { createVisionProvider } from "../../src/providers/index.js";
+import { OpenAICompatibleProvider } from "../../src/providers/openai-compatible.js";
 import type { FetchFn } from "../../src/providers/types.js";
 
 const testEnv = {
@@ -18,7 +18,9 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function createMockFetch(handler: (url: string, init: RequestInit) => Response | Promise<Response>): FetchFn {
+function createMockFetch(
+  handler: (url: string, init: RequestInit) => Response | Promise<Response>,
+): FetchFn {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input.toString();
     return handler(url, init ?? {});
@@ -51,7 +53,10 @@ describe("OpenAICompatibleProvider", () => {
       expect(body.messages[0]?.role).toBe("system");
       expect(body.messages[1]?.role).toBe("user");
 
-      const userContent = body.messages[1]?.content as Array<{ type: string; image_url?: { url: string } }>;
+      const userContent = body.messages[1]?.content as Array<{
+        type: string;
+        image_url?: { url: string };
+      }>;
       expect(userContent[1]?.type).toBe("image_url");
       expect(userContent[1]?.image_url?.url).toBe("data:image/png;base64,abc123");
 
@@ -171,6 +176,8 @@ describe("createVisionProvider", () => {
   });
 
   it("requires API key before creating provider", () => {
-    expect(() => createVisionProvider(loadConfig({ VISION_API_KEY: "" }))).toThrow(/VISION_API_KEY/);
+    expect(() => createVisionProvider(loadConfig({ VISION_API_KEY: "" }))).toThrow(
+      /VISION_API_KEY/,
+    );
   });
 });

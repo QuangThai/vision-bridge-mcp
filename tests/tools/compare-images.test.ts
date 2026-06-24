@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { loadConfig } from "../../src/config.js";
 import { normalizeCompareImagesOutput } from "../../src/extraction/normalize.js";
-import { compareImages } from "../../src/tools/compare-images.js";
 import type { LoadedImage } from "../../src/image/read-image.js";
 import type { VisionProvider } from "../../src/providers/types.js";
+import { compareImages } from "../../src/tools/compare-images.js";
 
 const testConfig = loadConfig({
   VISION_API_KEY: "sk-test",
@@ -118,7 +118,9 @@ describe("compareImages", () => {
       }),
     );
 
-    const readImage = vi.fn(async (path: string) => (path.includes("before") ? mockBefore : mockAfter));
+    const readImage = vi.fn(async (path: string) =>
+      path.includes("before") ? mockBefore : mockAfter,
+    );
 
     const result = await compareImages(
       {
@@ -161,7 +163,9 @@ describe("compareImages", () => {
       {
         config: testConfig,
         provider,
-        readImage: vi.fn(async (path: string) => (path.includes("before") ? mockBefore : mockAfter)),
+        readImage: vi.fn(async (path: string) =>
+          path.includes("before") ? mockBefore : mockAfter,
+        ),
       },
     );
 

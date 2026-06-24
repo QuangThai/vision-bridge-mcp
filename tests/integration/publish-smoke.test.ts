@@ -1,8 +1,8 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../src/cli/commands.js", async (importOriginal) => {
@@ -13,18 +13,13 @@ vi.mock("../../src/cli/commands.js", async (importOriginal) => {
   };
 });
 
+import { runDoctorCommand, runServeCommand } from "../../src/cli/commands.js";
+import { runCli } from "../../src/cli/run.js";
+import { ConfigError } from "../../src/config.js";
 import { PACKAGE_NAME, VERSION } from "../../src/index.js";
 import { createAtlasMcpServer } from "../../src/server.js";
-import { runCli } from "../../src/cli/run.js";
-import { runDoctorCommand, runServeCommand } from "../../src/cli/commands.js";
-import { ConfigError } from "../../src/config.js";
 
-const TOOL_NAMES = [
-  "analyze_image",
-  "ocr_image",
-  "analyze_ui_screenshot",
-  "compare_images",
-];
+const TOOL_NAMES = ["analyze_image", "ocr_image", "analyze_ui_screenshot", "compare_images"];
 
 describe("publish smoke", () => {
   it("exposes package metadata for release", () => {
@@ -32,10 +27,7 @@ describe("publish smoke", () => {
     expect(VERSION).toMatch(/^\d+\.\d+\.\d+$/);
 
     const packageJson = JSON.parse(
-      readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), "../../package.json"),
-        "utf8",
-      ),
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../package.json"), "utf8"),
     ) as { bin?: Record<string, string>; files?: string[] };
 
     expect(packageJson.bin?.["atlas-vision"]).toBe("./dist/cli/main.js");

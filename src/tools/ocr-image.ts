@@ -1,5 +1,4 @@
 import type { AtlasConfig } from "../config.js";
-import { readImageFromPath, toEncodedImage, type LoadedImage } from "../image/read-image.js";
 import {
   extractJsonFromText,
   normalizeOcrImageOutput,
@@ -11,6 +10,7 @@ import {
   ocrImageInputSchema,
   ocrImageOutputSchema,
 } from "../extraction/schemas.js";
+import { type LoadedImage, readImageFromPath, toEncodedImage } from "../image/read-image.js";
 import { createVisionProvider } from "../providers/router.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
 import { sanitizeOcrOutput } from "../security/sanitize-output.js";
@@ -47,7 +47,9 @@ function buildOcrPrompt(input: OcrImageInput): string {
   ];
 
   if (input.preserve_layout) {
-    lines.push("Preserve spatial layout in layout_text using line breaks and spacing where possible.");
+    lines.push(
+      "Preserve spatial layout in layout_text using line breaks and spacing where possible.",
+    );
   }
 
   if (input.extract_tables) {

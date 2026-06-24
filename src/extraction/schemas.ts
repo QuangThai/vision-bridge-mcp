@@ -96,12 +96,7 @@ export type AnalyzeImageMode = z.infer<typeof analyzeImageModeSchema>;
 export type AnalyzeImageInput = z.infer<typeof analyzeImageInputSchema>;
 export type AnalyzeImageOutput = z.infer<typeof analyzeImageOutputSchema>;
 
-export const ocrImageRegionSchema = z.enum([
-  "top-left",
-  "center",
-  "bottom-right",
-  "unknown",
-]);
+export const ocrImageRegionSchema = z.enum(["top-left", "center", "bottom-right", "unknown"]);
 
 export const ocrVisibleTextBlockSchema = z.object({
   id: z.string(),
@@ -232,13 +227,7 @@ export type UiLayout = z.infer<typeof uiLayoutSchema>;
 export type AnalyzeUiScreenshotInput = z.infer<typeof analyzeUiScreenshotInputSchema>;
 export type AnalyzeUiScreenshotOutput = z.infer<typeof analyzeUiScreenshotOutputSchema>;
 
-export const compareImagesFocusSchema = z.enum([
-  "layout",
-  "text",
-  "color",
-  "component",
-  "general",
-]);
+export const compareImagesFocusSchema = z.enum(["layout", "text", "color", "component", "general"]);
 
 export const compareImagesSeverityThresholdSchema = z.enum(["low", "medium", "high"]);
 

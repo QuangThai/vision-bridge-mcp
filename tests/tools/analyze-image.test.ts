@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { loadConfig } from "../../src/config.js";
-import { analyzeImage } from "../../src/tools/analyze-image.js";
 import type { LoadedImage } from "../../src/image/read-image.js";
 import type { VisionProvider } from "../../src/providers/types.js";
+import { analyzeImage } from "../../src/tools/analyze-image.js";
 
 const testConfig = loadConfig({
   VISION_API_KEY: "sk-test",

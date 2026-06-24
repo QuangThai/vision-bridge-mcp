@@ -1,5 +1,4 @@
 import type { AtlasConfig } from "../config.js";
-import { readImageFromPath, toEncodedImage, type LoadedImage } from "../image/read-image.js";
 import {
   extractJsonFromText,
   normalizeCompareImagesOutput,
@@ -11,6 +10,7 @@ import {
   compareImagesInputSchema,
   compareImagesOutputSchema,
 } from "../extraction/schemas.js";
+import { type LoadedImage, readImageFromPath, toEncodedImage } from "../image/read-image.js";
 import { createVisionProvider } from "../providers/router.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
 

@@ -18,10 +18,7 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm run build",
@@ -31,12 +28,7 @@
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": [
-    "mcp",
-    "vision",
-    "coding-agent",
-    "model-context-protocol"
-  ],
+  "keywords": ["mcp", "vision", "coding-agent", "model-context-protocol"],
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.10.5",

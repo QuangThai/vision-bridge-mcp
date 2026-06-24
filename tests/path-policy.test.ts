@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { assertPathAllowed, PathPolicyError } from "../src/security/path-policy.js";
+import { PathPolicyError, assertPathAllowed } from "../src/security/path-policy.js";
 
 describe("assertPathAllowed", () => {
   const cwd = resolve("/workspace/project");

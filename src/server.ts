@@ -2,9 +2,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
+import { type AtlasConfig, ConfigError, loadConfig } from "./config.js";
 import { PACKAGE_NAME, VERSION } from "./constants.js";
-import { ConfigError, loadConfig, type AtlasConfig } from "./config.js";
-import { ImageError } from "./image/errors.js";
 import {
   analyzeImageDetailLevelSchema,
   analyzeImageModeSchema,
@@ -13,33 +12,34 @@ import {
   compareImagesOutputSchema,
   ocrImageOutputSchema,
 } from "./extraction/schemas.js";
+import { ImageError } from "./image/errors.js";
 import { ProviderError } from "./providers/errors.js";
-import { PathPolicyError } from "./security/path-policy.js";
 import type { FetchFn } from "./providers/types.js";
+import { PathPolicyError } from "./security/path-policy.js";
 import {
-  analyzeImage,
   ANALYZE_IMAGE_TOOL_DESCRIPTION,
   ANALYZE_IMAGE_TOOL_NAME,
   type AnalyzeImageDependencies,
+  analyzeImage,
 } from "./tools/analyze-image.js";
 import {
-  ocrImage,
-  OCR_IMAGE_TOOL_DESCRIPTION,
-  OCR_IMAGE_TOOL_NAME,
-  type OcrImageDependencies,
-} from "./tools/ocr-image.js";
-import {
-  analyzeUiScreenshot,
   ANALYZE_UI_SCREENSHOT_TOOL_DESCRIPTION,
   ANALYZE_UI_SCREENSHOT_TOOL_NAME,
   type AnalyzeUiScreenshotDependencies,
+  analyzeUiScreenshot,
 } from "./tools/analyze-ui-screenshot.js";
 import {
-  compareImages,
   COMPARE_IMAGES_TOOL_DESCRIPTION,
   COMPARE_IMAGES_TOOL_NAME,
   type CompareImagesDependencies,
+  compareImages,
 } from "./tools/compare-images.js";
+import {
+  OCR_IMAGE_TOOL_DESCRIPTION,
+  OCR_IMAGE_TOOL_NAME,
+  type OcrImageDependencies,
+  ocrImage,
+} from "./tools/ocr-image.js";
 
 export const analyzeImageMcpInputSchema = {
   image_path: z.string().min(1),

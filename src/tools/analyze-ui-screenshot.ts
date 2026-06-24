@@ -1,5 +1,4 @@
 import type { AtlasConfig } from "../config.js";
-import { readImageFromPath, toEncodedImage, type LoadedImage } from "../image/read-image.js";
 import {
   extractJsonFromText,
   normalizeUiScreenshotOutput,
@@ -11,6 +10,7 @@ import {
   analyzeUiScreenshotInputSchema,
   analyzeUiScreenshotOutputSchema,
 } from "../extraction/schemas.js";
+import { type LoadedImage, readImageFromPath, toEncodedImage } from "../image/read-image.js";
 import { createVisionProvider } from "../providers/router.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
 import { sanitizeUiScreenshotOutput } from "../security/sanitize-output.js";
@@ -51,7 +51,9 @@ function buildUiScreenshotPrompt(input: AnalyzeUiScreenshotInput): string {
   ];
 
   if (input.goal === "implement") {
-    lines.push("Focus implementation_plan on concrete component and layout steps for the target framework and style system.");
+    lines.push(
+      "Focus implementation_plan on concrete component and layout steps for the target framework and style system.",
+    );
   }
 
   if (input.goal === "debug") {
@@ -59,7 +61,9 @@ function buildUiScreenshotPrompt(input: AnalyzeUiScreenshotInput): string {
   }
 
   if (input.goal === "accessibility_review") {
-    lines.push("Prioritize accessibility_issues such as contrast, labels, focus order clues, and touch target sizing.");
+    lines.push(
+      "Prioritize accessibility_issues such as contrast, labels, focus order clues, and touch target sizing.",
+    );
   }
 
   if (input.target_framework !== "unknown") {
@@ -67,7 +71,9 @@ function buildUiScreenshotPrompt(input: AnalyzeUiScreenshotInput): string {
   }
 
   if (input.style_system !== "unknown") {
-    lines.push(`Prefer ${input.style_system} conventions in implementation_hint values when visible evidence supports it.`);
+    lines.push(
+      `Prefer ${input.style_system} conventions in implementation_hint values when visible evidence supports it.`,
+    );
   }
 
   return lines.join("\n");

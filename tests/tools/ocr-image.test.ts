@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { loadConfig } from "../../src/config.js";
 import { normalizeOcrImageOutput, renderOcrImageMarkdown } from "../../src/extraction/normalize.js";
-import { ocrImage } from "../../src/tools/ocr-image.js";
 import type { LoadedImage } from "../../src/image/read-image.js";
 import type { VisionProvider } from "../../src/providers/types.js";
+import { ocrImage } from "../../src/tools/ocr-image.js";
 
 const testConfig = loadConfig({
   VISION_API_KEY: "sk-test",
@@ -101,9 +101,9 @@ describe("ocrImage", () => {
     expect(result.markdown).toContain("## Summary");
     expect(result.markdown).toContain("npm ERR!");
     expect(result.structured.visible_text[0]?.text).toContain("ELIFECYCLE");
-    expect(result.structured.warnings.some((warning) => warning.includes("untrusted evidence"))).toBe(
-      true,
-    );
+    expect(
+      result.structured.warnings.some((warning) => warning.includes("untrusted evidence")),
+    ).toBe(true);
     expect(renderOcrImageMarkdown(result.structured)).toContain("## Warnings");
   });
 

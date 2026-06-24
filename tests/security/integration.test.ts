@@ -3,11 +3,11 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { loadConfig } from "../../src/config.js";
-import { ImageError } from "../../src/image/errors.js";
+import type { ImageError } from "../../src/image/errors.js";
 import { readImageFromPath } from "../../src/image/read-image.js";
-import { ocrImage } from "../../src/tools/ocr-image.js";
 import type { LoadedImage } from "../../src/image/read-image.js";
 import type { VisionProvider } from "../../src/providers/types.js";
+import { ocrImage } from "../../src/tools/ocr-image.js";
 
 const FIXTURE_DIR = fileURLToPath(new URL("../image/fixtures", import.meta.url));
 

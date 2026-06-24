@@ -6,11 +6,7 @@ export function maxImageBytes(maxImageMb: number): number {
   return Math.floor(maxImageMb * BYTES_PER_MB);
 }
 
-export function assertWithinLimit(
-  sizeBytes: number,
-  maxImageMb: number,
-  filePath?: string,
-): void {
+export function assertWithinLimit(sizeBytes: number, maxImageMb: number, filePath?: string): void {
   const limit = maxImageBytes(maxImageMb);
   if (sizeBytes > limit) {
     throw new ImageError(
