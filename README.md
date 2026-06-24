@@ -57,7 +57,7 @@ npx atlas-vision-mcp ocr ./error.png --preserve-layout
 npx atlas-vision-mcp compare ./before.png ./after.png --focus layout
 ```
 
-## MCP tools (4)
+## MCP tools (6)
 
 | Tool | Use when |
 | --- | --- |
@@ -65,6 +65,8 @@ npx atlas-vision-mcp compare ./before.png ./after.png --focus layout
 | `ocr_image` | Extract visible text from screenshots, documents, UI text |
 | `analyze_ui_screenshot` | UI/mockup structure, components, layout, a11y hints |
 | `compare_images` | Before/after visual regression and layout shifts |
+| `extract_region` | Crop and analyze a specific region of an image |
+| `analyze_image_batch` | Process multiple images in a single call |
 
 Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 

@@ -32,9 +32,22 @@ Phased delivery for Atlas Vision MCP. **MVP = Phase 1** (+ safety items from Pha
 - Ollama via openai-compatible adapter (localhost:11434/v1)
 - Provider router, "gemini" config value
 
-## Phase 5: Web UI MVP
+## Phase 5: Enhanced Tools ✓
+
+- `extract_region`: crop and analyze a specific region of an image
+- `analyze_image_batch`: process multiple images in a single call
+- 8 golden fixtures (was 4) with diverse image types
+- Improved prompts for all analyze_image modes
+- Edge case test coverage (108 tests, was 90)
+- Gemini health check fix (POST instead of GET)
+
+## Phase 6: Web UI MVP (deferred)
 
 - Local dashboard: upload, preview, JSON/graph viewer, integration generator
+
+## Phase 7: Team/Remote Mode (deferred)
+
+- HTTP/SSE transport, Docker, optional persistence, audit logs
 
 ## Phase 6: Team/Remote Mode
 

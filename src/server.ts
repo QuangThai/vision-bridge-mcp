@@ -17,6 +17,12 @@ import { ProviderError } from "./providers/errors.js";
 import type { FetchFn } from "./providers/types.js";
 import { PathPolicyError } from "./security/path-policy.js";
 import {
+  ANALYZE_IMAGE_BATCH_TOOL_DESCRIPTION,
+  ANALYZE_IMAGE_BATCH_TOOL_NAME,
+  type AnalyzeImageBatchDependencies,
+  analyzeImageBatch,
+} from "./tools/analyze-image-batch.js";
+import {
   ANALYZE_IMAGE_TOOL_DESCRIPTION,
   ANALYZE_IMAGE_TOOL_NAME,
   type AnalyzeImageDependencies,
@@ -34,6 +40,12 @@ import {
   type CompareImagesDependencies,
   compareImages,
 } from "./tools/compare-images.js";
+import {
+  EXTRACT_REGION_TOOL_DESCRIPTION,
+  EXTRACT_REGION_TOOL_NAME,
+  type ExtractRegionDependencies,
+  extractRegion,
+} from "./tools/extract-region.js";
 import {
   OCR_IMAGE_TOOL_DESCRIPTION,
   OCR_IMAGE_TOOL_NAME,
@@ -75,11 +87,40 @@ export const compareImagesMcpInputSchema = {
   severity_threshold: z.enum(["low", "medium", "high"]).default("low"),
 } as const;
 
+export const extractRegionMcpInputSchema = {
+  image_path: z.string().min(1),
+  region: z.object({
+    x: z.number().int().min(0),
+    y: z.number().int().min(0),
+    width: z.number().int().min(1),
+    height: z.number().int().min(1),
+  }),
+  prompt: z.string().optional(),
+  mode: analyzeImageModeSchema.default("general"),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+} as const;
+
+export const analyzeImageBatchMcpInputSchema = {
+  images: z
+    .array(
+      z.object({
+        image_path: z.string().min(1),
+        prompt: z.string().optional(),
+        mode: analyzeImageModeSchema.default("general"),
+      }),
+    )
+    .min(1)
+    .max(10),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+} as const;
+
 export interface AtlasServerDependencies {
   config?: AtlasConfig;
   cwd?: string;
   fetch?: FetchFn;
   analyze?: typeof analyzeImage;
+  analyzeImageBatch?: typeof analyzeImageBatch;
+  extractRegion?: typeof extractRegion;
   ocr?: typeof ocrImage;
   analyzeUiScreenshot?: typeof analyzeUiScreenshot;
   compareImages?: typeof compareImages;
@@ -123,6 +164,78 @@ export function registerAnalyzeImageTool(
           fetch: dependencies.fetch,
         };
         const result = await analyze(args, analyzeDeps);
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
+export function registerExtractRegionTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    EXTRACT_REGION_TOOL_NAME,
+    {
+      description: EXTRACT_REGION_TOOL_DESCRIPTION,
+      inputSchema: extractRegionMcpInputSchema,
+      outputSchema: analyzeImageOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const config = dependencies.config ?? loadConfig();
+        const extract = dependencies.extractRegion ?? extractRegion;
+        const extractDeps: ExtractRegionDependencies = {
+          config,
+          cwd: dependencies.cwd,
+          fetch: dependencies.fetch,
+        };
+        const result = await extract(args, extractDeps);
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
+export function registerAnalyzeImageBatchTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    ANALYZE_IMAGE_BATCH_TOOL_NAME,
+    {
+      description: ANALYZE_IMAGE_BATCH_TOOL_DESCRIPTION,
+      inputSchema: analyzeImageBatchMcpInputSchema,
+      outputSchema: analyzeImageOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const config = dependencies.config ?? loadConfig();
+        const analyzeBatch = dependencies.analyzeImageBatch ?? analyzeImageBatch;
+        const batchDeps: AnalyzeImageBatchDependencies = {
+          config,
+          cwd: dependencies.cwd,
+          fetch: dependencies.fetch,
+        };
+        const result = await analyzeBatch(args, batchDeps);
 
         return {
           content: [{ type: "text" as const, text: result.markdown }],
@@ -253,6 +366,8 @@ export function createAtlasMcpServer(dependencies: AtlasServerDependencies = {})
   });
 
   registerAnalyzeImageTool(server, dependencies);
+  registerExtractRegionTool(server, dependencies);
+  registerAnalyzeImageBatchTool(server, dependencies);
   registerOcrImageTool(server, dependencies);
   registerAnalyzeUiScreenshotTool(server, dependencies);
   registerCompareImagesTool(server, dependencies);

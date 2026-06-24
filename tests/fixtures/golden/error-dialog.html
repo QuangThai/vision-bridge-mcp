@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Error Dialog</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+  .overlay { background: rgba(0,0,0,0.5); padding: 40px; border-radius: 12px; }
+  .dialog { background: #fff; border-radius: 12px; padding: 32px; width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .icon { width: 48px; height: 48px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; color: #dc2626; }
+  h2 { text-align: center; margin: 0 0 8px; font-size: 18px; color: #111; }
+  p { text-align: center; color: #666; font-size: 14px; margin: 0 0 24px; line-height: 1.5; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn { padding: 8px 16px; border-radius: 6px; border: none; font-size: 14px; cursor: pointer; }
+  .btn-secondary { background: #f3f4f6; color: #374151; }
+  .btn-primary { background: #dc2626; color: #fff; }
+  .btn-primary:hover { background: #b91c1c; }
+</style></head>
+<body>
+<div class="overlay">
+  <div class="dialog">
+    <div class="icon">✕</div>
+    <h2>Connection Failed</h2>
+    <p>Unable to connect to the server. Please check your network connection and try again.<br>Error code: ERR_CONNECTION_TIMED_OUT</p>
+    <div class="actions">
+      <button class="btn btn-secondary">Cancel</button>
+      <button class="btn btn-primary">Retry</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

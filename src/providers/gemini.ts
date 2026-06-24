@@ -148,13 +148,28 @@ export class GeminiProvider implements VisionProvider {
 
   async healthCheck(): Promise<ProviderHealth> {
     try {
-      // Simple model list fetch to verify connectivity
+      // Use a minimal generateContent call (text-only) to verify connectivity
       const url = buildGeminiUrl(this.visionConfig.baseUrl, this.visionConfig.model);
+      const body = {
+        contents: [
+          {
+            role: "user" as const,
+            parts: [{ text: "Respond with just: ok" }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 10,
+        },
+      };
       const response = await this.fetchFn(url, {
-        method: "GET",
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           "x-goog-api-key": this.visionConfig.apiKey,
         },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (response.status === 403 || response.status === 401) {

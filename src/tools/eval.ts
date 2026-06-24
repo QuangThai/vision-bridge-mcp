@@ -72,10 +72,21 @@ export async function runEval(
 
     // --- analyze_image ---
     try {
+      const analyzeMode =
+        fixture.type === "diagram"
+          ? "diagram"
+          : fixture.type === "chart"
+            ? "chart"
+            : fixture.type === "error_screenshot" || fixture.type === "form"
+              ? "error_screenshot"
+              : fixture.type === "dashboard" || fixture.type === "ui_dark"
+                ? "general"
+                : "general";
+
       const analyzeResult = await analyzeImage(
         {
           image_path: imagePath,
-          mode: fixture.type === "diagram" ? "diagram" : "general",
+          mode: analyzeMode,
           detail_level: "standard",
         },
         { config, cwd: process.cwd() },

@@ -1,6 +1,6 @@
-# Publish checklist (v0.1.x)
+# Publish checklist
 
-Manual npm publish is acceptable for the first release. Run locally before tagging.
+Manual npm publish is acceptable. Run locally before tagging.
 
 ## Pre-publish verification
 
@@ -24,7 +24,7 @@ npx atlas-vision-mcp analyze ./path/to/image.png --json
 
 1. Bump `version` in `package.json` and `src/constants.ts` together.
 2. Commit the version bump.
-3. Tag: `git tag v0.1.0` (match package version).
+3. Tag: `git tag v0.2.0` (match package version).
 
 ## npm publish
 
@@ -37,7 +37,7 @@ npx atlas-vision-mcp analyze ./path/to/image.png --json
 ## Post-publish smoke
 
 ```bash
-npx -y atlas-vision-mcp@0.1.0 doctor
+npx -y atlas-vision-mcp@VERSION doctor
 ```
 
 Configure MCP clients with:
@@ -45,17 +45,3 @@ Configure MCP clients with:
 ```text
 npx -y atlas-vision-mcp
 ```
-
-## Release notes (template)
-
-- MCP stdio server with four tools: `analyze_image`, `ocr_image`, `analyze_ui_screenshot`, `compare_images`
-- CLI: `doctor`, `analyze`, `ocr`, `compare`, `serve`
-- OpenAI-compatible vision provider
-- Path policy, secret redaction, prompt-injection warnings
-- Integration examples under `examples/`
-
-## Not in MVP
-
-- HTTP/SSE transport
-- Remote `image_url` input
-- Image persistence / history store

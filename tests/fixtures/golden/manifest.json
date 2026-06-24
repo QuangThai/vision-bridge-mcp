@@ -40,6 +40,46 @@
       "type": "chart",
       "expected_text": ["Monthly Revenue", "Jan", "Feb", "Mar", "Total Revenue"],
       "expected_elements": ["bar chart", "labels", "values"]
+    },
+    {
+      "id": "error-dialog",
+      "file": "error-dialog.png",
+      "source": "screenshot of error dialog with retry/cancel actions",
+      "width": 1047,
+      "height": 751,
+      "type": "error_screenshot",
+      "expected_text": ["Connection Failed", "ERR_CONNECTION_TIMED_OUT", "Retry", "Cancel"],
+      "expected_elements": ["error icon", "heading", "paragraph", "buttons"]
+    },
+    {
+      "id": "form-ui",
+      "file": "form-ui.png",
+      "source": "screenshot of sign-up form with validation error",
+      "width": 1047,
+      "height": 751,
+      "type": "form",
+      "expected_text": ["Create Account", "Full name", "Password", "Sign Up", "Terms of Service"],
+      "expected_elements": ["input fields", "checkbox", "submit button", "error message"]
+    },
+    {
+      "id": "dashboard",
+      "file": "dashboard.png",
+      "source": "screenshot of analytics dashboard with stats and orders table",
+      "width": 1047,
+      "height": 751,
+      "type": "dashboard",
+      "expected_text": ["Dashboard", "Total Revenue", "Active Users", "Orders", "Bounce Rate"],
+      "expected_elements": ["stat cards", "table", "activity feed", "badges"]
+    },
+    {
+      "id": "dark-mode-ui",
+      "file": "dark-mode-ui.png",
+      "source": "screenshot of settings panel in dark mode",
+      "width": 1047,
+      "height": 751,
+      "type": "ui_dark",
+      "expected_text": ["Settings", "Dark mode", "Compact view", "Language", "Save Changes", "Notifications"],
+      "expected_elements": ["sidebar", "toggles", "dropdown", "buttons", "dark theme"]
     }
   ]
 }

@@ -285,3 +285,67 @@ export type CompareImagesDifference = z.infer<typeof compareImagesDifferenceSche
 export type CompareImagesInput = z.infer<typeof compareImagesInputSchema>;
 export type CompareImagesOutput = z.infer<typeof compareImagesOutputSchema>;
 export type RegressionLikelihood = z.infer<typeof regressionLikelihoodSchema>;
+
+// ── extract_region ──────────────────────────────────────────────────────────────
+
+export const imageRegionSchema = z.object({
+  x: z.number().int().min(0),
+  y: z.number().int().min(0),
+  width: z.number().int().min(1),
+  height: z.number().int().min(1),
+});
+
+export type ImageRegion = z.infer<typeof imageRegionSchema>;
+
+export const extractRegionInputSchema = z.object({
+  image_path: z.string().min(1),
+  region: imageRegionSchema,
+  prompt: z.string().optional(),
+  mode: analyzeImageModeSchema.default("general"),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+});
+
+export type ExtractRegionInput = z.infer<typeof extractRegionInputSchema>;
+
+// ── analyze_image_batch ─────────────────────────────────────────────────────────
+
+export const batchImageItemSchema = z.object({
+  image_path: z.string().min(1),
+  prompt: z.string().optional(),
+  mode: analyzeImageModeSchema.default("general"),
+});
+
+export type BatchImageItem = z.infer<typeof batchImageItemSchema>;
+
+export const analyzeImageBatchInputSchema = z.object({
+  images: z.array(batchImageItemSchema).min(1).max(10),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+});
+
+export type AnalyzeImageBatchInput = z.infer<typeof analyzeImageBatchInputSchema>;
+
+export const analyzeImageBatchItemOutputSchema = z.object({
+  index: z.number().int().min(0),
+  image_path: z.string(),
+  result: analyzeImageOutputSchema,
+});
+
+export type AnalyzeImageBatchItemOutput = z.infer<typeof analyzeImageBatchItemOutputSchema>;
+
+export const analyzeImageBatchOutputSchema = z.object({
+  summary: z.string(),
+  items: z.array(analyzeImageBatchItemOutputSchema),
+  total_processed: z.number().int(),
+  failed_count: z.number().int().default(0),
+  errors: z.array(z.object({
+    index: z.number().int(),
+    image_path: z.string(),
+    error: z.string(),
+  })).default([]),
+  provider: z.object({
+    name: z.string(),
+    model: z.string(),
+  }),
+});
+
+export type AnalyzeImageBatchOutput = z.infer<typeof analyzeImageBatchOutputSchema>;

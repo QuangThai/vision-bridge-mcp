@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Settings — Dark Mode</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #0f0f13; margin: 0; padding: 0; color: #e5e7eb; display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; background: #16161d; padding: 24px 16px; border-right: 1px solid #1f1f28; }
+  .logo { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 24px; }
+  .nav-item { padding: 8px 12px; border-radius: 8px; margin-bottom: 2px; font-size: 14px; color: #9ca3af; cursor: pointer; }
+  .nav-item.active { background: #2563eb; color: #fff; }
+  .nav-item:hover { background: #1f1f28; color: #e5e7eb; }
+  .main { flex: 1; padding: 32px 40px; max-width: 720px; }
+  h1 { font-size: 24px; margin: 0 0 4px; color: #fff; }
+  .desc { color: #6b7280; font-size: 14px; margin: 0 0 32px; }
+  .section { margin-bottom: 32px; }
+  .section h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin: 0 0 16px; }
+  .setting { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f1f28; }
+  .setting-info h3 { font-size: 14px; margin: 0; color: #e5e7eb; font-weight: 500; }
+  .setting-info p { font-size: 12px; margin: 2px 0 0; color: #6b7280; }
+  .toggle { width: 40px; height: 22px; background: #374151; border-radius: 99px; position: relative; cursor: pointer; }
+  .toggle.on { background: #2563eb; }
+  .toggle::after { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: 0.2s; }
+  .toggle.on::after { left: 20px; }
+  .select { background: #1f1f28; color: #e5e7eb; border: 1px solid #374151; border-radius: 6px; padding: 6px 12px; font-size: 14px; }
+  .btn { padding: 8px 20px; border-radius: 6px; border: none; font-size: 14px; cursor: pointer; }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-secondary { background: #1f1f28; color: #e5e7eb; border: 1px solid #374151; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; padding-top: 24px; border-top: 1px solid #1f1f28; }
+</style></head>
+<body>
+<div class="sidebar">
+  <div class="logo">⚙️ Atlas</div>
+  <div class="nav-item">Profile</div>
+  <div class="nav-item active">Settings</div>
+  <div class="nav-item">Notifications</div>
+  <div class="nav-item">Billing</div>
+  <div class="nav-item">Team</div>
+</div>
+<div class="main">
+  <h1>Settings</h1>
+  <p class="desc">Manage your application preferences</p>
+
+  <div class="section">
+    <h2>Appearance</h2>
+    <div class="setting">
+      <div class="setting-info"><h3>Dark mode</h3><p>Use dark theme across the application</p></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="setting">
+      <div class="setting-info"><h3>Compact view</h3><p>Reduce spacing for denser layout</p></div>
+      <div class="toggle"></div>
+    </div>
+    <div class="setting">
+      <div class="setting-info"><h3>Language</h3></div>
+      <select class="select"><option>English</option><option>Vietnamese</option><option>Japanese</option></select>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Notifications</h2>
+    <div class="setting">
+      <div class="setting-info"><h3>Email notifications</h3><p>Receive updates via email</p></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="setting">
+      <div class="setting-info"><h3>Push notifications</h3></div>
+      <div class="toggle"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Privacy</h2>
+    <div class="setting">
+      <div class="setting-info"><h3>Share usage data</h3><p>Help improve the product</p></div>
+      <div class="toggle"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-primary">Save Changes</button>
+  </div>
+</div>
+</body>
+</html>

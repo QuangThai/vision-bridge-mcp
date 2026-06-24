@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Sign Up Form</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #f0f5ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+  .card { background: #fff; border-radius: 16px; padding: 40px; width: 400px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  h1 { font-size: 24px; margin: 0 0 4px; color: #111; }
+  .subtitle { color: #6b7280; font-size: 14px; margin: 0 0 24px; }
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+  input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .error input { border-color: #dc2626; }
+  .error-msg { color: #dc2626; font-size: 12px; margin-top: 4px; }
+  .checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .checkbox input { width: auto; }
+  .checkbox label { margin: 0; font-weight: 400; }
+  .btn { width: 100%; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; }
+  .btn:hover { background: #1d4ed8; }
+  .footer { text-align: center; margin-top: 16px; font-size: 14px; color: #6b7280; }
+  .footer a { color: #2563eb; text-decoration: none; }
+</style></head>
+<body>
+<div class="card">
+  <h1>Create Account</h1>
+  <p class="subtitle">Fill in the details below to get started</p>
+  <form>
+    <div class="field">
+      <label for="name">Full name</label>
+      <input id="name" type="text" placeholder="John Doe">
+    </div>
+    <div class="field">
+      <label for="email">Email address</label>
+      <input id="email" type="email" placeholder="john@example.com">
+    </div>
+    <div class="field error">
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="Enter password">
+      <div class="error-msg">Password must be at least 8 characters</div>
+    </div>
+    <div class="checkbox">
+      <input id="terms" type="checkbox">
+      <label for="terms">I agree to the Terms of Service and Privacy Policy</label>
+    </div>
+    <button class="btn" type="submit">Sign Up</button>
+  </form>
+  <div class="footer">Already have an account? <a href="#">Log in</a></div>
+</div>
+</body>
+</html>

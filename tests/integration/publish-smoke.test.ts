@@ -19,7 +19,14 @@ import { ConfigError } from "../../src/config.js";
 import { PACKAGE_NAME, VERSION } from "../../src/index.js";
 import { createAtlasMcpServer } from "../../src/server.js";
 
-const TOOL_NAMES = ["analyze_image", "ocr_image", "analyze_ui_screenshot", "compare_images"];
+const TOOL_NAMES = [
+  "analyze_image",
+  "analyze_image_batch",
+  "analyze_ui_screenshot",
+  "compare_images",
+  "extract_region",
+  "ocr_image",
+];
 
 describe("publish smoke", () => {
   it("exposes package metadata for release", () => {
@@ -35,7 +42,7 @@ describe("publish smoke", () => {
     expect(packageJson.files).toContain("README.md");
   });
 
-  it("registers all four MCP tools", async () => {
+  it("registers all six MCP tools", async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createAtlasMcpServer();
     await server.connect(serverTransport);

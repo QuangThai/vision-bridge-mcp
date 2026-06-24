@@ -83,6 +83,109 @@ describe("analyzeImage", () => {
     expect(result.structured.provider.model).toBe("gpt-4o-mini");
   });
 
+  it("includes mermaid output in diagram mode", async () => {
+    const provider = createMockProvider(
+      JSON.stringify({
+        summary: "Architecture diagram with 3 layers.",
+        observations: [
+          {
+            type: "diagram",
+            content: "Frontend, API, Database layers connected by arrows",
+            confidence: 0.88,
+          },
+        ],
+        inferences: [],
+        uncertainties: [],
+        recommended_next_steps: [],
+        mermaid: "graph TD\n  A[Frontend] --> B[API]\n  B --> C[Database]",
+      }),
+    );
+
+    const result = await analyzeImage(
+      {
+        image_path: "./fixture.png",
+        mode: "diagram",
+      },
+      {
+        config: testConfig,
+        provider,
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.structured.mermaid).toBeDefined();
+    expect(result.structured.mermaid).toContain("graph TD");
+    expect(result.markdown).toContain("```mermaid");
+  });
+
+  it("includes table extraction in chart mode", async () => {
+    const provider = createMockProvider(
+      JSON.stringify({
+        summary: "Bar chart showing quarterly revenue.",
+        observations: [
+          {
+            type: "visual",
+            content: "Bar chart with Q1-Q4 2025 data",
+            confidence: 0.9,
+          },
+        ],
+        inferences: [],
+        uncertainties: [],
+        recommended_next_steps: [],
+        tables: [
+          {
+            caption: "Quarterly Revenue 2025",
+            headers: ["Quarter", "Revenue"],
+            rows: [
+              { Quarter: "Q1", Revenue: 12000 },
+              { Quarter: "Q2", Revenue: 15000 },
+            ],
+          },
+        ],
+      }),
+    );
+
+    const result = await analyzeImage(
+      {
+        image_path: "./fixture.png",
+        mode: "chart",
+      },
+      {
+        config: testConfig,
+        provider,
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.structured.tables).toHaveLength(1);
+    expect(result.structured.tables[0]?.caption).toBe("Quarterly Revenue 2025");
+    expect(result.structured.tables[0]?.rows).toHaveLength(2);
+    expect(result.markdown).toContain("| Quarter");
+    expect(result.markdown).toContain("Q1");
+  });
+
+  it("handles provider returning raw text (not JSON)", async () => {
+    const provider = createMockProvider(
+      "I can see a login screen with a username field and password field.",
+    );
+
+    const result = await analyzeImage(
+      {
+        image_path: "./fixture.png",
+        mode: "general",
+      },
+      {
+        config: testConfig,
+        provider,
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.structured.summary).toBeTruthy();
+    expect(result.structured.observations.length).toBeGreaterThanOrEqual(0);
+    expect(result.structured.provider.model).toBe("gpt-4o-mini");
+  });
+
   it("rejects unsupported image_url in MVP", async () => {
     await expect(
       analyzeImage(

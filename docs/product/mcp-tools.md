@@ -1,6 +1,6 @@
 # MCP Tools
 
-Atlas Vision MCP exposes exactly **four** tools for MVP. Additional behavior uses **parameters/modes**, not new tools.
+Atlas Vision MCP exposes **six** tools (v0.2.0). Additional behavior uses **parameters/modes** on these tools.
 
 ## Shared Response Shape
 
@@ -118,6 +118,53 @@ Visual comparison for regression checks.
 
 ```text
 Compare two images for visual differences. Use this for before/after screenshots, visual regression checks, UI changes, layout shifts, missing elements, text changes, color changes, or alignment issues. Returns differences with severity and confidence.
+```
+
+## Tool 5: `extract_region`
+
+Crop a specific region from an image and analyze it. Useful when a coding agent needs to focus on a specific area of a screenshot — an error popup, a chart section, a navigation bar, or a single UI element. Reduces tokens and produces more focused analysis.
+
+### Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `image_path` | string | yes | Local path to source image |
+| `region` | object | yes | `{ x, y, width, height }` — pixel coordinates |
+| `prompt` | string | no | Extra context for the vision provider |
+| `mode` | enum | no | Same modes as `analyze_image` |
+| `detail_level` | enum | no | `brief`, `standard`, `detailed` |
+
+### Output
+
+Same as `analyze_image` output — `summary`, `observations[]`, `inferences[]`, etc.
+
+### Tool Description
+
+```text
+Extract and analyze a specific region of an image. Use this when a coding agent needs to focus on a particular area of a screenshot, diagram, or UI — such as an error popup, a specific chart, a navigation bar, or a single UI component. Specify the region as pixel coordinates (x, y, width, height). The region is cropped from the original image before being sent to the vision provider, saving tokens and producing more focused results.
+```
+
+## Tool 6: `analyze_image_batch`
+
+Process multiple images in a single MCP call. Each image is analyzed independently and results are combined into a single report with per-image summaries.
+
+### Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `images` | array | yes | Array of `{ image_path, prompt?, mode? }` objects |
+| `detail_level` | enum | no | Applied to all images |
+
+Limits: 1–10 images per batch.
+
+### Output
+
+- `summary`, `items[]` (each with `index`, `image_path`, `result`), `total_processed`, `failed_count`, `errors[]`
+
+### Tool Description
+
+```text
+Analyze multiple images in a single call. Use this when a coding agent needs to process several screenshots, UI mockups, diagrams, or error captures at once — for example, comparing multiple error states, reviewing a multi-page UI flow, or batch-analyzing a series of charts. Each image is analyzed independently and results are returned as a combined report with per-image summaries.
 ```
 
 ## Transport

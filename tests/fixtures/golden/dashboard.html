@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Dashboard</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #f8fafc; margin: 0; padding: 24px; color: #111; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  h1 { font-size: 24px; margin: 0; }
+  .date { color: #6b7280; font-size: 14px; }
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+  .stat { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .stat-label { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+  .stat-value { font-size: 28px; font-weight: 700; }
+  .stat-change { font-size: 12px; margin-top: 4px; }
+  .up { color: #059669; }
+  .down { color: #dc2626; }
+  .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card h2 { font-size: 16px; margin: 0 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-weight: 500; font-size: 12px; text-transform: uppercase; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; }
+  .badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+  .badge-success { background: #d1fae5; color: #065f46; }
+  .badge-warning { background: #fef3c7; color: #92400e; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+  .activity-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+  .activity-time { color: #9ca3af; font-size: 12px; white-space: nowrap; }
+  .sidebar-card { border-left: 3px solid #3b82f6; padding-left: 12px; margin-bottom: 12px; }
+  .sidebar-card p { margin: 0; font-size: 14px; }
+  .sidebar-card .small { font-size: 12px; color: #6b7280; margin-top: 4px; }
+</style></head>
+<body>
+<div class="header">
+  <div><h1>Dashboard</h1><div class="date">Jun 24, 2026 · Last 30 days</div></div>
+  <div><span class="badge badge-success">Live</span></div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Total Revenue</div><div class="stat-value">$48,250</div><div class="stat-change up">↑ 12.5%</div></div>
+  <div class="stat"><div class="stat-label">Active Users</div><div class="stat-value">2,847</div><div class="stat-change up">↑ 8.2%</div></div>
+  <div class="stat"><div class="stat-label">Orders</div><div class="stat-value">1,423</div><div class="stat-change up">↑ 3.1%</div></div>
+  <div class="stat"><div class="stat-label">Bounce Rate</div><div class="stat-value">24.8%</div><div class="stat-change down">↑ 2.1%</div></div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Recent Orders</h2>
+    <table>
+      <tr><th>Order</th><th>Customer</th><th>Status</th><th>Amount</th></tr>
+      <tr><td>#1024</td><td>Alice Smith</td><td><span class="badge badge-success">Completed</span></td><td>$320</td></tr>
+      <tr><td>#1023</td><td>Bob Johnson</td><td><span class="badge badge-warning">Pending</span></td><td>$150</td></tr>
+      <tr><td>#1022</td><td>Carol White</td><td><span class="badge badge-success">Completed</span></td><td>$890</td></tr>
+      <tr><td>#1021</td><td>David Lee</td><td><span class="badge badge-danger">Cancelled</span></td><td>$45</td></tr>
+      <tr><td>#1020</td><td>Eve Brown</td><td><span class="badge badge-success">Completed</span></td><td>$210</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Recent Activity</h2>
+    <div class="activity-item"><div class="activity-time">2m ago</div><div>New order #1025 from Frank</div></div>
+    <div class="activity-item"><div class="activity-time">15m ago</div><div>User Grace updated profile</div></div>
+    <div class="activity-item"><div class="activity-time">1h ago</div><div>Payment received — $890</div></div>
+    <div class="activity-item"><div class="activity-time">2h ago</div><div>Server deployment completed</div></div>
+    <div class="sidebar-card"><p>Q2 revenue target exceeded by 18%</p><div class="small">Updated 1 hour ago</div></div>
+  </div>
+</div>
+</body>
+</html>
