@@ -1,6 +1,6 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "license": "MIT",
