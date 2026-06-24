@@ -225,6 +225,9 @@ export function normalizeAnalyzeImageOutput(
       name: raw.provider,
       model: raw.model,
     },
+    mermaid: typeof record.mermaid === "string" && record.mermaid.trim().length > 0
+      ? record.mermaid.trim()
+      : undefined,
     graph: buildGraph(observations, imagePath),
   });
 }
@@ -255,6 +258,14 @@ export function renderAnalyzeImageMarkdown(output: AnalyzeImageOutput): string {
     for (const item of output.uncertainties) {
       lines.push(`- ${item}`);
     }
+    lines.push("");
+  }
+
+  if (output.mermaid) {
+    lines.push("## Mermaid diagram");
+    lines.push("```mermaid");
+    lines.push(output.mermaid);
+    lines.push("```");
     lines.push("");
   }
 

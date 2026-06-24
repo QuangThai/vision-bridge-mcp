@@ -71,6 +71,22 @@ describe("normalizeAnalyzeImageOutput", () => {
       name: "openai-compatible",
       model: "gpt-4o-mini",
     });
+    expect(validated.mermaid).toBeUndefined();
+  });
+
+  it("extracts mermaid from provider json", () => {
+    const output = normalizeAnalyzeImageOutput(
+      {
+        summary: "Architecture diagram",
+        observations: [{ type: "visual", content: "System flow", confidence: 0.9 }],
+        mermaid: "graph TD\n  A-->B\n  B-->C",
+      },
+      raw,
+      "./diagram.png",
+    );
+
+    const validated = analyzeImageOutputSchema.parse(output);
+    expect(validated.mermaid).toBe("graph TD\n  A-->B\n  B-->C");
   });
 
   it("falls back when provider json is missing", () => {

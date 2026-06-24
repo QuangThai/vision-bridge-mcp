@@ -84,6 +84,7 @@ export const analyzeImageOutputSchema = z.object({
     name: z.string(),
     model: z.string(),
   }),
+  mermaid: z.string().optional(),
   graph: z
     .object({
       nodes: z.array(graphNodeSchema).default([]),
