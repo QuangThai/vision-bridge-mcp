@@ -97,10 +97,77 @@ Copy-paste examples live in [`examples/`](examples/) and [`docs/product/integrat
 
 | Client | Install |
 | --- | --- |
-| **pi** | `pi install npm:atlas-vision-mcp` |
+| **pi** | [`pi install npm:atlas-vision-mcp`](#pi-integration) |
 | **Cursor / Codex / Claude / Droid** | User-prompt hooks — [`examples/HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
 
 Hook env file (no shell export): copy [`examples/atlas-vision.env.example`](examples/atlas-vision.env.example) → `~/.config/atlas-vision/env`
+
+## Pi integration
+
+The Pi extension auto-intercepts attached images when the main model lacks native vision support — no manual MCP tool calls needed. Vision analysis runs **in-process** via the `atlas-vision-mcp` library API.
+
+```text
+User prompt (+ attached images)
+  → pi extension: before_agent_start
+  → model lacks "image" capability?
+  → atlas-vision analyzes image(s) in-process
+  → injects <atlas-vision-evidence> message
+  → main model continues with text evidence
+```
+
+### Install
+
+```bash
+pi install npm:atlas-vision-mcp
+```
+
+Project-local (dev only):
+
+```bash
+pi install -l npm:atlas-vision-mcp
+```
+
+Try without installing:
+
+```bash
+pi -e npm:atlas-vision-mcp
+```
+
+### Required env vars
+
+```bash
+export VISION_API_KEY=your-key
+export VISION_BASE_URL=https://api.openai.com/v1
+export VISION_MODEL=gpt-4o-mini
+```
+
+Optional flags:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `MAIN_MODEL_REF` | auto-detected | Override model ref (e.g. `deepseek/deepseek-v4-flash`) |
+| `ATLAS_SKIP_INTERCEPT` | `false` | Disable auto-intercept |
+| `ATLAS_FORCE_INTERCEPT` | `false` | Always run Atlas even if model supports images |
+| `VISION_PROVIDER` | `openai-compatible` | Vision adapter |
+
+### Verify
+
+```bash
+MAIN_MODEL_REF=deepseek/deepseek-v4-flash npx atlas-vision-mcp doctor
+npx atlas-vision-mcp capabilities deepseek/deepseek-v4-flash
+```
+
+### Pi vs hooks vs MCP
+
+| Approach | What you get |
+| --- | --- |
+| `pi install npm:atlas-vision-mcp` | Auto-intercept Pi extension (in-process) |
+| MCP config (`npx atlas-vision-mcp`) | stdio MCP tools for Cursor / Claude / other MCP clients |
+| User-prompt hooks | Auto-intercept for Cursor, Codex, Claude, Droid — see [`HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
+
+Use the Pi extension on Pi; use hooks on other agents; use MCP for on-demand tools everywhere.
+
+Full Pi integration guide: [`examples/PI_INTEGRATION.md`](examples/PI_INTEGRATION.md)
 
 ### MCP only (manual tool calls)
 
