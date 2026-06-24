@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../../src/config.js";
@@ -19,7 +19,10 @@ function tryLoadDotenv(): void {
     const eq = trimmed.indexOf("=");
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+    const value = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "");
     if (!process.env[key]) process.env[key] = value;
   }
 }
@@ -145,62 +148,56 @@ describe("E2E: agentsview complex images", () => {
   for (const img of AGENTSVIEW_IMAGES) {
     const imgPath = resolve(import.meta.dirname, img.file);
 
-    it.runIf(canRun)(
-      `${img.label}: analyze_image extracts structure`,
-      async () => {
-        const result = await analyzeImage(
-          {
-            image_path: imgPath,
-            mode: "diagram",
-            detail_level: "standard",
-          },
-          { config: loadConfig(), cwd: process.cwd() },
-        );
+    it.runIf(canRun)(`${img.label}: analyze_image extracts structure`, async () => {
+      const result = await analyzeImage(
+        {
+          image_path: imgPath,
+          mode: "diagram",
+          detail_level: "standard",
+        },
+        { config: loadConfig(), cwd: process.cwd() },
+      );
 
-        expect(result).toBeDefined();
-        expect(result.structured.summary).toBeTruthy();
-        expect(result.structured.observations.length).toBeGreaterThan(0);
+      expect(result).toBeDefined();
+      expect(result.structured.summary).toBeTruthy();
+      expect(result.structured.observations.length).toBeGreaterThan(0);
 
-        console.log(`=== ${img.label} analyze_image ===`);
-        console.log("Summary:", result.structured.summary);
-        console.log("Observations:", result.structured.observations.length);
-        console.log("Inferences:", result.structured.inferences.length);
-        for (const obs of result.structured.observations.slice(0, 5)) {
-          console.log(`  [${obs.type}] ${obs.content} (${obs.confidence})`);
-        }
-        if (result.structured.observations.length > 5) {
-          console.log(`  ... and ${result.structured.observations.length - 5} more`);
-        }
-      },
-    );
+      console.log(`=== ${img.label} analyze_image ===`);
+      console.log("Summary:", result.structured.summary);
+      console.log("Observations:", result.structured.observations.length);
+      console.log("Inferences:", result.structured.inferences.length);
+      for (const obs of result.structured.observations.slice(0, 5)) {
+        console.log(`  [${obs.type}] ${obs.content} (${obs.confidence})`);
+      }
+      if (result.structured.observations.length > 5) {
+        console.log(`  ... and ${result.structured.observations.length - 5} more`);
+      }
+    });
 
-    it.runIf(canRun)(
-      `${img.label}: ocr_image extracts text`,
-      async () => {
-        const result = await ocrImage(
-          {
-            image_path: imgPath,
-            preserve_layout: true,
-            extract_tables: false,
-            extract_code: false,
-          },
-          { config: loadConfig(), cwd: process.cwd() },
-        );
+    it.runIf(canRun)(`${img.label}: ocr_image extracts text`, async () => {
+      const result = await ocrImage(
+        {
+          image_path: imgPath,
+          preserve_layout: true,
+          extract_tables: false,
+          extract_code: false,
+        },
+        { config: loadConfig(), cwd: process.cwd() },
+      );
 
-        expect(result).toBeDefined();
-        expect(result.structured.summary).toBeTruthy();
+      expect(result).toBeDefined();
+      expect(result.structured.summary).toBeTruthy();
 
-        console.log(`=== ${img.label} ocr_image ===`);
-        console.log("Summary:", result.structured.summary);
-        console.log("Visible text blocks:", result.structured.visible_text.length);
-        for (const block of result.structured.visible_text.slice(0, 8)) {
-          console.log(`  [${block.region}] ${block.text} (${block.confidence})`);
-        }
-        if (result.structured.visible_text.length > 8) {
-          console.log(`  ... and ${result.structured.visible_text.length - 8} more`);
-        }
-        console.log("Warnings:", result.structured.warnings);
-      },
-    );
+      console.log(`=== ${img.label} ocr_image ===`);
+      console.log("Summary:", result.structured.summary);
+      console.log("Visible text blocks:", result.structured.visible_text.length);
+      for (const block of result.structured.visible_text.slice(0, 8)) {
+        console.log(`  [${block.region}] ${block.text} (${block.confidence})`);
+      }
+      if (result.structured.visible_text.length > 8) {
+        console.log(`  ... and ${result.structured.visible_text.length - 8} more`);
+      }
+      console.log("Warnings:", result.structured.warnings);
+    });
   }
 });
