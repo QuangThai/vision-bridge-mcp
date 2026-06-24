@@ -74,6 +74,26 @@ describe("normalizeAnalyzeImageOutput", () => {
     expect(validated.mermaid).toBeUndefined();
   });
 
+  it("normalizes provider source_region unit aliases", () => {
+    const output = normalizeAnalyzeImageOutput(
+      {
+        summary: "Complex UI",
+        observations: [
+          {
+            type: "visual",
+            content: "Primary panel",
+            confidence: 0.9,
+            source_region: { x: 10, y: 20, width: 300, height: 200, unit: "px" },
+          },
+        ],
+      },
+      raw,
+      "./complex.png",
+    );
+
+    expect(output.observations[0]?.source_region?.unit).toBe("pixel");
+  });
+
   it("extracts mermaid from provider json", () => {
     const output = normalizeAnalyzeImageOutput(
       {

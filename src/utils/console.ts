@@ -36,7 +36,8 @@ export function setupConsoleRedirection(): void {
     encoding?: unknown,
     callback?: unknown,
   ): boolean => {
-    const text = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString() : String(chunk);
+    const text =
+      typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString() : String(chunk);
     // Allow writes that look like JSON-RPC (start with { or [)
     if (text.startsWith("{") || text.startsWith("[")) {
       return originalStdoutWrite(

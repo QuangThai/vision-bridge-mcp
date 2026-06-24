@@ -19,6 +19,7 @@ import {
   ocrImageOutputSchema,
   ocrImageRegionSchema,
   regressionLikelihoodSchema,
+  sourceRegionSchema,
   uiElementStateSchema,
   uiElementTypeSchema,
   uiLayoutSchema,
@@ -85,6 +86,27 @@ function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
+function normalizeSourceRegion(raw: unknown): Observation["source_region"] {
+  const record = asRecord(raw);
+  if (!record) {
+    return undefined;
+  }
+
+  const unitValue = typeof record.unit === "string" ? record.unit.trim().toLowerCase() : "unknown";
+  const unit = unitValue === "px" || unitValue === "pixels" ? "pixel" : unitValue;
+  const normalized = {
+    x: Number(record.x),
+    y: Number(record.y),
+    width: Number(record.width),
+    height: Number(record.height),
+    unit,
+  };
+
+  return sourceRegionSchema.safeParse(normalized).success
+    ? sourceRegionSchema.parse(normalized)
+    : undefined;
+}
+
 function normalizeObservation(raw: unknown, index: number): Observation | null {
   // Handle string observations from providers that return flat strings
   if (typeof raw === "string" && raw.trim().length > 0) {
@@ -113,7 +135,7 @@ function normalizeObservation(raw: unknown, index: number): Observation | null {
     type,
     content: record.content.trim(),
     confidence: clampConfidence(record.confidence),
-    source_region: record.source_region,
+    source_region: normalizeSourceRegion(record.source_region),
   });
 }
 
