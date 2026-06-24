@@ -30,7 +30,7 @@ describe("publish smoke", () => {
       readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../package.json"), "utf8"),
     ) as { bin?: Record<string, string>; files?: string[] };
 
-    expect(packageJson.bin?.["atlas-vision"]).toBe("./dist/cli/main.js");
+    expect(packageJson.bin?.["atlas-vision"]).toBe("dist/cli/main.js");
     expect(packageJson.files).toContain("dist");
     expect(packageJson.files).toContain("README.md");
   });
