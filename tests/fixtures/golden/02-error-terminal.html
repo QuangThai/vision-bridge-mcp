@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Terminal Error</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1e1e1e; padding: 20px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 14px; }
+  .terminal { background: #1e1e1e; padding: 16px; border-radius: 8px; border: 1px solid #333; }
+  .line { color: #d4d4d4; line-height: 1.6; }
+  .prompt { color: #6a9955; }
+  .error { color: #f44747; }
+  .path { color: #569cd6; }
+  .dim { color: #808080; }
+  .highlight { background: #264f78; padding: 0 2px; }
+</style></head>
+<body>
+<div class="terminal">
+  <div class="line"><span class="prompt">$</span> pnpm build</div>
+  <div class="line"><span class="dim">> atlas-vision-mcp@0.1.0 build</span></div>
+  <div class="line"><span class="dim">> tsup</span></div>
+  <div class="line">&nbsp;</div>
+  <div class="line"><span class="error">✖ Build failed</span></div>
+  <div class="line"><span class="path">src/tools/analyze-image.ts</span><span class="error">:23:5</span></div>
+  <div class="line"><span class="error">error TS2322: Type 'string | undefined' is not assignable to type 'string'</span></div>
+  <div class="line">&nbsp;</div>
+  <div class="line"><span class="dim">  21 |   const url = config.vision.baseUrl;</span></div>
+  <div class="line"><span class="dim">  22 |   </span><span class="highlight">const endpoint = url + "/chat/completions";</span></div>
+  <div class="line"><span class="dim">  23 | </span><span class="error">                         ~~~~~~~~~~~~~~~~~~</span></div>
+  <div class="line">&nbsp;</div>
+  <div class="line"><span class="dim">  The inferred type is 'string | undefined' but 'string' was expected.</span></div>
+  <div class="line"><span class="dim">  Consider adding a non-null assertion or type guard.</span></div>
+  <div class="line">&nbsp;</div>
+  <div class="line"><span class="prompt">$</span> <span class="dim">|</span></div>
+</div>
+</body>
+</html>

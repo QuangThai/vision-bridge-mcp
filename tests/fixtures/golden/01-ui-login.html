@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Login UI</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .card { background: white; border-radius: 12px; padding: 32px; width: 400px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .sub { color: #666; margin-bottom: 24px; }
+  label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+  input:focus { outline: none; border-color: #2563eb; }
+  .btn { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+  .btn:disabled { background: #93b4f5; cursor: not-allowed; }
+  .error { color: #dc2626; font-size: 13px; margin-bottom: 12px; }
+  .footer { text-align: center; margin-top: 16px; font-size: 13px; }
+  .footer a { color: #2563eb; text-decoration: none; }
+</style></head>
+<body>
+<div class="card">
+  <h1>Welcome back</h1>
+  <p class="sub">Sign in to your account</p>
+  <label>Email</label>
+  <input type="email" placeholder="name@company.com" value="user@example.com">
+  <label>Password</label>
+  <input type="password" placeholder="••••••••">
+  <p class="error">Invalid email or password</p>
+  <button class="btn" disabled>Sign in</button>
+  <p class="footer"><a href="#">Forgot password?</a></p>
+</div>
+</body>
+</html>

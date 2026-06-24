@@ -1,4 +1,6 @@
 import { writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { type AtlasConfig, ConfigError, loadConfig, validateProviderConfig } from "../config.js";
 import {
   analyzeImageModeSchema,
@@ -16,6 +18,7 @@ import type { FetchFn, VisionProvider } from "../providers/types.js";
 import { PathPolicyError } from "../security/path-policy.js";
 import { serveStdio } from "../server.js";
 import { analyzeImage } from "../tools/analyze-image.js";
+import { runEval, renderEvalReport } from "../tools/eval.js";
 import { analyzeUiScreenshot } from "../tools/analyze-ui-screenshot.js";
 import { compareImages } from "../tools/compare-images.js";
 import { ocrImage } from "../tools/ocr-image.js";
@@ -506,6 +509,43 @@ export async function runServeCommand(
   try {
     await serve();
     return 0;
+  } catch (error) {
+    log.error(formatCliFailure(error));
+    return 1;
+  }
+}
+
+export interface EvalCommandDependencies {
+  loadConfig?: typeof loadConfig;
+  log?: typeof console;
+  goldenDir?: string;
+}
+
+export async function runEvalCommand(
+  _argv: string[],
+  dependencies: EvalCommandDependencies = {},
+): Promise<number> {
+  const log = dependencies.log ?? console;
+  const loadCfg = dependencies.loadConfig ?? loadConfig;
+
+  try {
+    const config = loadCfg();
+    validateProviderConfig(config);
+    const provider = createVisionProvider(config);
+    const goldenDir = resolve(
+      dependencies.goldenDir ?? resolve(import.meta.dirname, "../../tests/fixtures/golden"),
+    );
+
+    if (!existsSync(goldenDir)) {
+      log.error(`Golden fixtures directory not found: ${goldenDir}`);
+      return 1;
+    }
+
+    const report = await runEval(goldenDir, config, provider);
+    const text = renderEvalReport(report);
+
+    log.log(text);
+    return report.failed > 0 ? 1 : 0;
   } catch (error) {
     log.error(formatCliFailure(error));
     return 1;

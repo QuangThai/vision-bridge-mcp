@@ -1,0 +1,35 @@
+{
+  "description": "Golden fixtures for atlas-vision eval. Each fixture is a known reference image used to verify provider accuracy across releases and model changes.",
+  "fixtures": [
+    {
+      "id": "web-simple",
+      "file": "web-simple.png",
+      "source": "screenshot of example.com",
+      "width": 1280,
+      "height": 800,
+      "type": "web_page",
+      "expected_text": ["Example Domain", "Learn more", "documentation examples"],
+      "expected_elements": ["heading", "paragraph", "link"]
+    },
+    {
+      "id": "diagram-agent-arch",
+      "file": "diagram-agent-arch.png",
+      "source": "screenshot of AgentsView agent architecture diagram",
+      "width": 1920,
+      "height": 1080,
+      "type": "diagram",
+      "expected_text": ["AgentsView", "Local Runtime", "Enforcement Plane", "File Watcher", "PostgreSQL"],
+      "expected_elements": ["nodes", "edges", "labels", "legend"]
+    },
+    {
+      "id": "diagram-company-arch",
+      "file": "diagram-company-arch.png",
+      "source": "screenshot of AgentsView company architecture diagram",
+      "width": 1920,
+      "height": 1080,
+      "type": "diagram",
+      "expected_text": ["AI agents", "Session files", "Control Plane", "Policy Enforcement"],
+      "expected_elements": ["nodes", "edges", "labels", "flow arrows"]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Bar Chart</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #fff; padding: 40px; }
+  h1 { font-size: 20px; margin-bottom: 24px; }
+  .chart { display: flex; align-items: flex-end; gap: 24px; height: 200px; padding: 0 20px; border-bottom: 2px solid #333; }
+  .bar { width: 60px; display: flex; flex-direction: column; align-items: center; }
+  .bar-inner { width: 100%; border-radius: 4px 4px 0 0; }
+  .val { font-size: 12px; margin-bottom: 4px; color: #666; }
+  .label { font-size: 12px; margin-top: 8px; color: #333; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat h3 { font-size: 28px; }
+  .stat p { color: #666; font-size: 13px; }
+</style></head>
+<body>
+<h1>Monthly Revenue (Q1 2026)</h1>
+<div class="chart">
+  <div class="bar"><div class="val">$12K</div><div class="bar-inner" style="height:120px;background:#2563eb"></div><div class="label">Jan</div></div>
+  <div class="bar"><div class="val">$18K</div><div class="bar-inner" style="height:180px;background:#2563eb"></div><div class="label">Feb</div></div>
+  <div class="bar"><div class="val">$24K</div><div class="bar-inner" style="height:240px;background:#16a34a"></div><div class="label">Mar</div></div>
+</div>
+<div class="stats">
+  <div class="stat"><h3>$54K</h3><p>Total Revenue</p></div>
+  <div class="stat"><h3>+100%</h3><p>Growth (Jan→Mar)</p></div>
+</div>
+</body>
+</html>

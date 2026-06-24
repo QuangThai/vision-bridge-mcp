@@ -3,6 +3,7 @@ import {
   runAnalyzeCommand,
   runCompareCommand,
   runDoctorCommand,
+  runEvalCommand,
   runOcrCommand,
   runServeCommand,
 } from "./commands.js";
@@ -22,6 +23,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("  analyze  Analyze an image and return structured evidence");
     console.log("  ocr      Extract visible text from an image");
     console.log("  compare  Compare two images for visual differences");
+    console.log("  eval     Run golden fixture evaluation against the provider");
     console.log("  serve    Start MCP server over stdio");
     console.log("");
     console.log("Examples:");
@@ -30,6 +32,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("  atlas-vision serve --transport stdio");
     console.log("  atlas-vision ocr ./error.png --preserve-layout");
     console.log("  atlas-vision compare ./before.png ./after.png --focus layout");
+    console.log("  atlas-vision eval");
     return 0;
   }
 
@@ -56,6 +59,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
 
   if (command === "compare") {
     return runCompareCommand(rest);
+  }
+
+  if (command === "eval") {
+    return runEvalCommand(rest);
   }
 
   if (command === "serve") {
