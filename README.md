@@ -133,48 +133,43 @@ Try without installing:
 pi -e npm:atlas-vision-mcp
 ```
 
-### Required env vars
+### Configuration
 
-The Pi extension reads environment variables from the Pi process directly — it does **not** auto-load `.env` files.
+The extension **auto-loads** env files on startup — no manual export or direnv needed.
 
-#### Recommended: direnv + .envrc
-
-Install [direnv](https://direnv.net), then create `.envrc` in the project root:
+Create a `.env` file in your project root (copy from template):
 
 ```bash
-# .envrc
-export VISION_API_KEY=your-key
-export VISION_BASE_URL=https://api.openai.com/v1
-export VISION_MODEL=gpt-4o-mini
-export VISION_PROVIDER=openai-compatible
+cp examples/atlas-vision.env.example .env
+# edit .env with your API keys, then just run pi
 ```
 
-Allow it:
+Or use the global location (shared across all projects):
 
 ```bash
-cd /path/to/project
-direnv allow
+mkdir -p ~/.config/atlas-vision
+cp examples/atlas-vision.env.example ~/.config/atlas-vision/env
 ```
 
-Now every time you `cd` into the project, direnv auto-exports these vars — Pi sees them without any extra setup.
+The extension tries these locations in order (first found wins):
+| Location | Scope |
+|---|---|
+| `$ATLAS_VISION_ENV_FILE` | Explicit override |
+| `~/.config/atlas-vision/env` | Global (all projects) |
+| `{project}/.env` | Project root |
 
-Copy the template:
+Existing `process.env` values (e.g. from shell exports) always take priority over file values.
+
+#### Required variables
 
 ```bash
-cp examples/atlas-vision.env.example .envrc
-# edit .envrc with your keys, then:
-direnv allow
+VISION_API_KEY=your-key
+VISION_BASE_URL=https://api.openai.com/v1
+VISION_MODEL=gpt-4o-mini
+VISION_PROVIDER=openai-compatible
 ```
 
-Alternatively, export the vars in your shell profile (`~/.bashrc`, `~/.zshrc`) or source a `.env` file manually before starting Pi.
-
-```bash
-# Manual source
-export $(grep -v '^#' .env | xargs)
-pi
-```
-
-Optional flags:
+#### Optional flags
 
 | Variable | Default | Purpose |
 | --- | --- | --- |

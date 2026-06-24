@@ -24,21 +24,48 @@ Try without installing:
 pi -e npm:atlas-vision-mcp
 ```
 
-## Vision provider env
+## Configuration
+
+The extension **auto-loads** env files on startup — no manual export needed. Create a `.env` file in your project root:
 
 ```bash
-export VISION_API_KEY=your-key
-export VISION_BASE_URL=https://api.openai.com/v1
-export VISION_MODEL=gpt-4o-mini
+cp examples/atlas-vision.env.example .env
+# then edit .env with your API keys
 ```
 
-Optional:
+Or use the global location (shared across all projects):
 
 ```bash
-export MAIN_MODEL_REF=deepseek/deepseek-v4-flash   # override model detection
-export ATLAS_SKIP_INTERCEPT=true                  # disable auto-intercept
-export ATLAS_FORCE_INTERCEPT=true                 # always run Atlas on images
+mkdir -p ~/.config/atlas-vision
+cp examples/atlas-vision.env.example ~/.config/atlas-vision/env
 ```
+
+The extension tries these locations in order (first found wins):
+
+| Location | Scope |
+|---|---|
+| `$ATLAS_VISION_ENV_FILE` | Explicit override |
+| `~/.config/atlas-vision/env` | Global (all projects) |
+| `{project}/.env` | Project root |
+
+Existing `process.env` values (e.g. from shell exports) always take priority over file values.
+
+### Required variables
+
+```bash
+VISION_API_KEY=your-key
+VISION_BASE_URL=https://api.openai.com/v1
+VISION_MODEL=gpt-4o-mini
+VISION_PROVIDER=openai-compatible
+```
+
+### Optional variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MAIN_MODEL_REF` | auto-detected | Override model ref (e.g. `deepseek/deepseek-v4-flash`) |
+| `ATLAS_SKIP_INTERCEPT` | `false` | Disable auto-intercept |
+| `ATLAS_FORCE_INTERCEPT` | `false` | Always run Atlas even if model supports images |
 
 ## Develop in this repo
 

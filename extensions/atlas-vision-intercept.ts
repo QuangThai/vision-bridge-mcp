@@ -1,9 +1,60 @@
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { homedir } from "node:os";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import {
   buildInterceptMessageText,
   interceptImagesForTextModel,
   persistAttachedImages,
 } from "../dist/index.js";
+
+/**
+ * Auto-load atlas-vision env files from well-known locations.
+ *
+ * Priority (highest wins — user's `process.env` always takes precedence):
+ *   1. `ATLAS_VISION_ENV_FILE` env var (explicit override)
+ *   2. `~/.config/atlas-vision/env` (global, shared with hooks)
+ *   3. `{cwd}/.env` (project root)
+ */
+function loadAtlasEnvFiles(cwd: string): void {
+  const files = [
+    ...(process.env.ATLAS_VISION_ENV_FILE
+      ? [process.env.ATLAS_VISION_ENV_FILE]
+      : []),
+    join(homedir(), ".config", "atlas-vision", "env"),
+    join(cwd, ".env"),
+  ];
+
+  for (const file of files) {
+    if (!existsSync(file)) continue;
+    try {
+      const content = readFileSync(file, "utf-8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx === -1) continue;
+        let key = trimmed.slice(0, eqIdx).trim();
+        let value = trimmed.slice(eqIdx + 1).trim();
+        // Strip optional 'export ' prefix
+        if (key.startsWith("export ")) key = key.slice(7).trim();
+        // Strip surrounding quotes
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1);
+        }
+        // Never override an already-set env var
+        if (!(key in process.env)) {
+          process.env[key] = value;
+        }
+      }
+    } catch {
+      // skip unreadable files
+    }
+  }
+}
 
 function envFlag(name: string): boolean {
   const value = process.env[name]?.trim().toLowerCase();
@@ -24,7 +75,14 @@ function resolveMainModelRef(model: { provider: string; id: string } | undefined
 }
 
 export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
+  // Load env on startup — no manual export needed.
+  // User's existing process.env always takes priority.
+  loadAtlasEnvFiles(process.cwd());
+
   pi.on("session_start", (_event, ctx) => {
+    // Re-check with session cwd (e.g. if pi was started in a different directory)
+    loadAtlasEnvFiles(ctx.cwd);
+
     if (envFlag("ATLAS_SKIP_INTERCEPT")) {
       return;
     }
