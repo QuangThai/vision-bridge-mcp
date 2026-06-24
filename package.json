@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "bin": {
-    "atlas-vision": "./dist/cli/main.js"
+    "atlas-vision": "dist/cli/main.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
