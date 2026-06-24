@@ -36,16 +36,17 @@ export function setupConsoleRedirection(): void {
     encoding?: unknown,
     callback?: unknown,
   ): boolean => {
+    const text = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString() : String(chunk);
     // Allow writes that look like JSON-RPC (start with { or [)
-    if (typeof chunk === "string" && (chunk.startsWith("{") || chunk.startsWith("["))) {
+    if (text.startsWith("{") || text.startsWith("[")) {
       return originalStdoutWrite(
-        chunk,
+        chunk as string | Uint8Array,
         encoding as BufferEncoding,
         callback as (error?: Error | null) => void,
       );
     }
     // All other writes go to stderr
-    process.stderr.write(typeof chunk === "string" ? chunk : String(chunk));
+    process.stderr.write(text);
     return true;
   };
 }
