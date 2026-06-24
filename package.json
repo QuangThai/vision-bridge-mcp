@@ -26,7 +26,8 @@
     "test:watch": "vitest",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "vitest run --testTimeout=60000 tests/e2e"
   },
   "keywords": ["mcp", "vision", "coding-agent", "model-context-protocol"],
   "devDependencies": {
