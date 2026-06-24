@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E2E Test Page</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+    h1 { color: #1a73e8; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 16px 0; }
+    input { width: 100%; padding: 8px; margin: 4px 0; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #ccc; }
+    .error { color: #d93025; font-size: 14px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome</h1>
+  <div class="card">
+    <p>Sign in to your account</p>
+    <input type="email" placeholder="Email" value="test@example.com" />
+    <input type="password" placeholder="Password" />
+    <p class="error">Invalid credentials</p>
+    <button disabled>Sign in</button>
+  </div>
+</body>
+</html>

@@ -15,3 +15,7 @@ scripts/bin/harness-cli
 scripts/bin/harness-cli.exe
 
 .pi
+
+# Environment
+.env
+.env.*
