@@ -17,10 +17,10 @@ table. The schema is not changed by Phase 2.
 | `intake_id` | INTEGER | Standard+ when an intake was recorded | Integer id from the related `intake` row. | `36` |
 | `story_id` | TEXT | Standard+ when work maps to one story | Story id from the `story` table. Use the main story when one trace covers several; list the rest in `notes`. | `US-004` |
 | `agent` | TEXT | Optional for minimal; Standard+ expected | Short agent/tool name. | `codex` |
-| `actions_taken` | TEXT | Standard+ | JSON array text. With the current CLI, pass a comma-separated list and the CLI stores JSON text. | `["read PHASE2.md","drafted TRACE_SPEC.md","updated HARNESS.md"]` |
-| `files_read` | TEXT | Standard+ | JSON array text of paths or command names. With the current CLI, pass a comma-separated list. | `["PHASE2.md","docs/HARNESS.md","scripts/bin/harness-cli query matrix"]` |
+| `actions_taken` | TEXT | Standard+ | JSON array text. With the current CLI, pass a comma-separated list and the CLI stores JSON text. | `["read US-005 story","implemented handler","updated tests"]` |
+| `files_read` | TEXT | Standard+ | JSON array text of paths or command names. With the current CLI, pass a comma-separated list. | `["docs/product/mcp-tools.md","src/tools/analyze-image.ts","harness-cli query matrix"]` |
 | `files_changed` | TEXT | Standard+ | JSON array text of changed file paths. With the current CLI, pass a comma-separated list; omit only when no files changed. | `["docs/TRACE_SPEC.md","docs/HARNESS.md"]` |
-| `decisions_made` | TEXT | Detailed | JSON array text of decision strings. Include scope decisions, validation choices, and explicit non-goals. | `["Kept Phase 2 docs-only; installer propagation remains out of scope"]` |
+| `decisions_made` | TEXT | Detailed | JSON array text of decision strings. Include scope decisions, validation choices, and explicit non-goals. | `["Kept tool surface at 4 handlers; no graph mode in v0"]` |
 | `errors` | TEXT | Standard+ if errors occurred; Detailed always | JSON array text of error or blocker strings. Until the CLI supports empty arrays directly, use `none` when a detailed trace needs explicit no-error evidence. | `["git diff --check failed before whitespace fix"]` |
 | `outcome` | TEXT | Yes before final response | One of `completed`, `blocked`, `partial`, or `failed`. | `completed` |
 | `duration_seconds` | INTEGER | Detailed when available | Positive integer estimate or measured duration. Leave null if unknown. | `1800` |
@@ -127,8 +127,8 @@ How to write friction:
 Good friction:
 
 ```text
-New Phase 2 docs are not copied by scripts/install-harness.sh, but installer
-propagation is out of scope for docs-only Phase 2.
+ATLAS_ALLOWED_DIRS default wasn't obvious; had to read docs/product/security.md
+to confirm it defaults to cwd.
 ```
 
 Weak friction:
@@ -163,14 +163,14 @@ scripts/bin/harness-cli trace \
 
 ```bash
 scripts/bin/harness-cli trace \
-  --summary "Added Phase 2 trace specification and Harness reference" \
-  --intake 36 \
-  --story US-004 \
-  --agent codex \
+  --summary "Implemented analyze_image handler with mock provider tests" \
+  --intake 1 \
+  --story US-005-analyze-image-tool \
+  --agent claude \
   --outcome completed \
-  --actions "read PHASE2.md,drafted TRACE_SPEC.md,updated HARNESS.md,ran rg checks" \
-  --read "PHASE2.md,docs/HARNESS.md,scripts/schema/001-init.sql" \
-  --changed "docs/TRACE_SPEC.md,docs/HARNESS.md" \
+  --actions "read story,implemented handler,wrote tests,verified" \
+  --read "docs/product/mcp-tools.md,src/tools/analyze-image.ts" \
+  --changed "src/tools/analyze-image.ts,tests/tools/analyze-image.test.ts" \
   --friction "none"
 ```
 

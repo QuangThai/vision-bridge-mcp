@@ -54,31 +54,21 @@ Every task has two possible outputs:
 2. Harness delta: docs, templates, validation expectations, backlog items, or
    decision records that make the next task easier.
 
-## Harness v0 Scope
+## Harness Scope
 
-Harness v0 includes:
+This repo uses Harness for agent operating context. The harness provides:
 
-- Agent entrypoint.
-- Empty product documentation structure.
-- Feature intake and risk lanes.
-- Story templates.
-- Decision log template.
-- Validation report template.
-- Test matrix placeholder.
-- Harness growth backlog.
-- Durable layer: SQLite database and CLI for operational records.
+- Agent entrypoint (`AGENTS.md`).
+- Product documentation (`docs/product/*`).
+- Feature intake and risk lanes (`docs/FEATURE_INTAKE.md`).
+- Story templates and 12 implemented story packets (`docs/stories/*`).
+- Decision log template and 14 decision records (`docs/decisions/*`).
+- Validation report template and test matrix (`docs/TEST_MATRIX.md`).
+- Growth backlog.
+- Durable layer: SQLite database and CLI (`harness.db` + `scripts/bin/harness-cli`).
 
-Harness v0 deliberately excludes:
-
-- A project-specific `SPEC.md`.
-- Pre-sliced product domains.
-- A locked application stack.
-- App source scaffolding.
-- Package scripts.
-- Test runner config.
-- CI workflows.
-
-Those should arrive only when a selected story needs them.
+The application itself is TypeScript/Node.js (pnpm, vitest, tsup) with source in `src/`.
+Build and test scripts live in `package.json`.
 
 ## Durable Layer
 
@@ -248,8 +238,8 @@ For every task:
 Stories may carry a mechanical proof command:
 
 ```bash
-scripts/bin/harness-cli story add --id US-012 --title "Story verification" --lane normal --verify "cargo test --workspace"
-scripts/bin/harness-cli story update --id US-012 --verify "cargo test --workspace"
+scripts/bin/harness-cli story add --id US-012 --title "Story verification" --lane normal --verify "pnpm test"
+scripts/bin/harness-cli story update --id US-012 --verify "pnpm test"
 scripts/bin/harness-cli story verify US-012
 ```
 
@@ -272,7 +262,7 @@ Use `scripts/bin/harness-cli query matrix --numeric` when copying proof values
 back into `story update`. The default matrix output is human-readable
 `yes`/`no`; the numeric output mirrors CLI input.
 
-## Phase 5 Evolution Commands
+## Evolution Commands
 
 Tool discovery:
 
@@ -297,7 +287,7 @@ Interventions are separate from traces:
 
 ```bash
 scripts/bin/harness-cli intervention add --trace <id> --type correction --description <text> --source human
-scripts/bin/harness-cli query interventions --story US-024
+scripts/bin/harness-cli query interventions
 ```
 
 Record an intervention when a human, reviewer, CI system, or another agent
@@ -368,26 +358,15 @@ A task is done only when:
   `scripts/bin/harness-cli backlog add`.
 - The final response says what changed and what was not attempted.
 
-## Future Validation Ladder
+## Validation Ladder
 
-No validation scripts exist yet. When implementation begins, the expected ladder
-is:
+The following checks are available for this project:
 
-```text
-validate:quick
-  format, lint, typecheck, unit tests, architecture check
+| Layer | Command | Scope |
+|---|---|---|
+| validate:quick | `pnpm typecheck && pnpm lint && pnpm test` | TypeScript types, lint, 79 unit/integration tests |
+| test:integration | `pnpm test` (vitest) | Includes provider, security, server integration tests |
+| test:platform | `pnpm build` (tsup) | ESM + DTS bundle compiles |
+| test:release | `pnpm build && pnpm test` | Full suite + build smoke |
 
-test:integration
-  backend, database, provider, or service checks as the stack requires
-
-test:e2e
-  user-visible end-to-end flows
-
-test:platform
-  shell, mobile, desktop, or deployment smoke checks as the stack requires
-
-test:release
-  full suite, log checks, and performance smoke
-```
-
-Agents must not claim these commands pass until they exist and have been run.
+Agents must run the relevant layer before claiming completion.
