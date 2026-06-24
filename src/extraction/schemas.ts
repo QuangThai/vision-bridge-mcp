@@ -73,6 +73,14 @@ export const graphEdgeSchema = z.object({
   type: z.string(),
 });
 
+export const chartTableRowSchema = z.record(z.string(), z.union([z.string(), z.number()]));
+
+export const chartTableSchema = z.object({
+  caption: z.string().optional(),
+  headers: z.array(z.string()).default([]),
+  rows: z.array(chartTableRowSchema).default([]),
+});
+
 export const analyzeImageOutputSchema = z.object({
   summary: z.string(),
   observations: z.array(observationSchema).default([]),
@@ -85,6 +93,7 @@ export const analyzeImageOutputSchema = z.object({
     model: z.string(),
   }),
   mermaid: z.string().optional(),
+  tables: z.array(chartTableSchema).default([]),
   graph: z
     .object({
       nodes: z.array(graphNodeSchema).default([]),

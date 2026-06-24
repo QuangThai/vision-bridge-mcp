@@ -228,6 +228,7 @@ export function normalizeAnalyzeImageOutput(
     mermaid: typeof record.mermaid === "string" && record.mermaid.trim().length > 0
       ? record.mermaid.trim()
       : undefined,
+    tables: Array.isArray(record.tables) ? record.tables : [],
     graph: buildGraph(observations, imagePath),
   });
 }
@@ -267,6 +268,22 @@ export function renderAnalyzeImageMarkdown(output: AnalyzeImageOutput): string {
     lines.push(output.mermaid);
     lines.push("```");
     lines.push("");
+  }
+
+  if (output.tables.length > 0) {
+    lines.push("## Extracted tables");
+    for (const table of output.tables) {
+      if (table.caption) lines.push(`**${table.caption}**`);
+      if (table.headers.length > 0) {
+        lines.push("| " + table.headers.join(" | ") + " |");
+        lines.push("| " + table.headers.map(() => "---").join(" | ") + " |");
+      }
+      for (const row of table.rows) {
+        const cells = table.headers.map((h) => String(row[h] ?? ""));
+        lines.push("| " + cells.join(" | ") + " |");
+      }
+      lines.push("");
+    }
   }
 
   if (output.recommended_next_steps.length > 0) {

@@ -56,7 +56,10 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
 
   if (input.mode === "chart") {
     lines.push(
-      "If the image contains a chart or graph, extract the data as a structured table and include it in the text output.",
+      "If the image contains a chart or graph, extract the data as structured tables.",
+    );
+    lines.push(
+      'Include the tables in a JSON field called "tables" as an array of objects with fields: caption (string, optional), headers (string[]), rows (Record<string,string|number>[]).',
     );
   }
 

@@ -94,4 +94,41 @@ describe("normalizeAnalyzeImageOutput", () => {
     expect(output.observations).toHaveLength(1);
     expect(output.uncertainties[0]).toMatch(/not valid JSON/i);
   });
+
+  it("extracts tables from provider json", () => {
+    const output = normalizeAnalyzeImageOutput(
+      {
+        summary: "Quarterly revenue chart",
+        observations: [{ type: "visual", content: "Bar chart with 3 bars", confidence: 0.9 }],
+        tables: [
+          {
+            caption: "Q1 2026 Revenue",
+            headers: ["Month", "Revenue", "Growth"],
+            rows: [
+              { Month: "Jan", Revenue: 12000, Growth: "-" },
+              { Month: "Feb", Revenue: 18000, Growth: "+50%" },
+              { Month: "Mar", Revenue: 24000, Growth: "+33%" },
+            ],
+          },
+        ],
+      },
+      raw,
+      "./chart.png",
+    );
+
+    const validated = analyzeImageOutputSchema.parse(output);
+    expect(validated.tables).toHaveLength(1);
+    expect(validated.tables[0].caption).toBe("Q1 2026 Revenue");
+    expect(validated.tables[0].rows).toHaveLength(3);
+    expect(validated.tables[0].rows[1].Month).toBe("Feb");
+  });
+
+  it("defaults tables to empty array when missing", () => {
+    const output = normalizeAnalyzeImageOutput(
+      { summary: "Test", observations: [] },
+      raw,
+      "./test.png",
+    );
+    expect(output.tables).toEqual([]);
+  });
 });
