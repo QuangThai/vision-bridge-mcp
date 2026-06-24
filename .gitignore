@@ -19,3 +19,7 @@ scripts/bin/harness-cli.exe
 # Environment
 .env
 .env.*
+
+# Playwright test artifacts
+tests/e2e/*.png
+tests/e2e/*.html

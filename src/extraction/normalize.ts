@@ -86,6 +86,17 @@ function asStringArray(value: unknown): string[] {
 }
 
 function normalizeObservation(raw: unknown, index: number): Observation | null {
+  // Handle string observations from providers that return flat strings
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return observationSchema.parse({
+      id: stableId("obs", index),
+      type: "visual",
+      content: raw.trim(),
+      confidence: 0.7,
+      source_region: undefined,
+    });
+  }
+
   const record = asRecord(raw);
   if (!record || typeof record.content !== "string" || record.content.trim().length === 0) {
     return null;
@@ -107,6 +118,16 @@ function normalizeObservation(raw: unknown, index: number): Observation | null {
 }
 
 function normalizeInference(raw: unknown, index: number): Inference | null {
+  // Handle string inferences from providers that return flat strings
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return inferenceSchema.parse({
+      id: stableId("inf", index),
+      content: raw.trim(),
+      based_on: [],
+      confidence: 0.6,
+    });
+  }
+
   const record = asRecord(raw);
   if (!record || typeof record.content !== "string" || record.content.trim().length === 0) {
     return null;

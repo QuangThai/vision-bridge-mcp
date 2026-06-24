@@ -132,3 +132,75 @@ describe("E2E: real vision provider", () => {
     }
   });
 });
+
+const AGENTSVIEW_IMAGES = [
+  { file: "agentsview-agent-architecture.png", label: "agent architecture" },
+  { file: "agentsview-architecture-focused.png", label: "architecture focused" },
+  { file: "agentsview-company-architecture.png", label: "company architecture" },
+];
+
+describe("E2E: agentsview complex images", () => {
+  const canRun = hasApiKey();
+
+  for (const img of AGENTSVIEW_IMAGES) {
+    const imgPath = resolve(import.meta.dirname, img.file);
+
+    it.runIf(canRun)(
+      `${img.label}: analyze_image extracts structure`,
+      async () => {
+        const result = await analyzeImage(
+          {
+            image_path: imgPath,
+            mode: "diagram",
+            detail_level: "standard",
+          },
+          { config: loadConfig(), cwd: process.cwd() },
+        );
+
+        expect(result).toBeDefined();
+        expect(result.structured.summary).toBeTruthy();
+        expect(result.structured.observations.length).toBeGreaterThan(0);
+
+        console.log(`=== ${img.label} analyze_image ===`);
+        console.log("Summary:", result.structured.summary);
+        console.log("Observations:", result.structured.observations.length);
+        console.log("Inferences:", result.structured.inferences.length);
+        for (const obs of result.structured.observations.slice(0, 5)) {
+          console.log(`  [${obs.type}] ${obs.content} (${obs.confidence})`);
+        }
+        if (result.structured.observations.length > 5) {
+          console.log(`  ... and ${result.structured.observations.length - 5} more`);
+        }
+      },
+    );
+
+    it.runIf(canRun)(
+      `${img.label}: ocr_image extracts text`,
+      async () => {
+        const result = await ocrImage(
+          {
+            image_path: imgPath,
+            preserve_layout: true,
+            extract_tables: false,
+            extract_code: false,
+          },
+          { config: loadConfig(), cwd: process.cwd() },
+        );
+
+        expect(result).toBeDefined();
+        expect(result.structured.summary).toBeTruthy();
+
+        console.log(`=== ${img.label} ocr_image ===`);
+        console.log("Summary:", result.structured.summary);
+        console.log("Visible text blocks:", result.structured.visible_text.length);
+        for (const block of result.structured.visible_text.slice(0, 8)) {
+          console.log(`  [${block.region}] ${block.text} (${block.confidence})`);
+        }
+        if (result.structured.visible_text.length > 8) {
+          console.log(`  ... and ${result.structured.visible_text.length - 8} more`);
+        }
+        console.log("Warnings:", result.structured.warnings);
+      },
+    );
+  }
+});
