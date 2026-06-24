@@ -72,7 +72,7 @@ describe("redactSecrets", () => {
 
   it("redacts Stripe API keys", () => {
     // Use dynamic construction to avoid GitHub push protection false positive
-    const key = `sk_live_${'x'.repeat(28)}`;
+    const key = `sk_live_${"x".repeat(28)}`;
     const result = redactSecrets(key, true);
     expect(result.redacted).toBe(true);
     expect(result.findings.some((f) => f.pattern === "stripe_api_key")).toBe(true);

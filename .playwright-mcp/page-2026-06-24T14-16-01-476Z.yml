@@ -1,0 +1,259 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]:
+      - heading "Navigation Menu" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - link "Homepage" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - navigation "Global" [ref=e16]:
+            - list [ref=e17]:
+              - listitem [ref=e18]:
+                - button "Platform" [ref=e20] [cursor=pointer]:
+                  - text: Platform
+                  - img [ref=e21]
+              - listitem [ref=e23]:
+                - button "Solutions" [ref=e25] [cursor=pointer]:
+                  - text: Solutions
+                  - img [ref=e26]
+              - listitem [ref=e28]:
+                - button "Resources" [ref=e30] [cursor=pointer]:
+                  - text: Resources
+                  - img [ref=e31]
+              - listitem [ref=e33]:
+                - button "Open Source" [ref=e35] [cursor=pointer]:
+                  - text: Open Source
+                  - img [ref=e36]
+              - listitem [ref=e38]:
+                - button "Enterprise" [ref=e40] [cursor=pointer]:
+                  - text: Enterprise
+                  - img [ref=e41]
+              - listitem [ref=e43]:
+                - link "Pricing" [ref=e44] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+                  - generic [ref=e45]: Pricing
+          - generic [ref=e46]:
+            - button "Search or jump to…" [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+            - link "Sign in" [ref=e54] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FQuangThai%2Fvision-bridge-mcp%2Factions%2Fruns%2F28104888145
+            - link "Sign up" [ref=e55] [cursor=pointer]:
+              - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Factions%2Fworkflow_runs%2Fshow&source=header-repo&source_repo=QuangThai%2Fvision-bridge-mcp
+            - button "Appearance settings" [ref=e58] [cursor=pointer]:
+              - img
+  - main [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - generic [ref=e65]:
+          - generic [ref=e67]:
+            - img [ref=e68]
+            - link "QuangThai" [ref=e71] [cursor=pointer]:
+              - /url: /QuangThai
+            - generic [ref=e72]: /
+            - strong [ref=e73]:
+              - link "vision-bridge-mcp" [ref=e74] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp
+            - generic [ref=e75]: Public
+          - generic [ref=e76]:
+            - list:
+              - listitem [ref=e77]:
+                - link "You must be signed in to change notification settings" [ref=e78] [cursor=pointer]:
+                  - /url: /login?return_to=%2FQuangThai%2Fvision-bridge-mcp
+                  - img [ref=e79]
+                  - text: Notifications
+              - listitem [ref=e81]:
+                - link "Fork 0" [ref=e82] [cursor=pointer]:
+                  - /url: /login?return_to=%2FQuangThai%2Fvision-bridge-mcp
+                  - img [ref=e83]
+                  - text: Fork
+                  - generic "0" [ref=e85]
+              - listitem [ref=e86]:
+                - link "You must be signed in to star a repository" [ref=e88] [cursor=pointer]:
+                  - /url: /login?return_to=%2FQuangThai%2Fvision-bridge-mcp
+                  - img [ref=e89]
+                  - text: Star
+                  - generic "0 users starred this repository" [ref=e91]: "0"
+        - navigation "Repository" [ref=e92]:
+          - list [ref=e93]:
+            - listitem [ref=e94]:
+              - link "Code" [ref=e95] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp
+                - img [ref=e96]
+                - generic [ref=e98]: Code
+            - listitem [ref=e99]:
+              - link "Issues" [ref=e100] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp/issues
+                - img [ref=e101]
+                - generic [ref=e104]: Issues
+            - listitem [ref=e105]:
+              - link "Pull requests" [ref=e106] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp/pulls
+                - img [ref=e107]
+                - generic [ref=e109]: Pull requests
+            - listitem [ref=e110]:
+              - link "Actions" [ref=e111] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp/actions
+                - img [ref=e112]
+                - generic [ref=e114]: Actions
+            - listitem [ref=e115]:
+              - link "Projects" [ref=e116] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp/projects
+                - img [ref=e117]
+                - generic [ref=e119]: Projects
+            - listitem [ref=e120]:
+              - link "Security and quality" [ref=e121] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp/security
+                - img [ref=e122]
+                - generic [ref=e124]: Security and quality
+            - listitem [ref=e125]:
+              - link "Insights" [ref=e126] [cursor=pointer]:
+                - /url: /QuangThai/vision-bridge-mcp/pulse
+                - img [ref=e127]
+                - generic [ref=e129]: Insights
+      - generic [ref=e134]:
+        - generic [ref=e137]:
+          - link "CI" [ref=e140] [cursor=pointer]:
+            - /url: /QuangThai/vision-bridge-mcp/actions/workflows/ci.yml
+            - img [ref=e141]
+            - generic [ref=e143]: CI
+          - generic [ref=e144]:
+            - generic [ref=e145]:
+              - img "failed:" [ref=e149]
+              - 'heading "ci: remove node 20 from matrix - deprecated on GA runners #12" [level=1] [ref=e151]':
+                - generic [ref=e152]: "ci: remove node 20 from matrix - deprecated on GA runners #12"
+            - link "Sign in to view logs" [ref=e155] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FQuangThai%2Fvision-bridge-mcp%2Factions%2Fruns%2F28104888145
+        - generic [ref=e156]:
+          - navigation "Workflow run" [ref=e162]:
+            - list [ref=e163]:
+              - listitem [ref=e164]:
+                - link "Summary" [ref=e165] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145
+                  - generic:
+                    - img
+                  - generic [ref=e167]: Summary
+              - generic [ref=e168]:
+                - heading "All jobs" [level=4] [ref=e169]
+                - button "Filter by job status" [ref=e170] [cursor=pointer]:
+                  - img [ref=e171]
+              - listitem [ref=e173]
+              - listitem [ref=e174]:
+                - list [ref=e175]:
+                  - listitem [ref=e176]:
+                    - generic "Loading" [ref=e177]:
+                      - generic [ref=e181]:
+                        - img [ref=e182]
+                        - generic [ref=e185]: Loading
+              - listitem [ref=e186]
+              - listitem [ref=e187]:
+                - heading "Run details" [level=3] [ref=e189]
+                - list "Run details" [ref=e190]:
+                  - listitem [ref=e191]:
+                    - link "Usage" [ref=e192] [cursor=pointer]:
+                      - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/usage
+                      - generic:
+                        - img
+                      - generic [ref=e194]: Usage
+                  - listitem [ref=e195]:
+                    - link "Workflow file" [ref=e196] [cursor=pointer]:
+                      - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/workflow
+                      - generic:
+                        - img
+                      - generic [ref=e198]: Workflow file
+          - generic [ref=e200]:
+            - region "Workflow run summary" [ref=e201]:
+              - generic [ref=e202]:
+                - generic [ref=e203]:
+                  - generic [ref=e204]: Re-run triggered June 24, 2026 14:132 minutes ago
+                  - generic [ref=e205]:
+                    - link "@QuangThai QuangThai" [ref=e206] [cursor=pointer]:
+                      - /url: /QuangThai
+                      - img "@QuangThai" [ref=e207]
+                      - text: QuangThai
+                    - link "abd6d58" [ref=e209] [cursor=pointer]:
+                      - /url: /QuangThai/vision-bridge-mcp/commit/abd6d5806f91a81aa9fc361b8bb338db6df06ad0
+                      - img [ref=e210]
+                      - text: abd6d58
+                    - link "main" [ref=e212] [cursor=pointer]:
+                      - /url: /QuangThai/vision-bridge-mcp/tree/refs/heads/main
+                - generic [ref=e213]:
+                  - generic [ref=e214]: Status
+                  - text: Failure
+                - generic [ref=e215]:
+                  - generic [ref=e216]: Total duration
+                  - link "17s" [ref=e217] [cursor=pointer]:
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/usage
+                - generic [ref=e218]:
+                  - generic [ref=e219]: Artifacts
+                  - text: –
+            - region "Workflow run graph" [ref=e220]:
+              - generic [ref=e222]:
+                - generic [ref=e224]:
+                  - heading "ci.yml" [level=2] [ref=e225]:
+                    - link "ci.yml" [ref=e226] [cursor=pointer]:
+                      - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/workflow
+                  - generic [ref=e227]: "on: push"
+                - generic [ref=e229]:
+                  - generic [ref=e230]:
+                    - img
+                    - img
+                    - 'link "failed: check 12s" [ref=e234] [cursor=pointer]':
+                      - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/job/83216520983
+                      - generic [ref=e236]:
+                        - img "failed:" [ref=e238]
+                        - generic [ref=e241]: check
+                        - generic [ref=e242]: 12s
+                    - 'link "skipped: e2e 0s" [ref=e247] [cursor=pointer]':
+                      - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/job/83216575501
+                      - generic [ref=e249]:
+                        - img "skipped:" [ref=e251]
+                        - generic [ref=e254]: e2e
+                        - generic [ref=e255]: 0s
+                  - generic [ref=e257]:
+                    - paragraph [ref=e258]: Oh hello! Nice to see you.
+                    - paragraph [ref=e259]:
+                      - text: Made with ❤️ by
+                      - link [ref=e260] [cursor=pointer]:
+                        - /url: https://actions.github.io/humans.txt
+                        - text: humans.txt
+                - generic [ref=e261]:
+                  - button "Fit to window" [disabled] [ref=e262]:
+                    - img
+                  - generic [ref=e263]:
+                    - button "Zoom out" [disabled] [ref=e265]:
+                      - img
+                    - button "Zoom in" [ref=e267] [cursor=pointer]:
+                      - img
+            - region "Annotations" [ref=e268]:
+              - generic [ref=e269]:
+                - generic [ref=e271]:
+                  - heading "Annotations" [level=2] [ref=e272]
+                  - generic [ref=e273]: 1 error and 1 warning
+                - table [ref=e274]:
+                  - rowgroup [ref=e275]:
+                    - row "check Process completed with exit code 1." [ref=e276]:
+                      - cell "check Process completed with exit code 1." [ref=e277]:
+                        - generic [ref=e278]:
+                          - img [ref=e280]
+                          - generic [ref=e282]:
+                            - link "check" [ref=e283] [cursor=pointer]:
+                              - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/job/83216520983#step:5:17
+                              - strong [ref=e284]: check
+                            - generic [ref=e287]: Process completed with exit code 1.
+                    - 'row "check Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, pnpm/action-setup@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/ Show more" [ref=e288]':
+                      - 'cell "check Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, pnpm/action-setup@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/ Show more" [ref=e289]':
+                        - generic [ref=e290]:
+                          - img [ref=e292]
+                          - generic [ref=e294]:
+                            - link "check" [ref=e295] [cursor=pointer]:
+                              - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145/job/83216520983#step:19:2
+                              - strong [ref=e296]: check
+                            - generic [ref=e297]:
+                              - generic [ref=e299]:
+                                - text: "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, pnpm/action-setup@v4. For more information see:"
+                                - link "https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/" [ref=e300] [cursor=pointer]:
+                                  - /url: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+                              - button "Show more" [ref=e301] [cursor=pointer]

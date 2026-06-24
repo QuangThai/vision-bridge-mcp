@@ -1,6 +1,6 @@
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
+import { join } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import {
   buildInterceptMessageText,
@@ -18,9 +18,7 @@ import {
  */
 function loadAtlasEnvFiles(cwd: string): void {
   const files = [
-    ...(process.env.ATLAS_VISION_ENV_FILE
-      ? [process.env.ATLAS_VISION_ENV_FILE]
-      : []),
+    ...(process.env.ATLAS_VISION_ENV_FILE ? [process.env.ATLAS_VISION_ENV_FILE] : []),
     join(homedir(), ".config", "atlas-vision", "env"),
     join(cwd, ".env"),
   ];

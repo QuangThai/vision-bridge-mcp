@@ -1,0 +1,513 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - link "Skip to content" [ref=e4] [cursor=pointer]:
+      - /url: "#start-of-content"
+    - banner [ref=e6]:
+      - heading "Navigation Menu" [level=2] [ref=e7]
+      - generic [ref=e8]:
+        - link "Homepage" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - navigation "Global" [ref=e16]:
+            - list [ref=e17]:
+              - listitem [ref=e18]:
+                - button "Platform" [ref=e20] [cursor=pointer]:
+                  - text: Platform
+                  - img [ref=e21]
+              - listitem [ref=e23]:
+                - button "Solutions" [ref=e25] [cursor=pointer]:
+                  - text: Solutions
+                  - img [ref=e26]
+              - listitem [ref=e28]:
+                - button "Resources" [ref=e30] [cursor=pointer]:
+                  - text: Resources
+                  - img [ref=e31]
+              - listitem [ref=e33]:
+                - button "Open Source" [ref=e35] [cursor=pointer]:
+                  - text: Open Source
+                  - img [ref=e36]
+              - listitem [ref=e38]:
+                - button "Enterprise" [ref=e40] [cursor=pointer]:
+                  - text: Enterprise
+                  - img [ref=e41]
+              - listitem [ref=e43]:
+                - link "Pricing" [ref=e44] [cursor=pointer]:
+                  - /url: https://github.com/pricing
+                  - generic [ref=e45]: Pricing
+          - generic [ref=e46]:
+            - button "Search or jump to…" [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+            - link "Sign in" [ref=e54] [cursor=pointer]:
+              - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FQuangThai%2Fvision-bridge-mcp%2Factions
+            - link "Sign up" [ref=e55] [cursor=pointer]:
+              - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Factions%2Findex&source=header-repo&source_repo=QuangThai%2Fvision-bridge-mcp
+            - button "Appearance settings" [ref=e58] [cursor=pointer]:
+              - img
+  - main [ref=e62]:
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - generic [ref=e66]:
+          - img [ref=e67]
+          - link "QuangThai" [ref=e70] [cursor=pointer]:
+            - /url: /QuangThai
+          - generic [ref=e71]: /
+          - strong [ref=e72]:
+            - link "vision-bridge-mcp" [ref=e73] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp
+          - generic [ref=e74]: Public
+        - generic [ref=e75]:
+          - list:
+            - listitem [ref=e76]:
+              - link "You must be signed in to change notification settings" [ref=e77] [cursor=pointer]:
+                - /url: /login?return_to=%2FQuangThai%2Fvision-bridge-mcp
+                - img [ref=e78]
+                - text: Notifications
+            - listitem [ref=e80]:
+              - link "Fork 0" [ref=e81] [cursor=pointer]:
+                - /url: /login?return_to=%2FQuangThai%2Fvision-bridge-mcp
+                - img [ref=e82]
+                - text: Fork
+                - generic "0" [ref=e84]
+            - listitem [ref=e85]:
+              - link "You must be signed in to star a repository" [ref=e87] [cursor=pointer]:
+                - /url: /login?return_to=%2FQuangThai%2Fvision-bridge-mcp
+                - img [ref=e88]
+                - text: Star
+                - generic "0 users starred this repository" [ref=e90]: "0"
+      - navigation "Repository" [ref=e91]:
+        - list [ref=e92]:
+          - listitem [ref=e93]:
+            - link "Code" [ref=e94] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp
+              - img [ref=e95]
+              - generic [ref=e97]: Code
+          - listitem [ref=e98]:
+            - link "Issues" [ref=e99] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp/issues
+              - img [ref=e100]
+              - generic [ref=e103]: Issues
+          - listitem [ref=e104]:
+            - link "Pull requests" [ref=e105] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp/pulls
+              - img [ref=e106]
+              - generic [ref=e108]: Pull requests
+          - listitem [ref=e109]:
+            - link "Actions" [ref=e110] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp/actions
+              - img [ref=e111]
+              - generic [ref=e113]: Actions
+          - listitem [ref=e114]:
+            - link "Projects" [ref=e115] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp/projects
+              - img [ref=e116]
+              - generic [ref=e118]: Projects
+          - listitem [ref=e119]:
+            - link "Security and quality" [ref=e120] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp/security
+              - img [ref=e121]
+              - generic [ref=e123]: Security and quality
+          - listitem [ref=e124]:
+            - link "Insights" [ref=e125] [cursor=pointer]:
+              - /url: /QuangThai/vision-bridge-mcp/pulse
+              - img [ref=e126]
+              - generic [ref=e128]: Insights
+    - generic [ref=e130]:
+      - 'heading "Actions: QuangThai/vision-bridge-mcp" [level=1] [ref=e131]'
+      - generic [ref=e134]:
+        - generic [ref=e135]:
+          - heading "Actions" [level=2] [ref=e137]
+          - navigation "Actions Workflows" [ref=e141]:
+            - list [ref=e143]:
+              - listitem [ref=e144]:
+                - link "All workflows" [ref=e145] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp/actions
+                  - generic [ref=e146]: All workflows
+              - listitem [ref=e147]
+              - listitem [ref=e148]:
+                - list "Workflows" [ref=e152]:
+                  - listitem [ref=e153]:
+                    - link "CI" [ref=e154] [cursor=pointer]:
+                      - /url: /QuangThai/vision-bridge-mcp/actions/workflows/ci.yml
+                      - generic [ref=e155]: CI
+              - listitem [ref=e156]
+              - listitem [ref=e157]:
+                - generic [ref=e160]:
+                  - heading "Management" [level=3] [ref=e162]
+                  - list "Management" [ref=e163]:
+                    - listitem [ref=e164]:
+                      - link "Caches" [ref=e165] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/actions/caches
+                        - generic:
+                          - img
+                        - generic [ref=e166]: Caches
+        - generic [ref=e169]:
+          - generic [ref=e170]:
+            - generic [ref=e171]:
+              - heading "All workflows" [level=2] [ref=e173]:
+                - generic [ref=e175]: All workflows
+              - search [ref=e179]:
+                - combobox "Filter workflow runs" [ref=e180]
+                - img
+            - generic [ref=e181]: Showing runs from all workflows
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - strong [ref=e186]: 12 workflow runs
+              - generic [ref=e187]:
+                - button "Workflow" [ref=e191] [cursor=pointer]:
+                  - generic [ref=e193]: Workflow
+                  - generic:
+                    - img
+                - button "Event" [ref=e197] [cursor=pointer]:
+                  - generic [ref=e199]: Event
+                  - generic:
+                    - img
+                - button "Status" [ref=e203] [cursor=pointer]:
+                  - generic [ref=e205]: Status
+                  - generic:
+                    - img
+                - button "Branch" [ref=e209] [cursor=pointer]:
+                  - generic [ref=e211]: Branch
+                  - generic:
+                    - img
+                - button "Actor" [ref=e215] [cursor=pointer]:
+                  - generic [ref=e217]: Actor
+                  - generic:
+                    - img
+            - generic [ref=e218]:
+              - generic [ref=e220]:
+                - generic [ref=e221]:
+                  - 'link "failed: Run 12 of CI. ci: remove node 20 from matrix - deprecated on GA runners" [ref=e222] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104888145
+                    - img "failed:" [ref=e224]
+                    - generic [ref=e226]: "ci: remove node 20 from matrix - deprecated on GA runners"
+                  - generic [ref=e227]:
+                    - text: "CI #12:"
+                    - generic [ref=e228]:
+                      - text: Commit
+                      - link "abd6d58" [ref=e229] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/abd6d5806f91a81aa9fc361b8bb338db6df06ad0
+                      - text: pushed by
+                      - link "QuangThai" [ref=e230] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e232] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp/tree/refs/heads/main
+                - generic [ref=e234]:
+                  - generic [ref=e235]:
+                    - generic [ref=e236]:
+                      - img [ref=e238]
+                      - generic "Jun 24, 2026, 9:13 PM GMT+7" [ref=e240]: 2 minutes ago
+                    - generic [ref=e241]:
+                      - img "Run duration" [ref=e242]
+                      - text: 17s
+                  - group [ref=e245]:
+                    - generic "Show options" [ref=e246] [cursor=pointer]:
+                      - img "Show options" [ref=e247]
+              - generic [ref=e250]:
+                - generic [ref=e251]:
+                  - 'link "failed: Run 11 of CI. fix: ci workflow - move secret check to step level" [ref=e252] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104749767
+                    - img "failed:" [ref=e254]
+                    - generic [ref=e256]: "fix: ci workflow - move secret check to step level"
+                  - generic [ref=e257]:
+                    - text: "CI #11:"
+                    - generic [ref=e258]:
+                      - text: Commit
+                      - link "fecdb3d" [ref=e259] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/fecdb3d55584d948301ecb3ac384ccc4d8e2a786
+                      - text: pushed by
+                      - link "QuangThai" [ref=e260] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e262] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp/tree/refs/heads/main
+                - generic [ref=e264]:
+                  - generic [ref=e265]:
+                    - generic [ref=e266]:
+                      - img [ref=e268]
+                      - generic "Jun 24, 2026, 9:10 PM GMT+7" [ref=e270]: 4 minutes ago
+                    - generic [ref=e271]:
+                      - img "Run duration" [ref=e272]
+                      - text: 18s
+                  - group [ref=e275]:
+                    - generic "Show options" [ref=e276] [cursor=pointer]:
+                      - img "Show options" [ref=e277]
+              - generic [ref=e280]:
+                - generic [ref=e281]:
+                  - 'link "failed: Run 10 of CI. feat: extension auto-loads env files on startup" [ref=e282] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104610729
+                    - img "failed:" [ref=e284]
+                    - generic [ref=e286]: "feat: extension auto-loads env files on startup"
+                  - generic [ref=e287]:
+                    - text: "CI #10:"
+                    - generic [ref=e288]:
+                      - text: Commit
+                      - link "afa5c0b" [ref=e289] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/afa5c0bbcdb22279f8f0ca8dafd9bc4b395a64ab
+                      - text: pushed by
+                      - link "QuangThai" [ref=e290] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e292] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e294]:
+                  - generic [ref=e295]:
+                    - generic [ref=e296]:
+                      - img [ref=e298]
+                      - generic "Jun 24, 2026, 9:08 PM GMT+7" [ref=e300]: 6 minutes ago
+                    - generic [ref=e301]:
+                      - img [ref=e302]
+                      - text: Failure
+                  - group [ref=e305]:
+                    - generic "Show options" [ref=e306] [cursor=pointer]:
+                      - img "Show options" [ref=e307]
+              - generic [ref=e310]:
+                - generic [ref=e311]:
+                  - 'link "failed: Run 9 of CI. docs: add env setup guide with direnv for Pi extension" [ref=e312] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104381064
+                    - img "failed:" [ref=e314]
+                    - generic [ref=e316]: "docs: add env setup guide with direnv for Pi extension"
+                  - generic [ref=e317]:
+                    - text: "CI #9:"
+                    - generic [ref=e318]:
+                      - text: Commit
+                      - link "094e2dc" [ref=e319] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/094e2dc8a33d6e5821076c299ab8198f9d8f0010
+                      - text: pushed by
+                      - link "QuangThai" [ref=e320] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e322] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e324]:
+                  - generic [ref=e325]:
+                    - generic [ref=e326]:
+                      - img [ref=e328]
+                      - generic "Jun 24, 2026, 9:05 PM GMT+7" [ref=e330]: 10 minutes ago
+                    - generic [ref=e331]:
+                      - img [ref=e332]
+                      - text: Failure
+                  - group [ref=e335]:
+                    - generic "Show options" [ref=e336] [cursor=pointer]:
+                      - img "Show options" [ref=e337]
+              - generic [ref=e340]:
+                - generic [ref=e341]:
+                  - 'link "failed: Run 8 of CI. docs: add dedicated Pi integration section to README" [ref=e342] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104241596
+                    - img "failed:" [ref=e344]
+                    - generic [ref=e346]: "docs: add dedicated Pi integration section to README"
+                  - generic [ref=e347]:
+                    - text: "CI #8:"
+                    - generic [ref=e348]:
+                      - text: Commit
+                      - link "544b2de" [ref=e349] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/544b2de76ab3952cea9eb885517f22d25ee8dc80
+                      - text: pushed by
+                      - link "QuangThai" [ref=e350] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e352] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e354]:
+                  - generic [ref=e355]:
+                    - generic [ref=e356]:
+                      - img [ref=e358]
+                      - generic "Jun 24, 2026, 9:03 PM GMT+7" [ref=e360]: 12 minutes ago
+                    - generic [ref=e361]:
+                      - img [ref=e362]
+                      - text: Failure
+                  - group [ref=e365]:
+                    - generic "Show options" [ref=e366] [cursor=pointer]:
+                      - img "Show options" [ref=e367]
+              - generic [ref=e370]:
+                - generic [ref=e371]:
+                  - 'link "failed: Run 7 of CI. Release v0.3.0: hooks, harness, capabilities, and security hardening" [ref=e372] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28104157239
+                    - img "failed:" [ref=e374]
+                    - generic [ref=e376]: "Release v0.3.0: hooks, harness, capabilities, and security hardening"
+                  - generic [ref=e377]:
+                    - text: "CI #7:"
+                    - generic [ref=e378]:
+                      - text: Commit
+                      - link "a268e9d" [ref=e379] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/a268e9d1841b47d3bd0e8a27cbd97bbaf58fe8b2
+                      - text: pushed by
+                      - link "QuangThai" [ref=e380] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e382] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e384]:
+                  - generic [ref=e385]:
+                    - generic [ref=e386]:
+                      - img [ref=e388]
+                      - generic "Jun 24, 2026, 9:01 PM GMT+7" [ref=e390]: 13 minutes ago
+                    - generic [ref=e391]:
+                      - img [ref=e392]
+                      - text: Failure
+                  - group [ref=e395]:
+                    - generic "Show options" [ref=e396] [cursor=pointer]:
+                      - img "Show options" [ref=e397]
+              - generic [ref=e400]:
+                - generic [ref=e401]:
+                  - 'link "failed: Run 6 of CI. release: v0.2.0 — extract_region, analyze_image_batch, golden fixture…" [ref=e402] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28086108528
+                    - img "failed:" [ref=e404]
+                    - generic [ref=e406]: "release: v0.2.0 — extract_region, analyze_image_batch, golden fixture…"
+                  - generic [ref=e407]:
+                    - text: "CI #6:"
+                    - generic [ref=e408]:
+                      - text: Commit
+                      - link "1d9c682" [ref=e409] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/1d9c6829df7d75e7eaa9d452fd2232c41eef8751
+                      - text: pushed by
+                      - link "QuangThai" [ref=e410] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e412] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e414]:
+                  - generic [ref=e415]:
+                    - generic [ref=e416]:
+                      - img [ref=e418]
+                      - generic "Jun 24, 2026, 3:37 PM GMT+7" [ref=e420]: Today at 3:37 PM
+                    - generic [ref=e421]:
+                      - img [ref=e422]
+                      - text: Failure
+                  - group [ref=e425]:
+                    - generic "Show options" [ref=e426] [cursor=pointer]:
+                      - img "Show options" [ref=e427]
+              - generic [ref=e430]:
+                - generic [ref=e431]:
+                  - 'link "failed: Run 5 of CI. release: v0.2.0 — extract_region, analyze_image_batch, golden fixture…" [ref=e432] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28086030569
+                    - img "failed:" [ref=e434]
+                    - generic [ref=e436]: "release: v0.2.0 — extract_region, analyze_image_batch, golden fixture…"
+                  - generic [ref=e437]:
+                    - text: "CI #5:"
+                    - generic [ref=e438]:
+                      - text: Commit
+                      - link "1d9c682" [ref=e439] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/1d9c6829df7d75e7eaa9d452fd2232c41eef8751
+                      - text: pushed by
+                      - link "QuangThai" [ref=e440] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e442] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e444]:
+                  - generic [ref=e445]:
+                    - generic [ref=e446]:
+                      - img [ref=e448]
+                      - generic "Jun 24, 2026, 3:36 PM GMT+7" [ref=e450]: Today at 3:36 PM
+                    - generic [ref=e451]:
+                      - img [ref=e452]
+                      - text: Failure
+                  - group [ref=e455]:
+                    - generic "Show options" [ref=e456] [cursor=pointer]:
+                      - img "Show options" [ref=e457]
+              - generic [ref=e460]:
+                - generic [ref=e461]:
+                  - 'link "failed: Run 4 of CI. docs: add chart golden fixture, update roadmap and MCP tools docs" [ref=e462] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28083589571
+                    - img "failed:" [ref=e464]
+                    - generic [ref=e466]: "docs: add chart golden fixture, update roadmap and MCP tools docs"
+                  - generic [ref=e467]:
+                    - text: "CI #4:"
+                    - generic [ref=e468]:
+                      - text: Commit
+                      - link "db560b6" [ref=e469] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/db560b6e11dee4b3e7e1f87f2fc08fefd1526783
+                      - text: pushed by
+                      - link "QuangThai" [ref=e470] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e472] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e474]:
+                  - generic [ref=e475]:
+                    - generic [ref=e476]:
+                      - img [ref=e478]
+                      - generic "Jun 24, 2026, 2:49 PM GMT+7" [ref=e480]: Today at 2:49 PM
+                    - generic [ref=e481]:
+                      - img [ref=e482]
+                      - text: Failure
+                  - group [ref=e485]:
+                    - generic "Show options" [ref=e486] [cursor=pointer]:
+                      - img "Show options" [ref=e487]
+              - generic [ref=e490]:
+                - generic [ref=e491]:
+                  - 'link "failed: Run 3 of CI. feat: add structured chart/table extraction in analyze_image" [ref=e492] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28083066785
+                    - img "failed:" [ref=e494]
+                    - generic [ref=e496]: "feat: add structured chart/table extraction in analyze_image"
+                  - generic [ref=e497]:
+                    - text: "CI #3:"
+                    - generic [ref=e498]:
+                      - text: Commit
+                      - link "fbdbfe5" [ref=e499] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/fbdbfe55328ae6327d7158a4fccd5973ef27f02e
+                      - text: pushed by
+                      - link "QuangThai" [ref=e500] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e502] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e504]:
+                  - generic [ref=e505]:
+                    - generic [ref=e506]:
+                      - img [ref=e508]
+                      - generic "Jun 24, 2026, 2:39 PM GMT+7" [ref=e510]: Today at 2:39 PM
+                    - generic [ref=e511]:
+                      - img [ref=e512]
+                      - text: Failure
+                  - group [ref=e515]:
+                    - generic "Show options" [ref=e516] [cursor=pointer]:
+                      - img "Show options" [ref=e517]
+              - generic [ref=e520]:
+                - generic [ref=e521]:
+                  - 'link "failed: Run 2 of CI. feat: diagram-to-Mermaid output in analyze_image" [ref=e522] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28082769994
+                    - img "failed:" [ref=e524]
+                    - generic [ref=e526]: "feat: diagram-to-Mermaid output in analyze_image"
+                  - generic [ref=e527]:
+                    - text: "CI #2:"
+                    - generic [ref=e528]:
+                      - text: Commit
+                      - link "5166d63" [ref=e529] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/5166d6311721540edc92b834c4a60b136449810a
+                      - text: pushed by
+                      - link "QuangThai" [ref=e530] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e532] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e534]:
+                  - generic [ref=e535]:
+                    - generic [ref=e536]:
+                      - img [ref=e538]
+                      - generic "Jun 24, 2026, 2:33 PM GMT+7" [ref=e540]: Today at 2:33 PM
+                    - generic [ref=e541]:
+                      - img [ref=e542]
+                      - text: Failure
+                  - group [ref=e545]:
+                    - generic "Show options" [ref=e546] [cursor=pointer]:
+                      - img "Show options" [ref=e547]
+              - generic [ref=e550]:
+                - generic [ref=e551]:
+                  - 'link "failed: Run 1 of CI. feat: add Gemini provider adapter" [ref=e552] [cursor=pointer]':
+                    - /url: /QuangThai/vision-bridge-mcp/actions/runs/28082516968
+                    - img "failed:" [ref=e554]
+                    - generic [ref=e556]: "feat: add Gemini provider adapter"
+                  - generic [ref=e557]:
+                    - text: "CI #1:"
+                    - generic [ref=e558]:
+                      - text: Commit
+                      - link "38d9e2c" [ref=e559] [cursor=pointer]:
+                        - /url: /QuangThai/vision-bridge-mcp/commit/38d9e2c2c3ac8938727e55ed68187eb032bbff85
+                      - text: pushed by
+                      - link "QuangThai" [ref=e560] [cursor=pointer]:
+                        - /url: /QuangThai
+                - link "main" [ref=e562] [cursor=pointer]:
+                  - /url: /QuangThai/vision-bridge-mcp
+                - generic [ref=e564]:
+                  - generic [ref=e565]:
+                    - generic [ref=e566]:
+                      - img [ref=e568]
+                      - generic "Jun 24, 2026, 2:28 PM GMT+7" [ref=e570]: Today at 2:28 PM
+                    - generic [ref=e571]:
+                      - img [ref=e572]
+                      - text: Failure
+                  - group [ref=e575]:
+                    - generic "Show options" [ref=e576] [cursor=pointer]:
+                      - img "Show options" [ref=e577]
