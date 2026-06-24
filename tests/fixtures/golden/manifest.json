@@ -30,6 +30,16 @@
       "type": "diagram",
       "expected_text": ["AI agents", "Session files", "Control Plane", "Policy Enforcement"],
       "expected_elements": ["nodes", "edges", "labels", "flow arrows"]
+    },
+    {
+      "id": "chart-revenue",
+      "file": "chart-revenue.png",
+      "source": "screenshot of bar chart showing Q1 2026 revenue",
+      "width": 1280,
+      "height": 720,
+      "type": "chart",
+      "expected_text": ["Monthly Revenue", "Jan", "Feb", "Mar", "Total Revenue"],
+      "expected_elements": ["bar chart", "labels", "values"]
     }
   ]
 }

@@ -6,25 +6,31 @@ Phased delivery for Atlas Vision MCP. **MVP = Phase 1** (+ safety items from Pha
 
 - SPEC.md, tool schema design, provider abstraction — **complete (input material)**
 
-## Phase 1: CLI/MCP MVP (current)
+## Phase 1: CLI/MCP MVP ✓
 
 - stdio MCP server, 4 tools, local paths, OpenAI-compatible provider
 - markdown + structured JSON, basic tests, integration examples, `doctor`
 
 **Stories:** US-001 through US-012
 
-## Phase 2: Reliability and Safety
+## Phase 2: Reliability and Safety ✓
 
-- Golden fixtures, `atlas-vision eval`, JSON schema snapshots
-- Hardening beyond MVP baseline (may overlap US-011)
+- Golden fixtures (3 reference images: web + diagrams + chart)
+- `atlas-vision eval` CLI command with coverage reporting
+- JSON schema snapshots
+- GitHub Actions CI (Node 20 + 22, lint, typecheck, test, optional E2E)
 
-## Phase 3: Better Visual Workflows
+## Phase 3: Better Visual Workflows ✓
 
-- Improved UI/diff modes, diagram-to-Mermaid, chart/table extraction
+- Diagram-to-Mermaid: `mermaid` field in analyze_image output
+- Chart/table extraction: `tables[]` field with structured rows
+- Improved prompts for diagram and chart modes
 
-## Phase 4: Provider Expansion
+## Phase 4: Provider Expansion ✓
 
-- Gemini, Z.AI/GLM, Anthropic, Ollama adapters; fallback routing
+- Gemini adapter (Google AI API)
+- Ollama via openai-compatible adapter (localhost:11434/v1)
+- Provider router, "gemini" config value
 
 ## Phase 5: Web UI MVP
 

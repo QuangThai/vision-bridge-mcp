@@ -35,6 +35,11 @@ General image analysis for diagrams, charts, errors, code screenshots, documents
 - `summary`, `observations[]`, `inferences[]`, `uncertainties[]`, `recommended_next_steps[]`
 - `provider: { name, model }`
 - Each observation: `id`, `type`, `content`, `confidence`, optional `source_region`
+- `mermaid: string` (optional) — auto-generated Mermaid.js diagram syntax when `mode: "diagram"`
+- `tables: Table[]` (optional) — structured chart/table data when `mode: "chart"`, each with:
+  - `caption: string` (optional)
+  - `headers: string[]`
+  - `rows: Record<string, string|number>[]`
 
 ### Tool Description (for MCP registration)
 
