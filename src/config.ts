@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const visionProviderSchema = z.enum(["openai-compatible"]);
+const visionProviderSchema = z.enum(["openai-compatible", "gemini"]);
 
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 

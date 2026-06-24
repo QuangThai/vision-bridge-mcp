@@ -1,6 +1,7 @@
 import type { AtlasConfig } from "../config.js";
 import { validateProviderConfig } from "../config.js";
 import { ProviderError } from "./errors.js";
+import { GeminiProvider } from "./gemini.js";
 import { OpenAICompatibleProvider } from "./openai-compatible.js";
 import type { FetchFn, VisionProvider } from "./types.js";
 
@@ -17,6 +18,11 @@ export function createVisionProvider(
   switch (config.vision.provider) {
     case "openai-compatible":
       return new OpenAICompatibleProvider({
+        config: config.vision,
+        fetch: options.fetch,
+      });
+    case "gemini":
+      return new GeminiProvider({
         config: config.vision,
         fetch: options.fetch,
       });

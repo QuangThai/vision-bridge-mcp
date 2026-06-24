@@ -13,19 +13,32 @@ export interface VisionProvider {
 }
 ```
 
-MVP implements **one** provider: `openai-compatible`. Future providers: Gemini, Z.AI/GLM vision, Anthropic vision, Ollama, vLLM OpenAI-compatible.
+Current providers:
+
+| Provider | Env value | Auth | Vision models |
+|---|---|---|---|
+| OpenAI-compatible | `openai-compatible` | `VISION_API_KEY` (Bearer) | gpt-4o, gpt-4o-mini, and any OpenAI-compatible API |
+| Gemini | `gemini` | `VISION_API_KEY` (x-goog-api-key) | gemini-2.0-flash, gemini-2.5-flash, gemini-1.5-flash |
+
+**Ollama** can be used via the `openai-compatible` adapter by pointing at `http://localhost:11434/v1` with a vision model like `llava` or `minicpm-v`.
+
+Future providers: Z.AI/GLM vision, Anthropic vision, vLLM.
 
 ## Environment Configuration
 
 ```env
-VISION_PROVIDER=openai-compatible
-VISION_BASE_URL=https://api.openai.com/v1
+VISION_PROVIDER=openai-compatible   # or "gemini"
+VISION_BASE_URL=                    # leave default for OpenAI/Gemini
 VISION_API_KEY=
-VISION_MODEL=gpt-4o-mini
+VISION_MODEL=gpt-4o-mini            # or gemini-2.0-flash
 VISION_TIMEOUT_MS=60000
 VISION_MAX_IMAGE_MB=10
 VISION_MAX_OUTPUT_TOKENS=4000
 ```
+
+**Gemini defaults:** `VISION_BASE_URL` can be left at the default; the adapter
+overrides it to `https://generativelanguage.googleapis.com/v1beta` when
+provider is `gemini`.
 
 Credentials via **environment variables first**; config file support is deferred.
 
@@ -40,7 +53,11 @@ Credentials via **environment variables first**; config file support is deferred
 6. Markdown + structuredContent returned to MCP client
 ```
 
-## OpenAI-Compatible Request Strategy
+## Provider Request Strategies
+
+### OpenAI-Compatible
+
+Uses Chat Completions API with image_url content parts.
 
 ```ts
 const response = await client.chat.completions.create({
@@ -76,7 +93,12 @@ If uncertain, say so.
 Do not invent hidden behavior, invisible text, or unavailable context.
 ```
 
-## Image Preprocessing (MVP)
+### Gemini
+
+Uses the `generateContent` API with `inlineData` parts. Authentication uses
+`x-goog-api-key` header instead of Bearer token.
+
+## Image Preprocessing
 
 - Accept: `png`, `jpg`, `jpeg`, `webp`
 - Reject unsupported formats with clear error
