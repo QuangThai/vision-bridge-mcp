@@ -135,10 +135,43 @@ pi -e npm:atlas-vision-mcp
 
 ### Required env vars
 
+The Pi extension reads environment variables from the Pi process directly — it does **not** auto-load `.env` files.
+
+#### Recommended: direnv + .envrc
+
+Install [direnv](https://direnv.net), then create `.envrc` in the project root:
+
 ```bash
+# .envrc
 export VISION_API_KEY=your-key
 export VISION_BASE_URL=https://api.openai.com/v1
 export VISION_MODEL=gpt-4o-mini
+export VISION_PROVIDER=openai-compatible
+```
+
+Allow it:
+
+```bash
+cd /path/to/project
+direnv allow
+```
+
+Now every time you `cd` into the project, direnv auto-exports these vars — Pi sees them without any extra setup.
+
+Copy the template:
+
+```bash
+cp examples/atlas-vision.env.example .envrc
+# edit .envrc with your keys, then:
+direnv allow
+```
+
+Alternatively, export the vars in your shell profile (`~/.bashrc`, `~/.zshrc`) or source a `.env` file manually before starting Pi.
+
+```bash
+# Manual source
+export $(grep -v '^#' .env | xargs)
+pi
 ```
 
 Optional flags:
