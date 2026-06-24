@@ -42,7 +42,6 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    if: ${{ secrets.VISION_API_KEY != '' }}
     needs: [check]
 
     steps:
@@ -64,6 +63,7 @@ jobs:
         run: pnpm build
 
       - name: E2E tests (real provider)
+        if: env.VISION_API_KEY != ''
         env:
           VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:e2e
