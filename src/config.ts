@@ -1,0 +1,172 @@
+import { z } from "zod";
+
+const visionProviderSchema = z.enum(["openai-compatible"]);
+
+const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
+
+const detailLevelSchema = z.enum(["brief", "standard", "detailed"]);
+
+const rawEnvSchema = z.object({
+  VISION_PROVIDER: visionProviderSchema.default("openai-compatible"),
+  VISION_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
+  VISION_API_KEY: z.string().default(""),
+  VISION_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  VISION_TIMEOUT_MS: z.coerce.number().int().positive().max(600_000).default(60_000),
+  VISION_MAX_IMAGE_MB: z.coerce.number().positive().max(100).default(10),
+  VISION_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().max(128_000).default(4_000),
+  ATLAS_ALLOWED_DIRS: z.string().default("."),
+  ATLAS_STORE_HISTORY: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
+  ATLAS_LOG_LEVEL: logLevelSchema.default("info"),
+  ATLAS_LOG_IMAGE_CONTENT: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
+  ATLAS_REDACT_SECRETS: z
+    .enum(["true", "false", "1", "0"])
+    .default("true")
+    .transform((value) => value === "true" || value === "1"),
+  ATLAS_DEFAULT_DETAIL_LEVEL: detailLevelSchema.default("standard"),
+});
+
+export type VisionProviderName = z.infer<typeof visionProviderSchema>;
+export type LogLevel = z.infer<typeof logLevelSchema>;
+export type DetailLevel = z.infer<typeof detailLevelSchema>;
+
+export interface AtlasConfig {
+  vision: {
+    provider: VisionProviderName;
+    baseUrl: string;
+    apiKey: string;
+    model: string;
+    timeoutMs: number;
+    maxImageMb: number;
+    maxOutputTokens: number;
+  };
+  atlas: {
+    allowedDirs: string[];
+    storeHistory: boolean;
+    logLevel: LogLevel;
+    logImageContent: boolean;
+    redactSecrets: boolean;
+    defaultDetailLevel: DetailLevel;
+  };
+}
+
+export class ConfigError extends Error {
+  readonly issues: string[];
+
+  constructor(message: string, issues: string[] = []) {
+    super(message);
+    this.name = "ConfigError";
+    this.issues = issues;
+  }
+}
+
+function parseAllowedDirs(value: string): string[] {
+  const dirs = value
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  if (dirs.length === 0) {
+    throw new ConfigError(
+      "ATLAS_ALLOWED_DIRS must include at least one directory. Example: ATLAS_ALLOWED_DIRS=.",
+      ["ATLAS_ALLOWED_DIRS: must include at least one directory"],
+    );
+  }
+
+  return dirs;
+}
+
+function toRawEnv(env: NodeJS.ProcessEnv): Record<string, string | undefined> {
+  const keys = [
+    "VISION_PROVIDER",
+    "VISION_BASE_URL",
+    "VISION_API_KEY",
+    "VISION_MODEL",
+    "VISION_TIMEOUT_MS",
+    "VISION_MAX_IMAGE_MB",
+    "VISION_MAX_OUTPUT_TOKENS",
+    "ATLAS_ALLOWED_DIRS",
+    "ATLAS_STORE_HISTORY",
+    "ATLAS_LOG_LEVEL",
+    "ATLAS_LOG_IMAGE_CONTENT",
+    "ATLAS_REDACT_SECRETS",
+    "ATLAS_DEFAULT_DETAIL_LEVEL",
+  ] as const;
+
+  const raw: Record<string, string | undefined> = {};
+  for (const key of keys) {
+    const value = env[key];
+    raw[key] = value === "" ? undefined : value;
+  }
+  return raw;
+}
+
+function formatZodIssues(error: z.ZodError): string[] {
+  return error.issues.map((issue) => {
+    const path = issue.path.join(".");
+    return path ? `${path}: ${issue.message}` : issue.message;
+  });
+}
+
+function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
+  return {
+    vision: {
+      provider: parsed.VISION_PROVIDER,
+      baseUrl: parsed.VISION_BASE_URL,
+      apiKey: parsed.VISION_API_KEY,
+      model: parsed.VISION_MODEL,
+      timeoutMs: parsed.VISION_TIMEOUT_MS,
+      maxImageMb: parsed.VISION_MAX_IMAGE_MB,
+      maxOutputTokens: parsed.VISION_MAX_OUTPUT_TOKENS,
+    },
+    atlas: {
+      allowedDirs: parseAllowedDirs(parsed.ATLAS_ALLOWED_DIRS),
+      storeHistory: parsed.ATLAS_STORE_HISTORY,
+      logLevel: parsed.ATLAS_LOG_LEVEL,
+      logImageContent: parsed.ATLAS_LOG_IMAGE_CONTENT,
+      redactSecrets: parsed.ATLAS_REDACT_SECRETS,
+      defaultDetailLevel: parsed.ATLAS_DEFAULT_DETAIL_LEVEL,
+    },
+  };
+}
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env): AtlasConfig {
+  const result = rawEnvSchema.safeParse(toRawEnv(env));
+  if (!result.success) {
+    const issues = formatZodIssues(result.error);
+    throw new ConfigError(
+      `Invalid configuration:\n${issues.map((issue) => `- ${issue}`).join("\n")}`,
+      issues,
+    );
+  }
+
+  try {
+    return toAtlasConfig(result.data);
+  } catch (error) {
+    if (error instanceof ConfigError) {
+      throw error;
+    }
+    throw error;
+  }
+}
+
+export function validateProviderConfig(config: AtlasConfig): void {
+  if (!config.vision.apiKey.trim()) {
+    throw new ConfigError(
+      "VISION_API_KEY is required for vision provider calls. Set VISION_API_KEY in your MCP server environment.",
+      ["VISION_API_KEY: required for provider requests"],
+    );
+  }
+
+  if (!config.vision.baseUrl.trim()) {
+    throw new ConfigError(
+      "VISION_BASE_URL is required. Example: https://api.openai.com/v1",
+      ["VISION_BASE_URL: required"],
+    );
+  }
+}
