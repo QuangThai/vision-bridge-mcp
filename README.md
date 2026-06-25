@@ -75,6 +75,8 @@ npx atlas-vision-mcp serve --transport stdio
 
 ```bash
 npx atlas-vision-mcp doctor
+npx atlas-vision-mcp config          # show resolved config
+npx atlas-vision-mcp config init    # create atlas-vision.toml
 npx atlas-vision-mcp analyze ./screenshot.png --mode error_screenshot --json
 npx atlas-vision-mcp ocr ./error.png --preserve-layout
 npx atlas-vision-mcp compare ./before.png ./after.png --focus layout
@@ -111,6 +113,47 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 | `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` (keyword-based), `always` — auto-read clipboard image on Windows (v0.4.0) |
 | `MAIN_MODEL_REF` | auto-detected | Override model ref e.g. `deepseek/deepseek-v4-flash` |
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
+
+## Config file (v0.7.0)
+
+All environment variables can also be set via `atlas-vision.toml` (preferred) or
+`atlas-vision.json`. The config file fills in defaults that env vars can still
+override (env vars always take priority).
+
+```toml
+# atlas-vision.toml
+[provider]
+api_key = "sk-..."
+base_url = "https://api.openai.com/v1"
+model = "gpt-4o-mini"
+
+[cache]
+ttl_hours = 24
+max_entries = 500
+
+[atlas]
+adaptive_detail = true
+allowed_dirs = ["."]
+```
+
+### Search order
+
+1. `ATLAS_VISION_CONFIG` env — explicit path
+2. `./atlas-vision.toml` — project-level
+3. `./atlas-vision.json` — project-level
+4. `~/.config/atlas-vision/config.toml` — user-level
+5. `~/.config/atlas-vision/config.json` — user-level
+
+Only the first found file is merged. See `atlas-vision config init` for a template.
+
+### CLI commands
+
+```bash
+atlas-vision config           # show resolved config (env + file merged)
+atlas-vision config path      # show active config file path
+atlas-vision config init      # create atlas-vision.toml in current dir
+atlas-vision config --json    # JSON output
+```
 
 Full provider and security docs:
 
@@ -221,6 +264,11 @@ npx atlas-vision-mcp capabilities deepseek/deepseek-v4-flash
 # Debug intercept decision (v0.4.0)
 npx atlas-vision-mcp should-intercept deepseek/deepseek-v4-flash
 npx atlas-vision-mcp should-intercept openai/gpt-4o
+
+# Config file (v0.7.0)
+npx atlas-vision-mcp config
+npx atlas-vision-mcp config path
+npx atlas-vision-mcp config init
 
 # Cache management (v0.5.0)
 npx atlas-vision-mcp cache stats
@@ -341,6 +389,17 @@ pnpm test
 pnpm typecheck
 pnpm lint
 ```
+
+### Release (v0.7.0+)
+
+Push a tag and CI publishes to npm automatically:
+
+```bash
+git tag v0.x.y
+git push origin v0.x.y
+```
+
+Requires `NPM_TOKEN` set as a GitHub Actions secret.
 
 Product contract and stories:
 
