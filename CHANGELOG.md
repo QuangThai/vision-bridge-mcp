@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.9.0 — 2026-06-25
+
+### Added
+
+- **Multi-provider fallback** — `[provider.fallback]` in config file or
+  `VISION_FALLBACK_*` env vars. When primary fails with transient error
+  (timeout, 429, 5xx, network), automatically retries on secondary provider.
+- **`rate_limit` error code** — new `ProviderErrorCode` for 429 responses
+
+### Fixed
+
+- **`_isTransientError` detection** — checks error code field first, then
+  message patterns including "fetch failed", DNS, and socket errors
+- **Typecheck** — removed unused `FetchFn` import and `_withFallback` params
+
+### Changed
+
+- **Error messages** — "Unknown command" now lists available commands;
+  `costs` usage shown on flag parse failure
+- **README** — documented fallback provider in config file example + env table
+
 ## 0.8.0 — 2026-06-25
 
 ### Added
