@@ -131,9 +131,13 @@ export async function runEval(
             ? "chart"
             : fixture.type === "error_screenshot" || fixture.type === "form"
               ? "error_screenshot"
-              : fixture.type === "dashboard" || fixture.type === "ui_dark"
+              : fixture.type === "dashboard" ||
+                  fixture.type === "ui_dark" ||
+                  fixture.type === "ui_components"
                 ? "general"
-                : "general";
+                : fixture.type === "document"
+                  ? "document"
+                  : "general";
 
       const analyzeResult = await analyzeImage(
         {

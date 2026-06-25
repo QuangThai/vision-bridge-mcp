@@ -173,6 +173,67 @@
       "type": "simple",
       "expected_text": [],
       "expected_elements": []
+    },
+    {
+      "id": "vietnamese-text",
+      "file": "vietnamese-text.png",
+      "source": "programmatic Vietnamese text with diacritics",
+      "width": 1280,
+      "height": 900,
+      "type": "document",
+      "expected_text": [
+        "Chào mừng",
+        "tiếng Việt",
+        "Cộng hòa Xã hội",
+        "Hồ Chí Minh",
+        "phở",
+        "bánh mì",
+        "nông dân",
+        "lúa nước",
+        "xuất khẩu gạo"
+      ],
+      "expected_elements": ["heading", "paragraph", "list"]
+    },
+    {
+      "id": "cjk-text",
+      "file": "cjk-text.png",
+      "source": "programmatic CJK text: Japanese, Chinese, Korean",
+      "width": 1280,
+      "height": 900,
+      "type": "document",
+      "expected_text": [
+        "日本語",
+        "中文",
+        "한국어",
+        "こんにちは",
+        "你好",
+        "안녕하세요",
+        "ひらがな",
+        "人工智能",
+        "한글"
+      ],
+      "expected_elements": ["heading", "section", "paragraph"]
+    },
+    {
+      "id": "ui-components",
+      "file": "ui-components.png",
+      "source": "programmatic UI components: buttons, forms, cards",
+      "width": 1280,
+      "height": 900,
+      "type": "ui_components",
+      "expected_text": [
+        "UI Components",
+        "Dashboard",
+        "Primary",
+        "Delete",
+        "Save",
+        "Email",
+        "Password",
+        "Getting Started",
+        "React",
+        "TypeScript"
+      ],
+      "expected_elements": ["buttons", "input", "card", "navigation", "chip"]
     }
   ]
 }

@@ -747,9 +747,23 @@ export async function runEvalCommand(
       return 1;
     }
 
+    const modelOverride = getFlagString(flags, "model");
+    const providerOverride = getFlagString(flags, "provider");
+
     const config = loadCfg();
     validateProviderConfig(config);
-    const provider = createVisionProvider(config);
+
+    // Apply overrides
+    const evalConfig: AtlasConfig = {
+      ...config,
+      vision: {
+        ...config.vision,
+        model: modelOverride ?? config.vision.model,
+        provider: (providerOverride as AtlasConfig["vision"]["provider"]) ?? config.vision.provider,
+      },
+    };
+
+    const provider = createVisionProvider(evalConfig);
     const goldenDir = resolve(
       dependencies.goldenDir ?? resolve(import.meta.dirname, "../../tests/fixtures/golden"),
     );
@@ -759,7 +773,7 @@ export async function runEvalCommand(
       return 1;
     }
 
-    const report = await runEval(goldenDir, config, provider, { threshold });
+    const report = await runEval(goldenDir, evalConfig, provider, { threshold });
     const text = renderEvalReport(report);
 
     log.log(text);
