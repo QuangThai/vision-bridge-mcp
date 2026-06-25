@@ -107,13 +107,33 @@ For agent-specific instructions, see [`examples/`](examples/) and
 | `extract_region` | Crop and analyze a specific region of an image |
 | `analyze_image_batch` | Process multiple images in a single call |
 
+### Extract region — focused analysis
+
+```bash
+# Crop a region from a screenshot and analyze only that area
+atlas-vision analyze ./screenshot.png --region "100,100,400,300"
+```
+
+**MCP:** `extract_region(image_path, region: { x, y, width, height }, prompt?, mode?, detail_level?)`
+
+Useful for focusing on error popups, chart sections, navigation bars, or single UI elements without token waste on the full image.
+
+### Batch analysis — multiple images at once
+
+```bash
+atlas-vision analyze ./screenshot.png ./diagram.png ./chart.png
+# CLI accepts multiple paths → batch mode, returns per-image summaries
+```
+
+**MCP:** `analyze_image_batch(images: [{ image_path, prompt?, mode? }], detail_level?)` — 1–10 images per batch.
+
 Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 
 ## Environment variables
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `VISION_PROVIDER` | `openai-compatible` | Vision adapter |
+| `VISION_PROVIDER` | `openai-compatible` | Vision adapter — `openai-compatible`, `gemini`, `openai-responses` |
 | `VISION_BASE_URL` | `https://api.openai.com/v1` | Provider API base |
 | `VISION_API_KEY` | _(required for live calls)_ | Provider credential |
 | `VISION_MODEL` | `gpt-4o-mini` | Vision model id |
@@ -159,7 +179,34 @@ atlas-vision <command> --help  # per-command flags
 atlas-vision completion bash   # tab-complete
 ```
 
-## Configuration
+## Provider comparison
+
+| Provider | Config value | Best for | Auth |
+| --- | --- | --- | --- |
+| OpenAI Compatible | `openai-compatible` | OpenAI, Anthropic, Ollama, DeepSeek, any openai-compatible endpoint | `Authorization: Bearer` header |
+| OpenAI Responses API | `openai-responses` | OpenAI models via the new `/v1/responses` endpoint (v0.10.0+) | `Authorization: Bearer` header |
+| Google Gemini | `gemini` | Gemini models via Google AI API | `x-goog-api-key` header |
+
+Set `VISION_PROVIDER=openai-responses` (or `VISION_PROVIDER=gemini`) and the
+matching `VISION_MODEL` + `VISION_API_KEY` to switch providers.
+
+```bash
+# OpenAI (default)
+VISION_PROVIDER=openai-compatible VISION_MODEL=gpt-4o-mini
+
+# OpenAI Responses API
+VISION_PROVIDER=openai-responses VISION_MODEL=gpt-4o
+
+# Google Gemini
+VISION_PROVIDER=gemini VISION_MODEL=gemini-2.0-flash
+
+# Fallback: primary provider fails → secondary kicks in (v0.9.0+)
+VISION_PROVIDER=openai-compatible \
+  VISION_FALLBACK_PROVIDER=gemini \
+  VISION_FALLBACK_API_KEY=gemini-key...
+```
+
+## Config file
 
 All environment variables can also be set via `atlas-vision.toml` (preferred) or
 `atlas-vision.json`. The config file fills in defaults that env vars can still
@@ -171,6 +218,7 @@ override (env vars always take priority).
 api_key = "sk-..."
 base_url = "https://api.openai.com/v1"
 model = "gpt-4o-mini"
+provider = "openai-compatible"  # or "openai-responses", "gemini"
 
 # Optional: fallback provider (v0.9.0+)
 [provider.fallback]
@@ -304,7 +352,7 @@ VISION_PROVIDER=openai-compatible
 | `VISION_FALLBACK_PROVIDER` | — | Secondary provider if primary fails |
 | `VISION_FALLBACK_API_KEY` | — | API key for fallback |
 | `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — v0.4.0 |
-| `VISION_PROVIDER` | `openai-compatible` | Vision adapter |
+| `VISION_PROVIDER` | `openai-compatible` | Vision adapter — `openai-compatible`, `gemini`, `openai-responses` |
 
 ### Verify
 
@@ -332,6 +380,10 @@ npx atlas-vision-mcp cache clear
 npx atlas-vision-mcp costs --today
 npx atlas-vision-mcp costs --session
 npx atlas-vision-mcp costs --range 7
+
+# Golden evaluation (v0.6.0)
+npx atlas-vision-mcp eval
+npx atlas-vision-mcp eval --model gpt-4o --provider openai-responses
 
 # Auto-install hooks (v0.5.0)
 npx atlas-vision-mcp install-hooks cursor

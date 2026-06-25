@@ -18,6 +18,7 @@ Current providers:
 | Provider | Env value | Auth | Vision models |
 |---|---|---|---|
 | OpenAI-compatible | `openai-compatible` | `VISION_API_KEY` (Bearer) | gpt-4o, gpt-4o-mini, and any OpenAI-compatible API |
+| OpenAI Responses API | `openai-responses` | `VISION_API_KEY` (Bearer) | gpt-4o, gpt-4o-mini via /v1/responses endpoint |
 | Gemini | `gemini` | `VISION_API_KEY` (x-goog-api-key) | gemini-2.0-flash, gemini-2.5-flash, gemini-1.5-flash |
 
 **Ollama** can be used via the `openai-compatible` adapter by pointing at `http://localhost:11434/v1` with a vision model like `llava` or `minicpm-v`.
@@ -27,7 +28,7 @@ Future providers: Z.AI/GLM vision, Anthropic vision, vLLM.
 ## Environment Configuration
 
 ```env
-VISION_PROVIDER=openai-compatible   # or "gemini"
+VISION_PROVIDER=openai-compatible   # or "gemini", "openai-responses"
 VISION_BASE_URL=                    # leave default for OpenAI/Gemini
 VISION_API_KEY=
 VISION_MODEL=gpt-4o-mini            # or gemini-2.0-flash
