@@ -56,11 +56,7 @@ describe("interceptImagesForTextModel", () => {
       },
     );
 
-    expect(planFn).toHaveBeenCalledWith(
-      expect.objectContaining({ env: hookEnv }),
-      {},
-      {},
-    );
+    expect(planFn).toHaveBeenCalledWith(expect.objectContaining({ env: hookEnv }), {}, {});
   });
 
   it("forwards runtimeSupportsVision to the intercept planner", async () => {
