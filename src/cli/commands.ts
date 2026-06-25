@@ -672,13 +672,21 @@ export interface EvalCommandDependencies {
 }
 
 export async function runEvalCommand(
-  _argv: string[],
+  argv: string[],
   dependencies: EvalCommandDependencies = {},
 ): Promise<number> {
   const log = dependencies.log ?? console;
   const loadCfg = dependencies.loadConfig ?? loadConfig;
+  const { flags } = parseArgs(argv);
 
   try {
+    const thresholdStr = flags.get("--threshold") as string | undefined;
+    const threshold = thresholdStr ? Number.parseFloat(thresholdStr) : undefined;
+    if (threshold !== undefined && (Number.isNaN(threshold) || threshold < 0 || threshold > 1)) {
+      log.error("--threshold must be a number between 0 and 1");
+      return 1;
+    }
+
     const config = loadCfg();
     validateProviderConfig(config);
     const provider = createVisionProvider(config);
@@ -691,7 +699,7 @@ export async function runEvalCommand(
       return 1;
     }
 
-    const report = await runEval(goldenDir, config, provider);
+    const report = await runEval(goldenDir, config, provider, { threshold });
     const text = renderEvalReport(report);
 
     log.log(text);

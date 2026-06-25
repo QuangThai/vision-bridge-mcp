@@ -2,6 +2,39 @@
 
 Atlas Vision MCP integrates with MCP-compatible coding agents via **local stdio** and `npx`.
 
+## Quick setup (all clients)
+
+```bash
+# 1. Create a config file (replaces all --env flags)
+npx atlas-vision-mcp config init
+# Edit atlas-vision.toml: set api_key, base_url, model
+
+# 2. Verify provider works
+npx atlas-vision-mcp doctor
+```
+
+Or use environment variables instead of config file — see each client below.
+
+## Config file approach
+
+Instead of passing `--env VISION_API_KEY=...` to every client, create an
+`atlas-vision.toml` in your project root:
+
+```toml
+[provider]
+api_key = "sk-..."
+base_url = "https://api.openai.com/v1"
+model = "gpt-4o-mini"
+
+[atlas]
+adaptive_detail = true
+```
+
+The config file is optional — env vars always take priority. See
+`atlas-vision config init` for a full template.
+
+## Clients
+
 ## OpenCode
 
 ```jsonc
