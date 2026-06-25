@@ -90,8 +90,27 @@ function buildOcrPrompt(input: OcrImageInput): string {
   lines.push(
     "Transcribe ALL diacritics exactly — they change word meaning in Vietnamese (bò ≠ bỏ ≠ bõ).",
   );
+  lines.push("Chinese vs Japanese vs Korean — distinguishing guide:");
   lines.push(
-    "For Chinese/Japanese: detect CJK characters (hanzi/kanji), kana (hiragana/katakana), and mixed-script text. Do not confuse with Vietnamese.",
+    "Chinese (Mandarin/Cantonese): ONLY hanzi characters (汉字). No phonetic script mixed in. No spaces between words.",
+  );
+  lines.push(
+    "Japanese: MIXED script — kanji (Chinese-origin) + hiragana (curvy, phonetics) + katakana (angular, loanwords). If you see a mix of complex characters and simple curvy/kana characters, it's Japanese.",
+  );
+  lines.push(
+    "Japanese hiragana: あいうえお かきくけこ さしすせそ たちつてと なにぬねの はひふへほ まみむめも やゆよ らりるれろ わをん — curvy, simple strokes.",
+  );
+  lines.push(
+    "Japanese katakana: アイウエオ カキクケコ サシスセソ タチツテト ナニヌネノ ハヒフヘホ マミムメモ ヤユヨ ラリルレロ ワヲン — angular, boxy strokes.",
+  );
+  lines.push(
+    "Korean: Hangul syllable blocks (한글). Each block is composed of geometric shapes: circles (ㅇ), lines (ㅡ,ㅣ), and boxes (ㅁ,ㅂ). Very distinct from Chinese/Japanese. No kanji.",
+  );
+  lines.push(
+    "Korean Hangul building blocks: consonants ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ / vowels ㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ — combined into square blocks.",
+  );
+  lines.push(
+    "If you see rounded circles (ㅇ, ㅎ) or geometric combos that look like building blocks → Korean. Complex characters mixed with curvy ones → Japanese. Only complex characters → Chinese.",
   );
   lines.push(
     "For code screenshots with non-English comments: preserve the original comment language exactly.",

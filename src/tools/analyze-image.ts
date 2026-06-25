@@ -51,7 +51,10 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     "The image may contain Vietnamese, Chinese, Japanese or other non-English text.",
     "Vietnamese uses unique characters: ă, Â, đ, ê, ô, ơ, ư (never English/French). Double diacritics = Vietnamese: ấ ầ ẩ ẫ ậ, ắ ằ ẳ ẵ ặ, ớ ờ ở ỡ ợ.",
     "Common Vietnamese patterns: ng, ngh, nh, tr, ch, kh, ph. Transcribe ALL diacritics — they change meaning.",
-    "For Chinese/Japanese: detect CJK characters and kana accurately — do not substitute missing radicals.",
+    "CJK guide: Chinese = ONLY complex characters (汉字). Japanese = complex kanji + curvy hiragana (あいう) + angular katakana (アイウ). Korean = Hangul syllable blocks (한글) with circles/lines.",
+    "Korean Hangul: consonants ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ + vowels ㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ combined into square blocks. Round circles (ㅇ, ㅎ) = Korean.",
+    "If you see mixed scripts (kanji + kana) → Japanese. Only hanzi → Chinese. Square blocks with circles → Korean.",
+    "Transcribe CJK characters exactly as seen — do not simplify, convert script (simplified/traditional), or substitute radicals.",
   ];
 
   if (input.mode === "diagram") {
