@@ -10,6 +10,7 @@ import {
   runServeCommand,
   runShouldInterceptCommand,
 } from "./commands.js";
+import { runCompletionCommand } from "./completion-command.js";
 import { runConfigCommand } from "./config-command.js";
 import { runCostsCommand } from "./costs-commands.js";
 import { runEstimateCommand } from "./estimate-command.js";
@@ -34,6 +35,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("  compare  Compare two images for visual differences");
     console.log("  eval     Run golden fixture evaluation against the provider");
     console.log("  install-hooks  Install atlas hooks for a client (cursor|claude|codex|droid)");
+    console.log("  completion Generate shell completion script (bash|zsh|fish)");
     console.log("  config   Show or init configuration (atlas-vision.toml / .json)");
     console.log("  costs    Show vision API cost summary (--today, --session, --range <days>)");
     console.log("  estimate Estimate vision API cost for an image");
@@ -46,6 +48,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("  MAIN_MODEL_REF=deepseek/deepseek-v4-flash atlas-vision doctor");
     console.log("  atlas-vision capabilities deepseek/deepseek-v4-flash");
     console.log("  atlas-vision analyze ./screenshot.png --mode error_screenshot --json");
+    console.log("  atlas-vision completion bash");
     console.log("  atlas-vision config");
     console.log("  atlas-vision config init");
     console.log("  atlas-vision serve --transport stdio");
@@ -98,6 +101,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
 
   if (command === "install-hooks") {
     return runInstallHooksCommand(rest);
+  }
+
+  if (command === "completion") {
+    return runCompletionCommand(rest);
   }
 
   if (command === "config") {

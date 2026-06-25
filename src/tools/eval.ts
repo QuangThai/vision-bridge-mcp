@@ -67,7 +67,10 @@ function loadManifest(goldenDir: string): GoldenManifest {
 /**
  * Compute text match rate and missing entries between expected and actual text.
  */
-function matchText(expectedText: string[], allActualText: string): {
+function matchText(
+  expectedText: string[],
+  allActualText: string,
+): {
   matches: string[];
   missing: string[];
   rate: number;
@@ -195,9 +198,7 @@ export async function runEval(
         { config, cwd: process.cwd() },
       );
 
-      const ocrText = ocrResult.structured.visible_text
-        .map((t) => t.text)
-        .join(" ");
+      const ocrText = ocrResult.structured.visible_text.map((t) => t.text).join(" ");
 
       const textResult = matchText(fixture.expected_text, ocrText);
 

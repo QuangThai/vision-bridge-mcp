@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion
+    url: https://github.com/QuangThai/vision-bridge-mcp/discussions
+    about: Questions, ideas, and general discussion
