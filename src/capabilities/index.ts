@@ -3,12 +3,14 @@ export type {
   DetectedImage,
   ImageInterceptOptions,
   ImageInterceptPlan,
+  InterceptMode,
   ModelCapabilities,
   ModelsDevCacheEntry,
   ModelsDevCatalog,
   ModelsDevModel,
   ModelsDevProvider,
   PlannedVisionCall,
+  ProviderVisionPattern,
   VisionCapabilityOverride,
   VisionToolName,
 } from "./types.js";
@@ -38,3 +40,11 @@ export {
   VISION_INSTRUCTIONS_PROMPT_NAME,
   buildVisionInstructionsPrompt,
 } from "./vision-prompt.js";
+
+export {
+  PROVIDER_HEURISTICS,
+  SPECIFIC_OVERRIDES,
+  lookupBundledCapability,
+  findHeuristicPattern,
+  findSpecificOverride,
+} from "./bundled-registry.js";

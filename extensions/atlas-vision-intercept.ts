@@ -106,7 +106,14 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
       ctx.sessionManager.getLeafId() ?? "session",
     );
     const messageText = buildInterceptMessageText(event.prompt, attachedPaths);
-    const runtimeSupportsVision = ctx.model?.input.includes("image") ?? false;
+    // ── Runtime vision signal from pi SDK ──
+    // ctx.model.input is ALWAYS an array per pi-ai Model type: ("text" | "image")[]
+    //   ["text", "image"] → CERTAIN vision → true → skip intercept
+    //   ["text"]          → CERTAIN text-only → false → intercept
+    //   ctx.model undefined → UNKNOWN → undefined → heuristic/models.dev decides
+    // This is correct for cursor-sdk bridge: Cursor models (composer-2.5, gpt-5.5, opus-4.8)
+    // have input: ["text", "image"], while text-only models (deepseek) have input: ["text"].
+    const runtimeSupportsVision = ctx.model?.input?.includes("image") ?? undefined;
 
     ctx.ui.setStatus("atlas-vision", "atlas: analyzing image(s)...");
 

@@ -1,4 +1,11 @@
+import { loadExternalModelOverrides } from "../capabilities/bundled-registry.js";
+import type { InterceptMode, VisionCapabilityOverride } from "../capabilities/types.js";
 import { buildInterceptMessageText } from "./attached-images.js";
+import {
+  readClipboardImage,
+  scheduleClipboardCleanup,
+  shouldAutoDetectClipboard,
+} from "./clipboard-image.js";
 import { loadHookEnv } from "./hook-env.js";
 import {
   type InterceptImagesDependencies,
@@ -31,6 +38,9 @@ export interface UserPromptHookOptions {
   runtimeSupportsVision?: boolean;
   forceIntercept?: boolean;
   skipIntercept?: boolean;
+  interceptMode?: InterceptMode;
+  /** Additional model capability overrides (merged with external config file). */
+  overrides?: VisionCapabilityOverride[];
   env?: NodeJS.ProcessEnv;
 }
 
@@ -44,8 +54,13 @@ function inferProviderFromModelId(modelId: string): string | undefined {
   if (lower.startsWith("deepseek")) {
     return "deepseek";
   }
+  // models.dev canonical provider id
   if (lower.startsWith("glm")) {
-    return "glm";
+    return "zhipuai";
+  }
+  // Cursor custom model names — all have vision (Claude/GPT underneath)
+  if (lower.startsWith("composer")) {
+    return "cursor";
   }
   return undefined;
 }
@@ -84,6 +99,14 @@ export function resolveMainModelRef(
 function envFlag(env: NodeJS.ProcessEnv, name: string): boolean {
   const value = env[name]?.trim().toLowerCase();
   return value === "1" || value === "true" || value === "yes";
+}
+
+function interceptModeFromEnv(env: NodeJS.ProcessEnv): InterceptMode | undefined {
+  const raw = env.ATLAS_INTERCEPT_MODE?.trim().toLowerCase();
+  if (raw === "text-only-only" || raw === "always" || raw === "never" || raw === "auto") {
+    return raw;
+  }
+  return undefined;
 }
 
 export function detectHookClient(
@@ -175,6 +198,17 @@ export async function runUserPromptHook(
     ...(input.image_paths ?? []),
     ...pendingSessionImages,
   ];
+
+  // Auto-detect clipboard image when no explicit attachments are present
+  // and the environment / prompt hints at an image reference.
+  if (attachmentPaths.length === 0 && shouldAutoDetectClipboard(prompt, hookEnv)) {
+    const clipPath = await readClipboardImage();
+    if (clipPath) {
+      attachmentPaths.push(clipPath);
+      scheduleClipboardCleanup(clipPath);
+    }
+  }
+
   const messageText = buildInterceptMessageText(prompt, attachmentPaths);
 
   const mainModelRef = resolveMainModelRef(input, hookEnv, options.mainModelRef);
@@ -187,6 +221,10 @@ export async function runUserPromptHook(
     options.runtimeSupportsVision ??
     (envFlag(hookEnv, "ATLAS_FORCE_INTERCEPT") ? false : undefined);
 
+  // Load external model overrides (ATLAS_MODEL_CAPABILITIES_FILE)
+  const externalOverrides = await loadExternalModelOverrides(hookEnv);
+  const mergedOverrides = [...externalOverrides, ...(options.overrides ?? [])];
+
   const result = await interceptImagesForTextModel(
     {
       mainModelRef,
@@ -197,6 +235,8 @@ export async function runUserPromptHook(
     {
       forceIntercept: options.forceIntercept ?? envFlag(hookEnv, "ATLAS_FORCE_INTERCEPT"),
       skipIntercept: options.skipIntercept ?? envFlag(hookEnv, "ATLAS_SKIP_INTERCEPT"),
+      interceptMode: options.interceptMode ?? interceptModeFromEnv(hookEnv),
+      overrides: mergedOverrides.length > 0 ? mergedOverrides : undefined,
     },
     { ...dependencies, cwd },
   );

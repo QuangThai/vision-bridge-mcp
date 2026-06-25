@@ -46,3 +46,10 @@ export {
   type UserPromptHookOptions,
   type UserPromptHookResult,
 } from "./user-prompt-hook.js";
+export {
+  getClipboardDetectMode,
+  readClipboardImage,
+  scheduleClipboardCleanup,
+  shouldAutoDetectClipboard,
+  ENV_CLIPBOARD_DETECT,
+} from "./clipboard-image.js";

@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.4.0 — 2026-06-25
+
+### Added
+
+- **Provider heuristics** — replace hardcoded model list with provider-level patterns:
+  `openai/*`, `anthropic/*`, `google/*`, `cursor/*`, `opencode-go/*` → vision (ALL models);
+  `deepseek/*`, `zhipuai/*`, `kimi/*`, `qwen/*` → text-only (ALL models)
+  No more manual updates when new models are released
+- **`ATLAS_INTERCEPT_MODE`** — `auto`, `text-only-only`, `always`, `never`. Controls when Atlas intercepts images.
+  `text-only-only` mode: only intercepts for models KNOWN text-only (safe for cursor-sdk)
+- **`ATLAS_MODEL_CAPABILITIES_FILE`** — user-provided JSON file to override capability detection
+- **`should-intercept` CLI** — `atlas-vision should-intercept <provider/model>` debugs intercept decisions
+- **OpenCode plugin** — `.opencode/plugin.ts` auto-intercepts images via `chat.message` hook (0 MCP calls)
+- **Clipboard image detection** — `ATLAS_CLIPBOARD_DETECT=smart|always` auto-reads clipboard images (Windows)
+- **`cursor/*`, `opencode-go/*` provider heuristics** — correct handling for pi-cursor-sdk bridge
+
+### Fixed
+
+- **`runtimeSupportsVision` logic** (extensions/atlas-vision-intercept.ts):
+  `ctx.model?.input?.includes("image") ?? undefined` — only claims vision when CERTAIN.
+  Text-only models (`input: ["text"]`) correctly return `false` → intercept.
+  Missing `ctx.model` returns `undefined` → heuristic decides.
+- **Provider alias `glm` → `zhipuai`** — `inferProviderFromModelId("glm-5.2")` now returns `"zhipuai"`
+  (matching models.dev canonical ID)
+- **Bundled registry priority** — `lookupBundledCapability` checked BEFORE models.dev lookup,
+  preventing future models.dev changes (e.g. `deepseek-v4-flash` with `attachment: true`) from
+  overriding curated exceptions
+- **`inferProviderFromModelId`** — recognizes `composer-*` → `cursor` provider for Cursor model names
+
+### Changed
+
+- **`src/capabilities/bundled-registry.ts`** — rewritten from ~180 lines of model-specific overrides
+  to ~120 lines with provider heuristics + small override list
+- **`getModelCapabilities` priority** — `user overrides → bundled/heuristics → models.dev → unknown`
+  (was: `user overrides → models.dev → bundled → unknown`)
+
 ## 0.3.0 — 2026-06-24
 
 ### Added

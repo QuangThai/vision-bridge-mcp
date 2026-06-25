@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { FetchFn } from "../providers/types.js";
+import { lookupBundledCapability } from "./bundled-registry.js";
 import type {
   ModelCapabilities,
   ModelsDevCacheEntry,
@@ -170,7 +171,7 @@ function applyOverride(
     outputModalities: base?.outputModalities ?? ["text"],
     contextWindow: base?.contextWindow ?? 0,
     maxOutputTokens: base?.maxOutputTokens ?? 0,
-    source: "override",
+    source: override.source ?? "override",
   };
 }
 
@@ -286,24 +287,51 @@ export class ModelsDevClient {
       return applyOverride(base, override, providerId, modelId);
     }
 
-    const catalog = await this.getCatalog();
-    const model = findProviderModel(catalog, providerId, modelId);
-    if (!model) {
+    // Step 2: Bundled registry (heuristics + specific overrides)
+    // Checked BEFORE models.dev because bundled contains CURATED exceptions
+    // that must take priority (e.g. deepseek-v4-flash is text-only despite
+    // what models.dev might claim in the future).
+    const bundled = lookupBundledCapability(providerId, modelId);
+    if (bundled) {
+      // Still fetch catalog for metadata (context window, tokens, etc.)
+      const catalog = await this.getCatalog().catch(() => null);
+      const model = catalog ? findProviderModel(catalog, providerId, modelId) : null;
+      const base = model ? toCapabilities(providerId, modelId, model) : null;
       return {
         modelId,
         providerId,
-        supportsVision: false,
-        supportsTools: true,
-        supportsReasoning: false,
-        inputModalities: ["text"],
-        outputModalities: ["text"],
-        contextWindow: 0,
-        maxOutputTokens: 0,
-        source: "unknown",
+        supportsVision: bundled.supportsVision,
+        supportsTools: base?.supportsTools ?? true,
+        supportsReasoning: base?.supportsReasoning ?? false,
+        inputModalities: bundled.supportsVision
+          ? Array.from(new Set([...(base?.inputModalities ?? ["text"]), "image"]))
+          : (base?.inputModalities ?? ["text"]),
+        outputModalities: base?.outputModalities ?? ["text"],
+        contextWindow: base?.contextWindow ?? 0,
+        maxOutputTokens: base?.maxOutputTokens ?? 0,
+        source: bundled.source,
       };
     }
 
-    return toCapabilities(providerId, modelId, model);
+    // Step 3: models.dev catalog (for models NOT in bundled registry)
+    const catalog = await this.getCatalog();
+    const model = findProviderModel(catalog, providerId, modelId);
+    if (model) {
+      return toCapabilities(providerId, modelId, model);
+    }
+
+    return {
+      modelId,
+      providerId,
+      supportsVision: false,
+      supportsTools: true,
+      supportsReasoning: false,
+      inputModalities: ["text"],
+      outputModalities: ["text"],
+      contextWindow: 0,
+      maxOutputTokens: 0,
+      source: "unknown",
+    };
   }
 }
 

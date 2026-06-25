@@ -17,6 +17,7 @@ const HOOK_ENV_KEYS = [
   "ATLAS_FORCE_INTERCEPT",
   "ATLAS_REDACT_SECRETS",
   "ATLAS_DEFAULT_DETAIL_LEVEL",
+  "ATLAS_CLIPBOARD_DETECT",
 ] as const;
 
 export function parseDotenv(content: string): Record<string, string> {

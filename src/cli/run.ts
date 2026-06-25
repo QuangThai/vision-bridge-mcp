@@ -7,6 +7,7 @@ import {
   runEvalCommand,
   runOcrCommand,
   runServeCommand,
+  runShouldInterceptCommand,
 } from "./commands.js";
 import { runHookCaptureImageCommand, runHookUserPromptCommand } from "./hook-commands.js";
 
@@ -57,6 +58,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
 
   if (command === "capabilities") {
     return runCapabilitiesCommand(rest);
+  }
+
+  if (command === "should-intercept") {
+    return runShouldInterceptCommand(rest);
   }
 
   if (command === "analyze") {

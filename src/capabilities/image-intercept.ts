@@ -1,3 +1,4 @@
+import { lookupBundledCapability } from "./bundled-registry.js";
 import { detectImagesInText } from "./detect-images.js";
 import { planVisionCalls } from "./infer-tool.js";
 import { type ModelsDevClientOptions, getModelCapabilities, parseModelRef } from "./models-dev.js";
@@ -30,9 +31,15 @@ export async function planImageIntercept(
 ): Promise<ImageInterceptPlan> {
   const images = detectImagesInText(input.messageText);
   const lookup = parseModelRef(input.mainModelRef, input.providerId);
+  // Merge ImageInterceptOptions.overrides into ModelsDevClientOptions
+  const mergedDevOptions: ModelsDevClientOptions = {
+    ...modelsDevOptions,
+    overrides: [...(options.overrides ?? []), ...(modelsDevOptions.overrides ?? [])],
+  };
+
   const capabilities =
     input.runtimeSupportsVision === undefined
-      ? await getModelCapabilities(lookup, modelsDevOptions)
+      ? await getModelCapabilities(lookup, mergedDevOptions)
       : {
           modelId: lookup.modelId,
           providerId: lookup.providerId,
@@ -66,6 +73,58 @@ export async function planImageIntercept(
     };
   }
 
+  // ── Apply interceptMode ──────────────────────────────────────
+  const mode = options.interceptMode ?? "auto";
+
+  if (mode === "never") {
+    return {
+      shouldIntercept: false,
+      reason: "ATLAS_INTERCEPT_MODE=never: interception disabled.",
+      capabilities,
+      images,
+      plannedCalls: [],
+    };
+  }
+
+  if (mode === "always") {
+    const plannedCalls = planVisionCalls(
+      input.messageText,
+      images.map((image) => image.path),
+    );
+    return {
+      shouldIntercept: true,
+      reason: "ATLAS_INTERCEPT_MODE=always: forced interception.",
+      capabilities,
+      images,
+      plannedCalls,
+    };
+  }
+
+  if (mode === "text-only-only") {
+    const inRegistry = lookupBundledCapability(lookup.providerId, lookup.modelId);
+    if (!inRegistry || inRegistry.supportsVision) {
+      return {
+        shouldIntercept: false,
+        reason: `ATLAS_INTERCEPT_MODE=text-only-only: model "${lookup.providerId}/${lookup.modelId}" not in text-only registry.`,
+        capabilities,
+        images,
+        plannedCalls: [],
+      };
+    }
+    const plannedCalls = planVisionCalls(
+      input.messageText,
+      images.map((image) => image.path),
+    );
+    return {
+      shouldIntercept: true,
+      reason: `ATLAS_INTERCEPT_MODE=text-only-only: "${lookup.providerId}/${lookup.modelId}" in text-only registry.`,
+      capabilities,
+      images,
+      plannedCalls,
+    };
+  }
+
+  // mode === "auto"
   if (options.forceIntercept || !capabilities.supportsVision) {
     const plannedCalls = planVisionCalls(
       input.messageText,

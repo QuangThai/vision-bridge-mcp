@@ -6,6 +6,7 @@ import {
   type ModelsDevClientOptions,
   getModelCapabilities,
   parseModelRef,
+  planImageIntercept,
 } from "../capabilities/index.js";
 import { type AtlasConfig, ConfigError, loadConfig, validateProviderConfig } from "../config.js";
 import {
@@ -748,5 +749,68 @@ export async function runCapabilitiesCommand(
   } catch (error) {
     log.error(formatCliFailure(error));
     return 1;
+  }
+}
+
+export async function runShouldInterceptCommand(argv: string[]): Promise<number> {
+  const log = console;
+  const { positional, flags } = parseArgs(argv);
+  const modelRef = positional[0] ?? getFlagString(flags, "model");
+
+  if (!modelRef) {
+    log.error("Usage: atlas-vision should-intercept <provider/model>");
+    log.error("");
+    log.error("Checks whether a model would trigger Atlas image interception.");
+    log.error("Honors ATLAS_INTERCEPT_MODE env var.");
+    log.error("");
+    log.error("Examples:");
+    log.error("  atlas-vision should-intercept deepseek/deepseek-v4-flash");
+    log.error("  ATLAS_INTERCEPT_MODE=text-only-only atlas-vision should-intercept openai/gpt-4o");
+    log.error("  atlas-vision should-intercept zhipuai/glm-5.2 --provider zhipuai");
+    return 1;
+  }
+
+  try {
+    const plan = await planImageIntercept(
+      {
+        mainModelRef: modelRef,
+        messageText: "check ./image.png",
+        providerId: getFlagString(flags, "provider"),
+      },
+      {
+        interceptMode: process.env.ATLAS_INTERCEPT_MODE?.trim().toLowerCase() as
+          | "auto"
+          | "text-only-only"
+          | "always"
+          | "never"
+          | undefined,
+      },
+    );
+
+    const decision = plan.shouldIntercept ? "INTERCEPT" : "PASS";
+    log.log("┌─ Atlas Should-Intercept");
+    log.log("│");
+    log.log(`│ Model:     ${modelRef}`);
+    log.log(`│ Decision:  ${decision}`);
+    log.log(`│ Reason:    ${plan.reason}`);
+    log.log("│");
+
+    if (plan.capabilities) {
+      log.log(`│ Vision:    ${plan.capabilities.supportsVision ? "yes" : "no"}`);
+      log.log(`│ Source:    ${plan.capabilities.source}`);
+    }
+
+    if (plan.images.length > 0) {
+      log.log(`│ Images:    ${plan.images.length} detected`);
+    }
+
+    log.log("│");
+    log.log(`└─ Intercept mode: ${process.env.ATLAS_INTERCEPT_MODE || "auto"}`);
+    log.log("");
+
+    return plan.shouldIntercept ? 0 : 1;
+  } catch (error) {
+    log.error(formatCliFailure(error));
+    return 2;
   }
 }

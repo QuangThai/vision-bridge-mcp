@@ -94,7 +94,8 @@ describe("ModelsDevClient", () => {
       modelId: "deepseek-v4-flash",
     });
     expect(noVision.supportsVision).toBe(false);
-    expect(noVision.source).toBe("models.dev");
+    // Bundled wins before models.dev — deepseek-v4-flash matches SPECIFIC_OVERRIDES
+    expect(noVision.source).toBe("bundled");
 
     const withVision = await client.getModelCapabilities({
       providerId: "openai",
@@ -177,7 +178,8 @@ describe("ModelsDevClient", () => {
     });
 
     expect(caps.supportsVision).toBe(false);
-    expect(caps.source).toBe("unknown");
+    // Bundled registry catches glm-5.2 before "unknown" fallback
+    expect(caps.source).toBe("bundled");
   });
 
   it("persists fetched catalog to disk", async () => {

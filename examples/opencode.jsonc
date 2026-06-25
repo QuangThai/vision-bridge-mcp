@@ -1,5 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
+
+  // ── Plugin mode (RECOMMENDED for text-only models) ──
+  // Auto-intercept images before the model sees them.
+  // 0 MCP calls, 0 agent decisions.
+  // Copy .opencode/plugin.ts → ~/.config/opencode/plugins/atlas-vision.ts
+  // "plugin": ["file:///Users/you/.config/opencode/plugins/atlas-vision.ts"],
+
+  // ── MCP mode (on-demand only) ──
   "mcp": {
     "atlas-vision": {
       "type": "local",

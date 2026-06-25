@@ -1,4 +1,4 @@
-export type CapabilitySource = "models.dev" | "override" | "unknown";
+export type CapabilitySource = "models.dev" | "override" | "heuristic" | "bundled" | "unknown";
 
 export interface ModelCapabilities {
   modelId: string;
@@ -17,7 +17,25 @@ export interface VisionCapabilityOverride {
   providerId?: string;
   modelId: string;
   supportsVision: boolean;
-  source?: "override";
+  source?: "override" | "bundled" | "heuristic";
+}
+
+/**
+ * Provider-level heuristic: determine vision support by provider + glob pattern.
+ * Used INSTEAD of listing every model individually.
+ */
+export interface ProviderVisionPattern {
+  providerId: string;
+  /** Glob pattern: "*" = all, "gpt-*" = all GPT models, "deepseek-v4-*" = V4 series */
+  modelGlob: string;
+  supportsVision: boolean;
+  /**
+   * Priority: lower number = higher priority.
+   * 0-9: Provider-wide defaults (e.g. "openai/*" → vision)
+   * 10-19: Provider-specific exceptions (e.g. "deepseek/*" → text-only)
+   * 20+: Model-specific exceptions (e.g. "deepseek/deepseek-v4-flash" → text-only)
+   */
+  priority: number;
 }
 
 export interface ModelsDevCacheEntry {
@@ -80,8 +98,18 @@ export interface ImageInterceptPlan {
   plannedCalls: PlannedVisionCall[];
 }
 
+export type InterceptMode = "auto" | "text-only-only" | "always" | "never";
+
 export interface ImageInterceptOptions {
   forceIntercept?: boolean;
   skipIntercept?: boolean;
   overrides?: VisionCapabilityOverride[];
+  /**
+   * Control intercept behavior:
+   * - "auto" (default): use models.dev + bundled registry + overrides
+   * - "text-only-only": ONLY intercept models in bundled text-only list
+   * - "always": intercept regardless of model capabilities
+   * - "never": never intercept
+   */
+  interceptMode?: InterceptMode;
 }
