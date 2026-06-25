@@ -1,5 +1,5 @@
 {
-  "description": "Golden fixtures for atlas-vision eval. Each fixture is a known reference image used to verify provider accuracy across releases and model changes.",
+  "description": "Golden fixtures for atlas-vision eval. Includes original web screenshots plus programmatic edge-case images.",
   "fixtures": [
     {
       "id": "web-simple",
@@ -8,13 +8,21 @@
       "width": 1280,
       "height": 800,
       "type": "web_page",
-      "expected_text": ["Example Domain", "Learn more", "documentation examples"],
-      "expected_elements": ["heading", "paragraph", "link"]
+      "expected_text": [
+        "Example Domain",
+        "Learn more",
+        "documentation examples"
+      ],
+      "expected_elements": [
+        "heading",
+        "paragraph",
+        "link"
+      ]
     },
     {
       "id": "diagram-agent-arch",
       "file": "diagram-agent-arch.png",
-      "source": "screenshot of AgentsView agent architecture diagram",
+      "source": "screenshot of agent architecture diagram",
       "width": 1920,
       "height": 1080,
       "type": "diagram",
@@ -25,17 +33,32 @@
         "File Watcher",
         "PostgreSQL"
       ],
-      "expected_elements": ["nodes", "edges", "labels", "legend"]
+      "expected_elements": [
+        "nodes",
+        "edges",
+        "labels",
+        "legend"
+      ]
     },
     {
       "id": "diagram-company-arch",
       "file": "diagram-company-arch.png",
-      "source": "screenshot of AgentsView company architecture diagram",
+      "source": "screenshot of company architecture diagram",
       "width": 1920,
       "height": 1080,
       "type": "diagram",
-      "expected_text": ["AI agents", "Session files", "Control Plane", "Policy Enforcement"],
-      "expected_elements": ["nodes", "edges", "labels", "flow arrows"]
+      "expected_text": [
+        "AI agents",
+        "Session files",
+        "Control Plane",
+        "Policy Enforcement"
+      ],
+      "expected_elements": [
+        "nodes",
+        "edges",
+        "labels",
+        "flow arrows"
+      ]
     },
     {
       "id": "chart-revenue",
@@ -44,8 +67,18 @@
       "width": 1280,
       "height": 720,
       "type": "chart",
-      "expected_text": ["Monthly Revenue", "Jan", "Feb", "Mar", "Total Revenue"],
-      "expected_elements": ["bar chart", "labels", "values"]
+      "expected_text": [
+        "Monthly Revenue",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Total Revenue"
+      ],
+      "expected_elements": [
+        "bar chart",
+        "labels",
+        "values"
+      ]
     },
     {
       "id": "error-dialog",
@@ -54,8 +87,18 @@
       "width": 1047,
       "height": 751,
       "type": "error_screenshot",
-      "expected_text": ["Connection Failed", "ERR_CONNECTION_TIMED_OUT", "Retry", "Cancel"],
-      "expected_elements": ["error icon", "heading", "paragraph", "buttons"]
+      "expected_text": [
+        "Connection Failed",
+        "ERR_CONNECTION_TIMED_OUT",
+        "Retry",
+        "Cancel"
+      ],
+      "expected_elements": [
+        "error icon",
+        "heading",
+        "paragraph",
+        "buttons"
+      ]
     },
     {
       "id": "form-ui",
@@ -64,8 +107,19 @@
       "width": 1047,
       "height": 751,
       "type": "form",
-      "expected_text": ["Create Account", "Full name", "Password", "Sign Up", "Terms of Service"],
-      "expected_elements": ["input fields", "checkbox", "submit button", "error message"]
+      "expected_text": [
+        "Create Account",
+        "Full name",
+        "Password",
+        "Sign Up",
+        "Terms of Service"
+      ],
+      "expected_elements": [
+        "input fields",
+        "checkbox",
+        "submit button",
+        "error message"
+      ]
     },
     {
       "id": "dashboard",
@@ -74,8 +128,19 @@
       "width": 1047,
       "height": 751,
       "type": "dashboard",
-      "expected_text": ["Dashboard", "Total Revenue", "Active Users", "Orders", "Bounce Rate"],
-      "expected_elements": ["stat cards", "table", "activity feed", "badges"]
+      "expected_text": [
+        "Dashboard",
+        "Total Revenue",
+        "Active Users",
+        "Orders",
+        "Bounce Rate"
+      ],
+      "expected_elements": [
+        "stat cards",
+        "table",
+        "activity feed",
+        "badges"
+      ]
     },
     {
       "id": "dark-mode-ui",
@@ -92,7 +157,101 @@
         "Save Changes",
         "Notifications"
       ],
-      "expected_elements": ["sidebar", "toggles", "dropdown", "buttons", "dark theme"]
+      "expected_elements": [
+        "sidebar",
+        "toggles",
+        "dropdown",
+        "buttons",
+        "dark theme"
+      ]
+    },
+    {
+      "id": "solid-color",
+      "file": "solid-color.png",
+      "source": "programmatic solid gray rectangle",
+      "width": 800,
+      "height": 600,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": []
+    },
+    {
+      "id": "gradient",
+      "file": "gradient.png",
+      "source": "programmatic smooth color gradient",
+      "width": 800,
+      "height": 600,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": []
+    },
+    {
+      "id": "dark",
+      "file": "dark.png",
+      "source": "programmatic near-black rectangle (low-light edge case)",
+      "width": 800,
+      "height": 600,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": []
+    },
+    {
+      "id": "code-lines",
+      "file": "code-lines.png",
+      "source": "programmatic horizontal colored lines simulating code",
+      "width": 1200,
+      "height": 800,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": [
+        "lines",
+        "horizontal",
+        "color"
+      ]
+    },
+    {
+      "id": "blurry",
+      "file": "blurry.png",
+      "source": "programmatic upscaled image simulating blurry/lo-res input",
+      "width": 800,
+      "height": 600,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": []
+    },
+    {
+      "id": "tiny-icon",
+      "file": "tiny-icon.png",
+      "source": "programmatic 16x16 red square (icon-sized edge case)",
+      "width": 16,
+      "height": 16,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": []
+    },
+    {
+      "id": "table-grid",
+      "file": "table-grid.png",
+      "source": "programmatic grid pattern simulating a table structure",
+      "width": 800,
+      "height": 600,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": [
+        "grid",
+        "table",
+        "cells"
+      ]
+    },
+    {
+      "id": "wide",
+      "file": "wide.png",
+      "source": "programmatic 3000x300 wide image (extreme aspect ratio)",
+      "width": 3000,
+      "height": 300,
+      "type": "simple",
+      "expected_text": [],
+      "expected_elements": []
     }
   ]
 }

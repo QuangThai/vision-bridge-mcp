@@ -12,7 +12,21 @@ Atlas can auto-run vision **before** the main model sees a prompt on every major
 
 For your goal (text-only model + image → vision runs automatically), use **pi package** on pi and **user-prompt hooks** everywhere else.
 
-## Required env
+## Quick start (config file approach)
+
+```bash
+# 1. Create config file (replaces all env vars)
+npx atlas-vision-mcp config init
+# Edit atlas-vision.toml: set api_key, base_url, model
+
+# 2. Install hooks (auto-reads config file, no env exports needed)
+npx atlas-vision-mcp install-hooks cursor
+```
+
+The hooks load `atlas-vision.toml` automatically using the same search order:
+`./atlas-vision.toml` → `~/.config/atlas-vision/config.toml`.
+
+## Required env (only if no config file)
 
 ```bash
 export VISION_API_KEY=your-key
