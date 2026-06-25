@@ -2,7 +2,6 @@ import { ProviderError } from "./errors.js";
 import type {
   AnalyzeImageInput,
   CompareImagesInput,
-  FetchFn,
   ProviderHealth,
   RawVisionResult,
   VisionProvider,
@@ -82,8 +81,6 @@ export class FallbackVisionProvider implements VisionProvider {
    * Returns the result annotated with provider info.
    */
   private async _withFallback<T>(
-    primaryLabel: string,
-    fallbackLabel: string,
     primaryFn: () => Promise<T>,
     fallbackFn: () => Promise<T>,
   ): Promise<T & { _fallbackUsed?: boolean }> {
@@ -113,8 +110,6 @@ export class FallbackVisionProvider implements VisionProvider {
 
   async analyzeImage(input: AnalyzeImageInput): Promise<RawVisionResult> {
     return this._withFallback(
-      this.primary.name,
-      this.fallback.name,
       () => this.primary.analyzeImage(input),
       () => this.fallback.analyzeImage(input),
     );
@@ -122,8 +117,6 @@ export class FallbackVisionProvider implements VisionProvider {
 
   async compareImages(input: CompareImagesInput): Promise<RawVisionResult> {
     return this._withFallback(
-      this.primary.name,
-      this.fallback.name,
       () => this.primary.compareImages(input),
       () => this.fallback.compareImages(input),
     );
