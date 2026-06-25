@@ -5,6 +5,7 @@ import { ProviderError } from "./errors.js";
 import { FallbackVisionProvider } from "./fallback.js";
 import { GeminiProvider } from "./gemini.js";
 import { OpenAICompatibleProvider } from "./openai-compatible.js";
+import { OpenAIResponsesProvider } from "./openai-responses.js";
 import type { FetchFn, VisionProvider } from "./types.js";
 
 export interface CreateVisionProviderOptions {
@@ -45,6 +46,12 @@ export function createVisionProvider(
   switch (config.vision.provider) {
     case "openai-compatible":
       inner = new OpenAICompatibleProvider({
+        config: config.vision,
+        fetch: options.fetch,
+      });
+      break;
+    case "openai-responses":
+      inner = new OpenAIResponsesProvider({
         config: config.vision,
         fetch: options.fetch,
       });
@@ -97,6 +104,18 @@ function createInnerProvider(
   switch (cfg.provider) {
     case "openai-compatible":
       return new OpenAICompatibleProvider({
+        config: {
+          ...cfg,
+          temperature: 0.1,
+          timeoutMs: 60_000,
+          maxImageMb: 10,
+          maxOutputTokens: 4_000,
+          retryMax: 3,
+        },
+        fetch,
+      });
+    case "openai-responses":
+      return new OpenAIResponsesProvider({
         config: {
           ...cfg,
           temperature: 0.1,
