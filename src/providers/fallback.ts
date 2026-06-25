@@ -39,33 +39,41 @@ export class FallbackVisionProvider implements VisionProvider {
    * network errors, 5xx, rate limits, timeouts.
    */
   private static _isTransientError(err: unknown): boolean {
-    if (err instanceof ProviderError) {
-      const msg = err.message.toLowerCase();
-      return (
-        msg.includes("timeout") ||
-        msg.includes("rate limit") ||
-        msg.includes("429") ||
-        msg.includes("5") ||
-        msg.includes("network") ||
-        msg.includes("econnrefused") ||
-        msg.includes("econnreset") ||
-        msg.includes("enotfound") ||
-        msg.includes("etimedout")
-      );
+    // Check error code first (ProviderError has a typed code)
+    const code = err instanceof ProviderError ? err.code : undefined;
+    if (code === "timeout" || code === "network" || code === "rate_limit") {
+      return true;
     }
+
     if (err instanceof Error) {
       const msg = err.message.toLowerCase();
-      return (
-        msg.includes("timeout") ||
-        msg.includes("429") ||
-        msg.includes("5") ||
-        msg.includes("network") ||
-        msg.includes("econnrefused") ||
-        msg.includes("econnreset") ||
-        msg.includes("enotfound") ||
-        msg.includes("etimedout")
-      );
+      // Network-level failures
+      if (msg.includes("fetch failed")) return true;
+      if (msg.includes("network")) return true;
+      if (msg.includes("econnrefused")) return true;
+      if (msg.includes("econnreset")) return true;
+      if (msg.includes("enotfound")) return true;
+      if (msg.includes("etimedout")) return true;
+      if (msg.includes("dns")) return true;
+      if (msg.includes("request failed")) return true;
+      if (msg.includes("socket")) return true;
+      if (msg.includes("eai_again")) return true;
+
+      // Server errors & rate limits
+      if (msg.includes("429")) return true;
+      if (msg.includes("rate limit")) return true;
+      if (msg.includes("too many requests")) return true;
+      if (msg.includes("500")) return true;
+      if (msg.includes("502")) return true;
+      if (msg.includes("503")) return true;
+      if (msg.includes("504")) return true;
+      if (msg.includes("internal server error")) return true;
+      if (msg.includes("service unavailable")) return true;
+
+      // Timeout
+      if (msg.includes("timeout")) return true;
     }
+
     return false;
   }
 

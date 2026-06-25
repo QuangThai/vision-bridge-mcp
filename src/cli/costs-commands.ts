@@ -5,6 +5,7 @@ export async function runCostsCommand(args: string[]): Promise<number> {
   const flagsResult = parseFlags(args);
   if (flagsResult instanceof Error) {
     console.error(flagsResult.message);
+    console.error("Usage: atlas-vision costs [--today] [--session] [--range <days>]");
     return 1;
   }
   const flags = flagsResult;

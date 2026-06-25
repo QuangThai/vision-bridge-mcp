@@ -1,4 +1,10 @@
-export type ProviderErrorCode = "auth" | "timeout" | "http" | "invalid_response" | "network";
+export type ProviderErrorCode =
+  | "auth"
+  | "timeout"
+  | "http"
+  | "invalid_response"
+  | "network"
+  | "rate_limit";
 
 export class ProviderError extends Error {
   readonly code: ProviderErrorCode;

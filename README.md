@@ -127,6 +127,10 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 | `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` (keyword-based), `always` — auto-read clipboard image on Windows (v0.4.0) |
 | `MAIN_MODEL_REF` | auto-detected | Override model ref e.g. `deepseek/deepseek-v4-flash` |
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
+| `VISION_FALLBACK_PROVIDER` | — | Secondary provider if primary fails |
+| `VISION_FALLBACK_API_KEY` | — | API key for fallback |
+| `VISION_FALLBACK_BASE_URL` | (primary base URL) | Base URL for fallback |
+| `VISION_FALLBACK_MODEL` | (primary model) | Model for fallback |
 
 ## Config file (v0.7.0)
 
@@ -167,6 +171,13 @@ override (env vars always take priority).
 api_key = "sk-..."
 base_url = "https://api.openai.com/v1"
 model = "gpt-4o-mini"
+
+# Optional: fallback provider (v0.9.0+)
+[provider.fallback]
+provider = "gemini"
+api_key = "gemini-key..."
+base_url = "https://generativelanguage.googleapis.com/v1beta"
+model = "gemini-2.0-flash"
 
 [cache]
 ttl_hours = 24
@@ -290,6 +301,8 @@ VISION_PROVIDER=openai-compatible
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
 | `ATLAS_SKIP_INTERCEPT` | `false` | Disable auto-intercept |
 | `ATLAS_FORCE_INTERCEPT` | `false` | Always run Atlas even if model supports images |
+| `VISION_FALLBACK_PROVIDER` | — | Secondary provider if primary fails |
+| `VISION_FALLBACK_API_KEY` | — | API key for fallback |
 | `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — v0.4.0 |
 | `VISION_PROVIDER` | `openai-compatible` | Vision adapter |
 

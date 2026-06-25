@@ -146,7 +146,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
   }
 
   console.error(`Unknown command: ${command}`);
-  console.error("Run atlas-vision --help for usage.");
+  console.error(
+    "Available commands: doctor, capabilities, analyze, ocr, compare, eval, config, completion, costs, estimate, cache, hook, install-hooks, serve",
+  );
+  console.error("Run atlas-vision --help for full usage.");
   return 1;
 }
 
