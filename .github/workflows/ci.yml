@@ -59,22 +59,14 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # E2E with real provider (OpenAI or Gemini free tier)
-      # Add GEMINI_API_KEY as a GitHub secret for free-tier CI
-      - name: E2E tests (real provider)
-        if: ${{ secrets.VISION_API_KEY != '' || secrets.GEMINI_API_KEY != '' }}
+      - name: E2E tests (real provider — requires VISION_API_KEY secret)
+        if: env.VISION_API_KEY != ''
         env:
-          VISION_API_KEY: ${{ secrets.VISION_API_KEY || secrets.GEMINI_API_KEY }}
-          VISION_PROVIDER: ${{ secrets.VISION_API_KEY != '' && 'openai-compatible' || 'gemini' }}
-          VISION_BASE_URL: ${{ secrets.VISION_API_KEY != '' && 'https://api.openai.com/v1' || 'https://generativelanguage.googleapis.com/v1beta' }}
-          VISION_MODEL: ${{ secrets.VISION_API_KEY != '' && 'gpt-4o-mini' || 'gemini-2.0-flash' }}
+          VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:e2e
 
-      - name: Golden eval (real provider)
-        if: ${{ secrets.VISION_API_KEY != '' || secrets.GEMINI_API_KEY != '' }}
+      - name: Golden eval (real provider — requires VISION_API_KEY secret)
+        if: env.VISION_API_KEY != ''
         env:
-          VISION_API_KEY: ${{ secrets.VISION_API_KEY || secrets.GEMINI_API_KEY }}
-          VISION_PROVIDER: ${{ secrets.VISION_API_KEY != '' && 'openai-compatible' || 'gemini' }}
-          VISION_BASE_URL: ${{ secrets.VISION_API_KEY != '' && 'https://api.openai.com/v1' || 'https://generativelanguage.googleapis.com/v1beta' }}
-          VISION_MODEL: ${{ secrets.VISION_API_KEY != '' && 'gpt-4o-mini' || 'gemini-2.0-flash' }}
+          VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:golden
