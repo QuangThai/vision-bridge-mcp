@@ -89,6 +89,10 @@ export interface EvalOptions {
    * Default: 0.5 (50% of expected text must be found).
    */
   threshold?: number;
+  /**
+   * Optional model name override (when provider wrapper doesn't expose `.model`).
+   */
+  modelName?: string;
 }
 
 export async function runEval(
@@ -245,7 +249,7 @@ export async function runEval(
   return {
     timestamp: new Date().toISOString(),
     provider: provider.name,
-    model: (provider as unknown as Record<string, string>).model ?? "unknown",
+    model: options.modelName ?? (provider as unknown as Record<string, string>).model ?? "unknown",
     threshold,
     total: results.length,
     passed,

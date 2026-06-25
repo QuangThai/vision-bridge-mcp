@@ -774,7 +774,10 @@ export async function runEvalCommand(
       return 1;
     }
 
-    const report = await runEval(goldenDir, evalConfig, provider, { threshold });
+    const report = await runEval(goldenDir, evalConfig, provider, {
+      threshold,
+      modelName: evalConfig.vision.model,
+    });
 
     if (hasFlag(flags, "json")) {
       log.log(JSON.stringify(report, null, 2));

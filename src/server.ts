@@ -87,6 +87,7 @@ export const compareImagesMcpInputSchema = {
   after_path: z.string().min(1),
   focus: z.enum(["layout", "text", "color", "component", "general"]).default("general"),
   severity_threshold: z.enum(["low", "medium", "high"]).default("low"),
+  diff_path: z.string().optional(),
 } as const;
 
 export const extractRegionMcpInputSchema = {
