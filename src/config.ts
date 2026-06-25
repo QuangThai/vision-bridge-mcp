@@ -56,6 +56,12 @@ const rawEnvSchema = z.object({
     .enum(["true", "false", "1", "0"])
     .default("true")
     .transform((value) => value === "true" || value === "1"),
+
+  // Fallback provider (optional)
+  VISION_FALLBACK_PROVIDER: visionProviderSchema.optional(),
+  VISION_FALLBACK_API_KEY: z.string().optional(),
+  VISION_FALLBACK_BASE_URL: z.string().url().optional(),
+  VISION_FALLBACK_MODEL: z.string().optional(),
 });
 
 export type VisionProviderName = z.infer<typeof visionProviderSchema>;
@@ -73,6 +79,13 @@ export interface AtlasConfig {
     maxImageMb: number;
     maxOutputTokens: number;
     retryMax: number;
+    /** Optional fallback provider config */
+    fallback?: {
+      provider: VisionProviderName;
+      apiKey: string;
+      baseUrl: string;
+      model: string;
+    };
   };
   atlas: {
     allowedDirs: string[];
@@ -143,6 +156,11 @@ function toRawEnv(env: NodeJS.ProcessEnv): Record<string, string | undefined> {
     "ATLAS_CACHE_MAX_ENTRIES",
     "ATLAS_CACHE_MAX_SIZE_MB",
     "ATLAS_TRACK_COSTS",
+    // Fallback
+    "VISION_FALLBACK_PROVIDER",
+    "VISION_FALLBACK_API_KEY",
+    "VISION_FALLBACK_BASE_URL",
+    "VISION_FALLBACK_MODEL",
   ] as const;
 
   const raw: Record<string, string | undefined> = {};
@@ -172,6 +190,15 @@ function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
       maxImageMb: parsed.VISION_MAX_IMAGE_MB,
       maxOutputTokens: parsed.VISION_MAX_OUTPUT_TOKENS,
       retryMax: parsed.VISION_RETRY_MAX,
+      fallback:
+        parsed.VISION_FALLBACK_PROVIDER && parsed.VISION_FALLBACK_API_KEY
+          ? {
+              provider: parsed.VISION_FALLBACK_PROVIDER,
+              apiKey: parsed.VISION_FALLBACK_API_KEY,
+              baseUrl: parsed.VISION_FALLBACK_BASE_URL ?? parsed.VISION_BASE_URL,
+              model: parsed.VISION_FALLBACK_MODEL ?? parsed.VISION_MODEL,
+            }
+          : undefined,
     },
     atlas: {
       allowedDirs: parseAllowedDirs(parsed.ATLAS_ALLOWED_DIRS),

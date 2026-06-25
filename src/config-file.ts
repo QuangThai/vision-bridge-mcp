@@ -17,6 +17,13 @@ export interface ConfigFileProvider {
   max_image_mb?: number;
   max_output_tokens?: number;
   retry_max?: number;
+  /** Optional fallback provider */
+  fallback?: {
+    provider?: string;
+    api_key?: string;
+    base_url?: string;
+    model?: string;
+  };
 }
 
 export interface ConfigFileCache {
@@ -164,6 +171,36 @@ function validateConfigFile(raw: unknown): ConfigFile {
     if (p.retry_max !== undefined) {
       if (typeof p.retry_max !== "number") throw new Error("provider.retry_max must be a number");
       provider.retry_max = p.retry_max;
+    }
+
+    // Fallback provider
+    if (p.fallback !== undefined) {
+      if (typeof p.fallback !== "object" || p.fallback === null) {
+        throw new Error("provider.fallback must be an object");
+      }
+      const f = p.fallback as Record<string, unknown>;
+      const fb: { provider?: string; api_key?: string; base_url?: string; model?: string } = {};
+      if (f.provider !== undefined) {
+        if (typeof f.provider !== "string")
+          throw new Error("provider.fallback.provider must be a string");
+        fb.provider = f.provider;
+      }
+      if (f.api_key !== undefined) {
+        if (typeof f.api_key !== "string")
+          throw new Error("provider.fallback.api_key must be a string");
+        fb.api_key = f.api_key;
+      }
+      if (f.base_url !== undefined) {
+        if (typeof f.base_url !== "string")
+          throw new Error("provider.fallback.base_url must be a string");
+        fb.base_url = f.base_url;
+      }
+      if (f.model !== undefined) {
+        if (typeof f.model !== "string")
+          throw new Error("provider.fallback.model must be a string");
+        fb.model = f.model;
+      }
+      provider.fallback = fb;
     }
 
     result.provider = provider;
@@ -341,6 +378,15 @@ export function configFileToEnv(configFile: ConfigFile): Record<string, string> 
     if (p.max_output_tokens !== undefined)
       env.VISION_MAX_OUTPUT_TOKENS = String(p.max_output_tokens);
     if (p.retry_max !== undefined) env.VISION_RETRY_MAX = String(p.retry_max);
+
+    // Fallback provider
+    if (p.fallback) {
+      const f = p.fallback;
+      if (f.provider !== undefined) env.VISION_FALLBACK_PROVIDER = f.provider;
+      if (f.api_key !== undefined) env.VISION_FALLBACK_API_KEY = f.api_key;
+      if (f.base_url !== undefined) env.VISION_FALLBACK_BASE_URL = f.base_url;
+      if (f.model !== undefined) env.VISION_FALLBACK_MODEL = f.model;
+    }
   }
 
   if (configFile.cache) {

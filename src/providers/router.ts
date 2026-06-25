@@ -1,7 +1,8 @@
 import { CacheStore, CachedVisionProvider } from "../capabilities/cache.js";
 import { CostTracker, CostTrackingVisionProvider } from "../capabilities/cost-tracker.js";
-import { type AtlasConfig, validateProviderConfig } from "../config.js";
+import { type AtlasConfig, type VisionProviderName, validateProviderConfig } from "../config.js";
 import { ProviderError } from "./errors.js";
+import { FallbackVisionProvider } from "./fallback.js";
 import { GeminiProvider } from "./gemini.js";
 import { OpenAICompatibleProvider } from "./openai-compatible.js";
 import type { FetchFn, VisionProvider } from "./types.js";
@@ -80,7 +81,52 @@ export function createVisionProvider(
     });
   }
 
+  // Layer 3: fallback (unless no fallback configured)
+  if (config.vision.fallback) {
+    const fallbackProvider = createInnerProvider(config.vision.fallback, options.fetch);
+    inner = new FallbackVisionProvider(inner, fallbackProvider);
+  }
+
   return inner;
+}
+
+function createInnerProvider(
+  cfg: { provider: VisionProviderName; apiKey: string; baseUrl: string; model: string },
+  fetch?: FetchFn,
+): VisionProvider {
+  switch (cfg.provider) {
+    case "openai-compatible":
+      return new OpenAICompatibleProvider({
+        config: {
+          ...cfg,
+          temperature: 0.1,
+          timeoutMs: 60_000,
+          maxImageMb: 10,
+          maxOutputTokens: 4_000,
+          retryMax: 3,
+        },
+        fetch,
+      });
+    case "gemini":
+      return new GeminiProvider({
+        config: {
+          ...cfg,
+          temperature: 0.1,
+          timeoutMs: 60_000,
+          maxImageMb: 10,
+          maxOutputTokens: 4_000,
+          retryMax: 3,
+        },
+        fetch,
+      });
+    default: {
+      const unknownProvider: never = cfg.provider;
+      throw new ProviderError(
+        `Unsupported fallback provider: ${unknownProvider as string}`,
+        "invalid_response",
+      );
+    }
+  }
 }
 
 /**
