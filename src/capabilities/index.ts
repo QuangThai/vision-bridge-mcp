@@ -48,3 +48,19 @@ export {
   findHeuristicPattern,
   findSpecificOverride,
 } from "./bundled-registry.js";
+
+export {
+  CacheStore,
+  CachedVisionProvider,
+  type CacheEntry,
+  type CacheStoreOptions,
+  type CachedVisionProviderOptions,
+} from "./cache.js";
+
+export {
+  CostTracker,
+  CostTrackingVisionProvider,
+  type CostEntry,
+  type CostTrackerOptions,
+  type CostTrackingVisionProviderOptions,
+} from "./cost-tracker.js";

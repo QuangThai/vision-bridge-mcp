@@ -1,4 +1,5 @@
 import { PACKAGE_NAME, VERSION } from "../constants.js";
+import { runCacheClearCommand, runCacheStatsCommand } from "./cache-commands.js";
 import {
   runAnalyzeCommand,
   runCapabilitiesCommand,
@@ -9,7 +10,9 @@ import {
   runServeCommand,
   runShouldInterceptCommand,
 } from "./commands.js";
+import { runCostsCommand } from "./costs-commands.js";
 import { runHookCaptureImageCommand, runHookUserPromptCommand } from "./hook-commands.js";
+import { runInstallHooksCommand } from "./install-hooks-commands.js";
 
 export function runCli(argv: string[] = process.argv.slice(2)): number | Promise<number> {
   const [command, ...rest] = argv;
@@ -28,6 +31,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("  ocr      Extract visible text from an image");
     console.log("  compare  Compare two images for visual differences");
     console.log("  eval     Run golden fixture evaluation against the provider");
+    console.log("  install-hooks  Install atlas hooks for a client (cursor|claude|codex|droid)");
+    console.log("  costs    Show vision API cost summary (--today, --session, --range <days>)");
+    console.log("  cache    Manage vision response cache (stats, clear)");
     console.log("  hook     Agent hook helpers (user-prompt, capture-image)");
     console.log("  serve    Start MCP server over stdio");
     console.log("");
@@ -82,6 +88,26 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
 
   if (command === "serve") {
     return runServeCommand(rest);
+  }
+
+  if (command === "install-hooks") {
+    return runInstallHooksCommand(rest);
+  }
+
+  if (command === "costs") {
+    return runCostsCommand(rest);
+  }
+
+  if (command === "cache") {
+    const [subcommand] = rest;
+    if (subcommand === "stats" || !subcommand) {
+      return runCacheStatsCommand();
+    }
+    if (subcommand === "clear") {
+      return runCacheClearCommand();
+    }
+    console.error("Usage: atlas-vision cache <stats|clear>");
+    return 1;
   }
 
   if (command === "hook") {

@@ -35,6 +35,15 @@ const rawEnvSchema = z.object({
     .default("false")
     .transform((value) => value === "true" || value === "1"),
   ATLAS_DEFAULT_DETAIL_LEVEL: detailLevelSchema.default("standard"),
+  ATLAS_DISABLE_CACHE: z
+    .enum(["true", "false", "1", "0"])
+    .default("false")
+    .transform((value) => value === "true" || value === "1"),
+  ATLAS_CACHE_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(24),
+  ATLAS_TRACK_COSTS: z
+    .enum(["true", "false", "1", "0"])
+    .default("true")
+    .transform((value) => value === "true" || value === "1"),
 });
 
 export type VisionProviderName = z.infer<typeof visionProviderSchema>;
@@ -61,6 +70,11 @@ export interface AtlasConfig {
     redactSecrets: boolean;
     checkPii: boolean;
     defaultDetailLevel: DetailLevel;
+    trackCosts: boolean;
+  };
+  cache: {
+    disableCache: boolean;
+    ttlHours: number;
   };
 }
 
@@ -108,6 +122,9 @@ function toRawEnv(env: NodeJS.ProcessEnv): Record<string, string | undefined> {
     "ATLAS_REDACT_SECRETS",
     "ATLAS_CHECK_PII",
     "ATLAS_DEFAULT_DETAIL_LEVEL",
+    "ATLAS_DISABLE_CACHE",
+    "ATLAS_CACHE_TTL_HOURS",
+    "ATLAS_TRACK_COSTS",
   ] as const;
 
   const raw: Record<string, string | undefined> = {};
@@ -146,6 +163,11 @@ function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
       redactSecrets: parsed.ATLAS_REDACT_SECRETS,
       checkPii: parsed.ATLAS_CHECK_PII,
       defaultDetailLevel: parsed.ATLAS_DEFAULT_DETAIL_LEVEL,
+      trackCosts: parsed.ATLAS_TRACK_COSTS,
+    },
+    cache: {
+      disableCache: parsed.ATLAS_DISABLE_CACHE,
+      ttlHours: parsed.ATLAS_CACHE_TTL_HOURS,
     },
   };
 }

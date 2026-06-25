@@ -171,7 +171,10 @@ describe("GeminiProvider", () => {
 
   it("createVisionProvider selects gemini from config", () => {
     const fetch = mockFetch({ candidates: [] });
-    const provider = createVisionProvider(loadConfig(visionConfig), { fetch });
+    const provider = createVisionProvider(
+      loadConfig({ ...visionConfig, ATLAS_DISABLE_CACHE: "true", ATLAS_TRACK_COSTS: "false" }),
+      { fetch },
+    );
     expect(provider.name).toBe("gemini");
     expect(provider).toBeInstanceOf(GeminiProvider);
   });

@@ -221,6 +221,19 @@ npx atlas-vision-mcp capabilities deepseek/deepseek-v4-flash
 # Debug intercept decision (v0.4.0)
 npx atlas-vision-mcp should-intercept deepseek/deepseek-v4-flash
 npx atlas-vision-mcp should-intercept openai/gpt-4o
+
+# Cache management (v0.5.0)
+npx atlas-vision-mcp cache stats
+npx atlas-vision-mcp cache clear
+
+# Cost tracking (v0.5.0)
+npx atlas-vision-mcp costs --today
+npx atlas-vision-mcp costs --session
+npx atlas-vision-mcp costs --range 7
+
+# Auto-install hooks (v0.5.0)
+npx atlas-vision-mcp install-hooks cursor
+npx atlas-vision-mcp install-hooks claude
 ```
 
 ### Pi vs hooks vs MCP

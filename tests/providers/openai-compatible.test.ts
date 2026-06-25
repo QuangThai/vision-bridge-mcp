@@ -164,7 +164,10 @@ describe("createVisionProvider", () => {
       }),
     );
 
-    const provider = createVisionProvider(loadConfig(testEnv), { fetch });
+    const provider = createVisionProvider(
+      loadConfig({ ...testEnv, ATLAS_DISABLE_CACHE: "true", ATLAS_TRACK_COSTS: "false" }),
+      { fetch },
+    );
     expect(provider.name).toBe("openai-compatible");
 
     const result = await provider.analyzeImage({
