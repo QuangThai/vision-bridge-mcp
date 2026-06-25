@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import type { AtlasConfig } from "../config.js";
 import {
   extractJsonFromText,
@@ -10,6 +11,7 @@ import {
   compareImagesInputSchema,
   compareImagesOutputSchema,
 } from "../extraction/schemas.js";
+import { generateDiffImage } from "../image/diff.js";
 import { type LoadedImage, readImageFromPath, toEncodedImage } from "../image/read-image.js";
 import { createVisionProvider } from "../providers/router.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
@@ -137,11 +139,35 @@ export async function compareImages(
     raw.text,
   );
   const validated = compareImagesOutputSchema.parse(structured);
-  const markdown = renderCompareImagesMarkdown(validated);
+
+  // Generate visual diff image if requested
+  let diffImagePath: string | undefined;
+  if (parsedInput.diff_path) {
+    try {
+      const beforeBuffer = Buffer.from(before.base64, "base64");
+      const afterBuffer = Buffer.from(after.base64, "base64");
+      const diffBuffer = await generateDiffImage(beforeBuffer, afterBuffer);
+      const { writeFile } = await import("node:fs/promises");
+      const outPath = resolve(dependencies.cwd ?? process.cwd(), parsedInput.diff_path);
+      await writeFile(outPath, diffBuffer);
+      diffImagePath = outPath;
+    } catch (err) {
+      console.warn(
+        `[atlas-vision] Warning: failed to generate diff image: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  const enhancedOutput: CompareImagesOutput = {
+    ...validated,
+    diff_image: diffImagePath,
+  };
+
+  const markdown = renderCompareImagesMarkdown(enhancedOutput);
 
   return {
     markdown,
-    structured: validated,
+    structured: enhancedOutput,
     before,
     after,
   };

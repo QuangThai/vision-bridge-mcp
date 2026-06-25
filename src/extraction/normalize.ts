@@ -720,6 +720,12 @@ export function renderCompareImagesMarkdown(output: CompareImagesOutput): string
     lines.push("");
   }
 
+  if (output.diff_image) {
+    lines.push("### Visual diff");
+    lines.push(`A visual diff image was saved to: \`${output.diff_image}\``);
+    lines.push("");
+  }
+
   if (output.recommended_next_steps.length > 0) {
     lines.push("## Recommended next steps");
     for (const step of output.recommended_next_steps) {

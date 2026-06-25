@@ -262,6 +262,8 @@ export const compareImagesInputSchema = z.object({
   after_path: z.string().min(1),
   focus: compareImagesFocusSchema.default("general"),
   severity_threshold: compareImagesSeverityThresholdSchema.default("low"),
+  /** Optional path to save the visual diff image */
+  diff_path: z.string().optional(),
 });
 
 export const compareImagesOutputSchema = z.object({
@@ -269,6 +271,8 @@ export const compareImagesOutputSchema = z.object({
   differences: z.array(compareImagesDifferenceSchema).default([]),
   regression_likelihood: regressionLikelihoodSchema.default("none"),
   recommended_next_steps: z.array(z.string()).default([]),
+  /** Path to the generated visual diff image (if requested) */
+  diff_image: z.string().optional(),
 });
 
 export type CompareImagesFocus = z.infer<typeof compareImagesFocusSchema>;

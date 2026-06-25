@@ -657,7 +657,7 @@ export async function runCompareCommand(
   const afterPath = positional[1];
   if (!beforePath || !afterPath) {
     log.error(
-      "Usage: atlas-vision compare <before_path> <after_path> [--focus <focus>] [--severity-threshold <level>] [--json] [--save <file>]",
+      "Usage: atlas-vision compare <before_path> <after_path> [--focus <focus>] [--severity-threshold <level>] [--json] [--save <file>] [--diff <out.png>]",
     );
     return 1;
   }
@@ -672,6 +672,7 @@ export async function runCompareCommand(
         severity_threshold: resolveCompareSeverityThreshold(
           getFlagString(flags, "severity-threshold"),
         ),
+        diff_path: getFlagString(flags, "diff"),
       },
       {
         config,
