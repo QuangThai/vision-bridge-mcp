@@ -8,7 +8,7 @@
 - **CLI entrypoint:** `npx atlas-vision-mcp` (or `atlas-vision doctor`, `analyze`, `ocr`, `compare`, `serve`)
 - **4 MCP tools:** `analyze_image`, `ocr_image`, `analyze_ui_screenshot`, `compare_images`
 - **Code:** `src/` (cli, config, extraction, image, providers, security, tools)
-- **Tests:** `tests/` — 16 files, 79 tests
+- **Tests:** `tests/` — 34 files, 248 tests
 
 ## Quick Checks
 
@@ -19,10 +19,19 @@ pnpm lint        # biome check
 pnpm build       # tsup bundle
 ```
 
+## What's Next
+
+The project roadmap lives at `docs/product/roadmap.md` — see what's planned for
+future phases. To propose improvements or report friction, see
+`docs/IMPROVEMENT_PROTOCOL.md`. Open backlog items are listed in
+`docs/HARNESS_BACKLOG.md` or via `harness-cli query backlog --open`.
+
 ## Git & Harness
 
 - This repo uses git. Always check `git status --short` before starting work.
 - The harness DB is at `harness.db` (`.gitignore`d). Initialize with `scripts/bin/harness-cli init` if missing.
+- After completing a task, record a trace with `harness-cli record trace` to
+  capture outcomes and friction for future agents.
 
 ## Registered Tools (harness)
 
@@ -49,10 +58,14 @@ This repo uses Harness. Before work, read:
 - `docs/ARCHITECTURE.md`
 - `docs/CONTEXT_RULES.md`
 - `docs/TOOL_REGISTRY.md`
-- `scripts/bin/harness-cli query matrix` on macOS/Linux, or `.\scripts\bin\harness-cli.exe query matrix` on Windows
+- `docs/IMPROVEMENT_PROTOCOL.md`
+- `docs/HARNESS_BACKLOG.md`
+- `scripts/bin/harness-cli query matrix` on macOS/Linux, or
+  `./scripts/bin/harness-cli.exe query matrix` (git bash/WSL) on Windows
 
 Use the Rust Harness CLI at `scripts/bin/harness-cli` on macOS/Linux or
-`scripts/bin/harness-cli.exe` on Windows as the main operational tool. Before a
+`./scripts/bin/harness-cli.exe` (git bash/WSL) / `.\scripts\bin\harness-cli.exe`
+(PowerShell) on Windows as the main operational tool. Before a
 step that could use an external tool, run `scripts/bin/harness-cli query tools
 --capability <name> --status present` to see what is equipped; an absent
 capability is a clean skip.

@@ -49,10 +49,6 @@ Phased delivery for Atlas Vision MCP. **MVP = Phase 1** (+ safety items from Pha
 
 - HTTP/SSE transport, Docker, optional persistence, audit logs
 
-## Phase 6: Team/Remote Mode
-
-- HTTP/SSE transport, Docker, optional persistence, audit logs
-
 ## Explicitly Deferred
 
 - Ask Atlas query UI
