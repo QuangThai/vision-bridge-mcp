@@ -58,11 +58,20 @@ describe("CacheStore", () => {
   });
 
   it("returns null after TTL expiry", async () => {
-    const shortTtl = new CacheStore({ dir, ttlHours: 0 }); // 0 hours = expired
-    const key = shortTtl.buildKey("data", "m", "prompt");
+    // Write an entry with cachedAt in the past (25 hours ago, TTL is 24h)
+    const key = store.buildKey("data", "m", "prompt");
+    const pastDate = new Date(Date.now() - 25 * 3_600_000).toISOString();
 
-    await shortTtl.set(key, makeResult("expired data"));
-    const cached = await shortTtl.get(key);
+    await mkdir(dir, { recursive: true });
+    const entry = {
+      key,
+      cachedAt: pastDate,
+      ttlHours: 24,
+      result: makeResult("expired data"),
+    };
+    await writeFile(join(dir, `${key}.json`), JSON.stringify(entry), "utf-8");
+
+    const cached = await store.get(key);
     expect(cached).toBeNull();
   });
 
@@ -146,23 +155,26 @@ describe("CacheStore", () => {
 
   it("get updates mtime for LRU (recently used entries survive eviction)", async () => {
     const limited = new CacheStore({ dir, ttlHours: 24, maxEntries: 3 });
+
+    // Write entries with slight delays to ensure distinct mtimes on all filesystems
     await limited.set("k1", makeResult("1"));
+    await new Promise((r) => setTimeout(r, 50));
     await limited.set("k2", makeResult("2"));
+    await new Promise((r) => setTimeout(r, 50));
     await limited.set("k3", makeResult("3"));
 
     // Access k1 to make it recently used
     const cached = await limited.get("k1");
     expect(cached?.text).toBe("1");
 
-    // Add a fourth entry — eviction should remove oldest (k2 unless mtime updated)
+    // Add a fourth entry — eviction should remove oldest (k2 was written first)
     await limited.set("k4", makeResult("4"));
 
-    // k1 was accessed (most recent), k4 just written (most recent)
-    // k2 and k3 are oldest → should be evicted
-    const stillThere = await limited.get("k1");
-    expect(stillThere?.text).toBe("1");
+    // After eviction: k1 (touched = most recent), k4 (just written), k3 (second oldest) remain
+    // k2 (oldest, written first) should be evicted
+    expect(await limited.get("k1")).not.toBeNull();
     expect(await limited.get("k2")).toBeNull();
-    expect(await limited.get("k3")).toBeNull();
+    expect(await limited.get("k4")).not.toBeNull();
   });
 });
 
