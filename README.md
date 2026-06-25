@@ -6,6 +6,29 @@ MCP vision bridge for **text-only coding agents**. Atlas reads local images, cal
 
 Many coding agents use text-only or weak-vision models. Developers still reference image paths, screenshots, mockups, and error captures — but the main model cannot see them reliably.
 
+## How Atlas decides when to intercept
+
+Atlas uses a **multi-layer capability chain** to decide whether a model needs vision bridge:
+
+```
+1. ctx.model.input (pi runtime)        → certain vision → skip
+2. ATLAS_MODEL_CAPABILITIES_FILE       → user overrides
+3. Provider heuristics (v0.4.0)        → openai/* = vision, deepseek/* = text-only
+4. models.dev catalog                  → remote lookup
+5. ATLAS_INTERCEPT_MODE                → policy fallback
+```
+
+**Provider heuristics** replace hardcoded model lists — no updates needed when new models release:
+
+| Provider | ALL models have vision | ALL models text-only |
+|----------|----------------------|---------------------|
+| OpenAI (`openai/*`) | ✅ GPT-4o, GPT-5, o3, ... | — |
+| Anthropic (`anthropic/*`) | ✅ Claude Sonnet, Opus, ... | — |
+| Google (`google/*`) | ✅ Gemini Pro, Flash, ... | — |
+| Cursor (`cursor/*`, `opencode-go/*`) | ✅ Composer, Auto, ... | — |
+| DeepSeek (`deepseek/*`) | — | ✅ V4 Flash, V4 Pro, V3, R1 |
+| ZhipuAI (`zhipuai/*`) | — | ✅ GLM-5.1, 5.2, 4.x |
+
 ## Solution
 
 ```text
@@ -83,6 +106,11 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 | `ATLAS_REDACT_SECRETS` | `true` | Redact likely secrets in OCR output |
 | `ATLAS_LOG_IMAGE_CONTENT` | `false` | Do not log image bytes/text by default |
 | `ATLAS_STORE_HISTORY` | `false` | No persistence by default |
+| `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — control intercept behavior (v0.4.0) |
+| `ATLAS_MODEL_CAPABILITIES_FILE` | — | Path to JSON file with per-model capability overrides (v0.4.0) |
+| `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` (keyword-based), `always` — auto-read clipboard image on Windows (v0.4.0) |
+| `MAIN_MODEL_REF` | auto-detected | Override model ref e.g. `deepseek/deepseek-v4-flash` |
+| `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
 
 Full provider and security docs:
 
@@ -97,7 +125,8 @@ Copy-paste examples live in [`examples/`](examples/) and [`docs/product/integrat
 
 | Client | Install |
 | --- | --- |
-| **pi** | [`pi install npm:atlas-vision-mcp`](#pi-integration) |
+| **pi** | [`pi install npm:atlas-vision-mcp`](#pi-integration) — auto-intercept in-process |
+| **opencode-go** | [OpenCode plugin](.opencode/plugin.ts) — auto-intercept via `chat.message` hook (0 MCP calls) |
 | **Cursor / Codex / Claude / Droid** | User-prompt hooks — [`examples/HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
 
 Hook env file (no shell export): copy [`examples/atlas-vision.env.example`](examples/atlas-vision.env.example) → `~/.config/atlas-vision/env`
@@ -174,15 +203,24 @@ VISION_PROVIDER=openai-compatible
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `MAIN_MODEL_REF` | auto-detected | Override model ref (e.g. `deepseek/deepseek-v4-flash`) |
+| `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
 | `ATLAS_SKIP_INTERCEPT` | `false` | Disable auto-intercept |
 | `ATLAS_FORCE_INTERCEPT` | `false` | Always run Atlas even if model supports images |
+| `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — v0.4.0 |
 | `VISION_PROVIDER` | `openai-compatible` | Vision adapter |
 
 ### Verify
 
 ```bash
+# Doctor prints model vision capability
 MAIN_MODEL_REF=deepseek/deepseek-v4-flash npx atlas-vision-mcp doctor
+
+# Check specific model capability
 npx atlas-vision-mcp capabilities deepseek/deepseek-v4-flash
+
+# Debug intercept decision (v0.4.0)
+npx atlas-vision-mcp should-intercept deepseek/deepseek-v4-flash
+npx atlas-vision-mcp should-intercept openai/gpt-4o
 ```
 
 ### Pi vs hooks vs MCP
@@ -190,12 +228,24 @@ npx atlas-vision-mcp capabilities deepseek/deepseek-v4-flash
 | Approach | What you get |
 | --- | --- |
 | `pi install npm:atlas-vision-mcp` | Auto-intercept Pi extension (in-process) |
+| [OpenCode plugin](.opencode/plugin.ts) | Auto-intercept via `chat.message` hook (0 MCP calls, v0.4.0) |
 | MCP config (`npx atlas-vision-mcp`) | stdio MCP tools for Cursor / Claude / other MCP clients |
 | User-prompt hooks | Auto-intercept for Cursor, Codex, Claude, Droid — see [`HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
 
-Use the Pi extension on Pi; use hooks on other agents; use MCP for on-demand tools everywhere.
+Use the Pi extension on Pi; use the plugin on opencode-go; use hooks on other agents; use MCP for on-demand tools everywhere.
 
 Full Pi integration guide: [`examples/PI_INTEGRATION.md`](examples/PI_INTEGRATION.md)
+
+### OpenCode Go — Plugin (auto-intercept, recommended)
+
+Auto-intercept images before the model sees them — 0 MCP calls:
+
+```bash
+cp .opencode/plugin.ts ~/.config/opencode/plugins/atlas-vision.ts
+# Add to opencode.json: "plugin": ["file:///.../atlas-vision.ts"]
+```
+
+Requires same `VISION_API_KEY`, `VISION_BASE_URL`, `VISION_MODEL` env vars.
 
 ### MCP only (manual tool calls)
 
