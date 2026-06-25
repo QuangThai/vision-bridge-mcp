@@ -30,6 +30,39 @@ describe("interceptImagesForTextModel", () => {
     expect(result.messageText).toBe("fix login");
   });
 
+  it("forwards env to the intercept planner", async () => {
+    const plan: ImageInterceptPlan = {
+      shouldIntercept: false,
+      reason: "Main model supports native vision.",
+      capabilities: null,
+      images: [],
+      plannedCalls: [],
+    };
+    const planFn = vi.fn(async () => plan);
+    const hookEnv = { CURSOR_UNDERLYING_MODEL: "openai/gpt-4o" };
+
+    await interceptImagesForTextModel(
+      {
+        mainModelRef: "cursor/composer-2.5",
+        messageText: "check ./shot.png",
+        env: hookEnv,
+      },
+      {},
+      {
+        plan: planFn,
+        loadConfig: () => {
+          throw new Error("should not load config");
+        },
+      },
+    );
+
+    expect(planFn).toHaveBeenCalledWith(
+      expect.objectContaining({ env: hookEnv }),
+      {},
+      {},
+    );
+  });
+
   it("forwards runtimeSupportsVision to the intercept planner", async () => {
     const plan: ImageInterceptPlan = {
       shouldIntercept: false,

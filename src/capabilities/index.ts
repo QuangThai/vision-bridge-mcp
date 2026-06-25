@@ -50,6 +50,19 @@ export {
 } from "./bundled-registry.js";
 
 export {
+  PROXY_PROVIDER_IDS,
+  PROXY_MODEL_VISION_PATTERNS,
+  PROVIDER_ALIASES,
+  inferUpstreamProviderFromModelId,
+  isProxyProvider,
+  normalizeProviderId,
+  resolveCapabilityLookup,
+  type CapabilityResolutionSource,
+  type ResolveCapabilityLookupInput,
+  type ResolveCapabilityLookupResult,
+} from "./proxy-resolver.js";
+
+export {
   CacheStore,
   CachedVisionProvider,
   type CacheEntry,

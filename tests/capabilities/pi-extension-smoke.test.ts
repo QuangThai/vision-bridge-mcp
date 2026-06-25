@@ -32,15 +32,14 @@ describe("pi extension smoke test - runtimeSupportsVision", () => {
     expect(plan.capabilities?.source).toBe("heuristic");
   });
 
-  it("handles opencode-go/deepseek via unknown fallback (safe default)", async () => {
+  it("handles opencode-go/deepseek via upstream inference to bundled registry", async () => {
     const plan = await planImageIntercept({
       mainModelRef: "opencode-go/deepseek-v4-flash",
       messageText: "check ./test.png",
-      // runtimeSupportsVision is undefined -> fallthrough to unknown
+      env: {},
     });
-    // opencode-go is NOT in heuristic (mixed models), and NOT in models.dev -> "unknown" -> false
     expect(plan.shouldIntercept).toBe(true);
-    expect(plan.capabilities?.source).toBe("unknown");
+    expect(plan.capabilities?.source).toBe("bundled");
   });
 
   it("handles opencode/minimax-m3 via unknown fallback (safe default)", async () => {

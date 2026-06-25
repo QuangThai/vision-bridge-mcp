@@ -120,11 +120,29 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
   }
 
   if (input.mode === "document") {
-    lines.push("Extract document structure: headings, paragraphs, lists, tables, and formatting.");
+    lines.push(
+      "This image is a document with structured text — prioritize verbatim transcription.",
+    );
+    lines.push(
+      "Create one observation per visible text block (heading, paragraph, list item, table row, label).",
+    );
+    lines.push("Use observation type 'text' for every transcribed string you can read.");
     lines.push("Preserve hierarchical structure and reading order (left-to-right, top-to-bottom).");
     lines.push("For tables: extract exact cell values and note any merged cells or empty cells.");
     lines.push("For lists: preserve nesting levels and bullet/number types.");
     lines.push("For paragraphs: preserve meaningful line breaks but reflow wrapped text.");
+    lines.push(
+      "Multi-script documents: keep Japanese, Chinese, Korean, and Vietnamese text in their original script.",
+    );
+    lines.push(
+      "Do NOT romanize, translate, simplify Chinese characters, or merge different scripts into one language.",
+    );
+    lines.push(
+      "When a section heading names a script (e.g. 日本語, 中文, 한국어), transcribe the body text under that heading exactly.",
+    );
+    lines.push(
+      "Include short quoted spans from the image in observation content so downstream OCR checks can match expected strings.",
+    );
   }
 
   if (input.prompt?.trim()) {

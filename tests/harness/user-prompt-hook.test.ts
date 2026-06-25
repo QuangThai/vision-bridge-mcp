@@ -3,6 +3,7 @@ import { appendSessionImage } from "../../src/harness/session-images.js";
 import {
   collectAttachmentPaths,
   detectHookClient,
+  extractRuntimeSupportsVision,
   formatUserPromptHookOutput,
   parseUserPromptHookInput,
   resolveMainModelRef,
@@ -68,7 +69,25 @@ describe("resolveMainModelRef", () => {
         { model: "glm-5.2", hook_event_name: "UserPromptSubmit" },
         { MAIN_MODEL_PROVIDER: "glm" },
       ),
-    ).toBe("glm/glm-5.2");
+    ).toBe("zai/glm-5.2");
+  });
+});
+
+describe("extractRuntimeSupportsVision", () => {
+  it("reads supports_vision from hook JSON", () => {
+    expect(extractRuntimeSupportsVision({ supports_vision: true }, {})).toBe(true);
+    expect(extractRuntimeSupportsVision({ supports_vision: false }, {})).toBe(false);
+  });
+
+  it("reads input_modalities from hook JSON", () => {
+    expect(extractRuntimeSupportsVision({ input_modalities: ["text", "image"] }, {})).toBe(true);
+    expect(extractRuntimeSupportsVision({ input_modalities: ["text"] }, {})).toBe(false);
+  });
+
+  it("prefers explicit option override", () => {
+    expect(
+      extractRuntimeSupportsVision({ supports_vision: false }, { runtimeSupportsVision: true }),
+    ).toBe(true);
   });
 });
 

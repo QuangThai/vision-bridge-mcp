@@ -35,11 +35,12 @@ export VISION_MODEL=gpt-4o-mini
 export MAIN_MODEL_REF=deepseek/deepseek-v4-flash   # provider/model id
 ```
 
-Optional:
+Optional (debug only — keep `false` in production):
 
 ```bash
-export ATLAS_SKIP_INTERCEPT=true
-export ATLAS_FORCE_INTERCEPT=true
+export ATLAS_SKIP_INTERCEPT=true          # disable all auto-intercept
+# export ATLAS_FORCE_INTERCEPT=true       # force intercept even for vision models (debug)
+export CURSOR_UNDERLYING_MODEL=openai/gpt-4o   # upstream model when hook ref is cursor/*
 ```
 
 ## Hook command
@@ -111,7 +112,34 @@ Merge `examples/hooks/claude-settings.json` into `~/.claude/settings.json` or `.
 
 ### Factory Droid
 
-Merge `examples/hooks/droid-hooks.json` into `~/.factory/hooks.json` or project `hooks.json`.
+Droid supports **two complementary paths**:
+
+| Mode | When to use | Setup |
+| --- | --- | --- |
+| **Auto-intercept (hooks)** | Text-only main model (`noImageSupport`) | `install-hooks droid` + `MAIN_MODEL_REF=deepseek/deepseek-v4-flash` |
+| **MCP manual** | Agent explicitly calls vision tools | `droid mcp add atlas-vision ...` |
+
+For proxy/vision main models (Composer, GPT, Opus), hooks **skip** Atlas automatically when:
+- Hook sends `supports_vision` / `input_modalities: ["text","image"]`, or
+- Model ref resolves as vision-native (`cursor/composer-2.5`, `openai/gpt-4o`, …)
+
+Merge `examples/hooks/droid-hooks.json` into `~/.factory/hooks.json` or project `hooks.json`, or:
+
+```bash
+npx atlas-vision-mcp install-hooks droid
+```
+
+**MCP-only (manual tool calls):**
+
+```bash
+droid mcp add atlas-vision "npx -y atlas-vision-mcp" \
+  --env VISION_PROVIDER=openai-compatible \
+  --env VISION_BASE_URL=https://api.openai.com/v1 \
+  --env VISION_API_KEY=YOUR_KEY \
+  --env VISION_MODEL=gpt-4o-mini
+```
+
+Use MCP with text-only main models. Do **not** rely on MCP auto-routing — the agent must choose to call tools. Prefer hooks for automatic intercept.
 
 ### OpenCode
 
@@ -135,6 +163,12 @@ User prompt (+ optional image paths)
 ## Verify
 
 ```bash
+# Routing smoke (no API key)
+pnpm smoke:agents
+
+# Live hook intercept (needs VISION_API_KEY)
+pnpm test:e2e -- tests/e2e/agent-hooks.e2e.test.ts
+
 MAIN_MODEL_REF=deepseek/deepseek-v4-flash atlas-vision doctor
 echo '{"prompt":"fix ./shot.png","hook_event_name":"UserPromptSubmit","model":"deepseek-v4-flash","cwd":"."}' \
   | MAIN_MODEL_REF=deepseek/deepseek-v4-flash atlas-vision hook user-prompt --client codex

@@ -29,7 +29,7 @@ import { serveStdio } from "../server.js";
 import { analyzeImage } from "../tools/analyze-image.js";
 import { analyzeUiScreenshot } from "../tools/analyze-ui-screenshot.js";
 import { compareImages } from "../tools/compare-images.js";
-import { renderEvalReport, runEval } from "../tools/eval.js";
+import { type GoldenTier, evalExitCode, renderEvalReport, runEval } from "../tools/eval.js";
 import { ocrImage } from "../tools/ocr-image.js";
 import { getFlagString, hasFlag, parseArgs } from "./parse-args.js";
 
@@ -748,6 +748,30 @@ export async function runEvalCommand(
       return 1;
     }
 
+    const edgeThresholdStr = flags.get("--edge-threshold") as string | undefined;
+    const edgeThreshold = edgeThresholdStr ? Number.parseFloat(edgeThresholdStr) : undefined;
+    if (
+      edgeThreshold !== undefined &&
+      (Number.isNaN(edgeThreshold) || edgeThreshold < 0 || edgeThreshold > 1)
+    ) {
+      log.error("--edge-threshold must be a number between 0 and 1");
+      return 1;
+    }
+
+    const gate = hasFlag(flags, "gate");
+    const tierArg = getFlagString(flags, "tier");
+    let tiers: GoldenTier[] | undefined;
+    if (tierArg) {
+      if (tierArg === "core" || tierArg === "edge") {
+        tiers = [tierArg];
+      } else if (tierArg === "all") {
+        tiers = ["core", "edge"];
+      } else {
+        log.error("--tier must be core, edge, or all");
+        return 1;
+      }
+    }
+
     const modelOverride = getFlagString(flags, "model");
     const providerOverride = getFlagString(flags, "provider");
 
@@ -776,6 +800,9 @@ export async function runEvalCommand(
 
     const report = await runEval(goldenDir, evalConfig, provider, {
       threshold,
+      edgeThreshold,
+      gate,
+      tiers,
       modelName: evalConfig.vision.model,
     });
 
@@ -786,7 +813,7 @@ export async function runEvalCommand(
       log.log(text);
     }
 
-    return report.failed > 0 ? 1 : 0;
+    return evalExitCode(report);
   } catch (error) {
     log.error(formatCliFailure(error));
     return 1;

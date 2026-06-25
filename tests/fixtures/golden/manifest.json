@@ -1,5 +1,5 @@
 {
-  "description": "Golden fixtures for atlas-vision eval. Includes original web screenshots plus programmatic edge-case images.",
+  "description": "Golden fixtures for atlas-vision eval. Core tier = real screenshots (CI gate @ 80%). Edge tier = programmatic stress cases (informational).",
   "fixtures": [
     {
       "id": "web-simple",
@@ -8,6 +8,7 @@
       "width": 1280,
       "height": 800,
       "type": "web_page",
+      "tier": "core",
       "expected_text": ["Example Domain", "Learn more", "documentation examples"],
       "expected_elements": ["heading", "paragraph", "link"]
     },
@@ -18,6 +19,7 @@
       "width": 1920,
       "height": 1080,
       "type": "diagram",
+      "tier": "core",
       "expected_text": [
         "AgentsView",
         "Local Runtime",
@@ -34,6 +36,7 @@
       "width": 1920,
       "height": 1080,
       "type": "diagram",
+      "tier": "core",
       "expected_text": ["AI agents", "Session files", "Control Plane", "Policy Enforcement"],
       "expected_elements": ["nodes", "edges", "labels", "flow arrows"]
     },
@@ -44,6 +47,7 @@
       "width": 1280,
       "height": 720,
       "type": "chart",
+      "tier": "core",
       "expected_text": ["Monthly Revenue", "Jan", "Feb", "Mar", "Total Revenue"],
       "expected_elements": ["bar chart", "labels", "values"]
     },
@@ -54,6 +58,7 @@
       "width": 1047,
       "height": 751,
       "type": "error_screenshot",
+      "tier": "core",
       "expected_text": ["Connection Failed", "ERR_CONNECTION_TIMED_OUT", "Retry", "Cancel"],
       "expected_elements": ["error icon", "heading", "paragraph", "buttons"]
     },
@@ -64,6 +69,7 @@
       "width": 1047,
       "height": 751,
       "type": "form",
+      "tier": "core",
       "expected_text": ["Create Account", "Full name", "Password", "Sign Up", "Terms of Service"],
       "expected_elements": ["input fields", "checkbox", "submit button", "error message"]
     },
@@ -74,6 +80,7 @@
       "width": 1047,
       "height": 751,
       "type": "dashboard",
+      "tier": "core",
       "expected_text": ["Dashboard", "Total Revenue", "Active Users", "Orders", "Bounce Rate"],
       "expected_elements": ["stat cards", "table", "activity feed", "badges"]
     },
@@ -84,6 +91,7 @@
       "width": 1047,
       "height": 751,
       "type": "ui_dark",
+      "tier": "core",
       "expected_text": [
         "Settings",
         "Dark mode",
@@ -101,6 +109,7 @@
       "width": 800,
       "height": 600,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": []
     },
@@ -111,6 +120,7 @@
       "width": 800,
       "height": 600,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": []
     },
@@ -121,6 +131,7 @@
       "width": 800,
       "height": 600,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": []
     },
@@ -131,6 +142,7 @@
       "width": 1200,
       "height": 800,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": ["lines", "horizontal", "color"]
     },
@@ -141,6 +153,7 @@
       "width": 800,
       "height": 600,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": []
     },
@@ -151,6 +164,7 @@
       "width": 16,
       "height": 16,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": []
     },
@@ -161,6 +175,7 @@
       "width": 800,
       "height": 600,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": ["grid", "table", "cells"]
     },
@@ -171,6 +186,7 @@
       "width": 3000,
       "height": 300,
       "type": "simple",
+      "tier": "edge",
       "expected_text": [],
       "expected_elements": []
     },
@@ -181,6 +197,7 @@
       "width": 1280,
       "height": 900,
       "type": "document",
+      "tier": "edge",
       "expected_text": [
         "Chào mừng",
         "tiếng Việt",
@@ -201,6 +218,7 @@
       "width": 1280,
       "height": 900,
       "type": "document",
+      "tier": "edge",
       "expected_text": [
         "日本語",
         "中文",
@@ -221,6 +239,7 @@
       "width": 1280,
       "height": 900,
       "type": "ui_components",
+      "tier": "edge",
       "expected_text": [
         "UI Components",
         "Dashboard",

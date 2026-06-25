@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { FetchFn } from "../providers/types.js";
 import { lookupBundledCapability } from "./bundled-registry.js";
+import { normalizeProviderId as normalizeProviderAlias } from "./proxy-resolver.js";
 import type {
   ModelCapabilities,
   ModelsDevCacheEntry,
@@ -36,7 +37,7 @@ function cacheFilePath(cacheDir: string): string {
 }
 
 function normalizeProviderId(providerId: string): string {
-  return providerId.trim().toLowerCase();
+  return normalizeProviderAlias(providerId);
 }
 
 function normalizeModelId(modelId: string): string {

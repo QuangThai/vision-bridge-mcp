@@ -1,4 +1,5 @@
 import { loadExternalModelOverrides } from "../capabilities/bundled-registry.js";
+import { normalizeProviderId } from "../capabilities/proxy-resolver.js";
 import type { InterceptMode, VisionCapabilityOverride } from "../capabilities/types.js";
 import { buildInterceptMessageText } from "./attached-images.js";
 import {
@@ -30,6 +31,13 @@ export interface UserPromptHookInput {
   model?: string;
   attachments?: UserPromptHookAttachment[];
   image_paths?: string[];
+  /** Runtime vision signal from agent hooks (Cursor/Droid). */
+  supports_vision?: boolean;
+  input_modalities?: string[];
+  model_capabilities?: {
+    supports_vision?: boolean;
+    input_modalities?: string[];
+  };
 }
 
 export interface UserPromptHookOptions {
@@ -86,7 +94,7 @@ export function resolveMainModelRef(
 
     const fallbackProvider = env.MAIN_MODEL_PROVIDER?.trim() || inferProviderFromModelId(hookModel);
     if (fallbackProvider) {
-      return `${fallbackProvider}/${hookModel}`;
+      return `${normalizeProviderId(fallbackProvider)}/${hookModel}`;
     }
   }
 
@@ -97,6 +105,30 @@ export function resolveMainModelRef(
 function envFlag(env: NodeJS.ProcessEnv, name: string): boolean {
   const value = env[name]?.trim().toLowerCase();
   return value === "1" || value === "true" || value === "yes";
+}
+
+export function extractRuntimeSupportsVision(
+  input: UserPromptHookInput,
+  options: Pick<UserPromptHookOptions, "runtimeSupportsVision">,
+): boolean | undefined {
+  if (options.runtimeSupportsVision !== undefined) {
+    return options.runtimeSupportsVision;
+  }
+
+  if (input.supports_vision !== undefined) {
+    return input.supports_vision;
+  }
+
+  if (input.model_capabilities?.supports_vision !== undefined) {
+    return input.model_capabilities.supports_vision;
+  }
+
+  const modalities = input.input_modalities ?? input.model_capabilities?.input_modalities;
+  if (modalities) {
+    return modalities.includes("image");
+  }
+
+  return undefined;
 }
 
 function interceptModeFromEnv(env: NodeJS.ProcessEnv): InterceptMode | undefined {
@@ -215,9 +247,9 @@ export async function runUserPromptHook(
     return { intercepted: false, stdout: "" };
   }
 
-  const runtimeSupportsVision =
-    options.runtimeSupportsVision ??
-    (envFlag(hookEnv, "ATLAS_FORCE_INTERCEPT") ? false : undefined);
+  const runtimeSupportsVision = envFlag(hookEnv, "ATLAS_FORCE_INTERCEPT")
+    ? false
+    : extractRuntimeSupportsVision(input, options);
 
   // Load external model overrides (ATLAS_MODEL_CAPABILITIES_FILE)
   const externalOverrides = await loadExternalModelOverrides(hookEnv);

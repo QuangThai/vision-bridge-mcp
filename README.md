@@ -20,10 +20,12 @@ Atlas uses a **multi-layer capability chain** to decide whether a model needs vi
 
 ```
 1. ctx.model.input (pi runtime)        → certain vision → skip
-2. ATLAS_MODEL_CAPABILITIES_FILE       → user overrides
-3. Provider heuristics (v0.4.0)        → openai/* = vision, deepseek/* = text-only
-4. models.dev catalog                  → remote lookup
-5. ATLAS_INTERCEPT_MODE                → policy fallback
+2. Hook supports_vision / input_modalities → runtime signal → skip or intercept
+3. ATLAS_MODEL_CAPABILITIES_FILE       → user overrides
+4. Proxy resolution (MAIN_MODEL_REF, CURSOR_UNDERLYING_MODEL, composer* patterns, upstream inference)
+5. Provider heuristics (v0.4.0)        → openai/* = vision, deepseek/* = text-only
+6. models.dev catalog                  → remote lookup
+7. ATLAS_INTERCEPT_MODE                → policy fallback
 ```
 
 **Provider heuristics** replace hardcoded model lists — no updates needed when new models release:
@@ -33,9 +35,17 @@ Atlas uses a **multi-layer capability chain** to decide whether a model needs vi
 | OpenAI (`openai/*`) | ✅ GPT-4o, GPT-5, o3, ... | — |
 | Anthropic (`anthropic/*`) | ✅ Claude Sonnet, Opus, ... | — |
 | Google (`google/*`) | ✅ Gemini Pro, Flash, ... | — |
-| Cursor (`cursor/*`, `opencode-go/*`) | ✅ Composer, Auto, ... | — |
 | DeepSeek (`deepseek/*`) | — | ✅ V4 Flash, V4 Pro, V3, R1 |
-| ZhipuAI (`zhipuai/*`) | — | ✅ GLM-5.1, 5.2, 4.x |
+| Z.ai / ZhipuAI (`zai/*`, alias `zhipuai/*`, `glm/*`) | — | ✅ GLM-5.1, 5.2, 4.x |
+
+**Proxy providers** (`cursor/*`, `opencode-go/*`, `opencode/*`) route to arbitrary upstream models. Atlas resolves capabilities via:
+
+1. Runtime signal from hooks (`supports_vision`, `input_modalities`) or pi (`ctx.model.input`)
+2. `MAIN_MODEL_REF` — set to the real upstream model (e.g. `openai/gpt-4o`)
+3. `CURSOR_UNDERLYING_MODEL` — alternative upstream override
+4. Known proxy-native patterns (`composer*`, `auto*` → vision)
+5. Upstream inference from model id prefix (`gpt-*` → openai, `deepseek-*` → deepseek, …)
+6. Safe default: intercept when unknown
 
 ## Solution
 
@@ -145,8 +155,10 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 | `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — control intercept behavior (v0.4.0) |
 | `ATLAS_MODEL_CAPABILITIES_FILE` | — | Path to JSON file with per-model capability overrides (v0.4.0) |
 | `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` (keyword-based), `always` — auto-read clipboard image on Windows (v0.4.0) |
-| `MAIN_MODEL_REF` | auto-detected | Override model ref e.g. `deepseek/deepseek-v4-flash` |
-| `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
+| `MAIN_MODEL_REF` | auto-detected | Override model ref e.g. `deepseek/deepseek-v4-flash` or upstream `openai/gpt-4o` for proxy providers |
+| `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zai` (alias `zhipuai`, `glm`) for GLM models |
+| `CURSOR_UNDERLYING_MODEL` | — | Upstream model when hook ref is a proxy (e.g. `openai/gpt-4o`) |
+| `ATLAS_UNDERLYING_MODEL` | — | Alias for `CURSOR_UNDERLYING_MODEL` |
 | `VISION_FALLBACK_PROVIDER` | — | Secondary provider if primary fails |
 | `VISION_FALLBACK_API_KEY` | — | API key for fallback |
 | `VISION_FALLBACK_BASE_URL` | (primary base URL) | Base URL for fallback |
@@ -345,8 +357,9 @@ VISION_PROVIDER=openai-compatible
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MAIN_MODEL_REF` | auto-detected | Override model ref (e.g. `deepseek/deepseek-v4-flash`) |
-| `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
+| `MAIN_MODEL_REF` | auto-detected | Override model ref (e.g. `deepseek/deepseek-v4-flash`, or upstream `openai/gpt-4o` for proxy providers) |
+| `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zai` (alias `zhipuai`, `glm`) for GLM models |
+| `CURSOR_UNDERLYING_MODEL` | — | Upstream model when hook ref is a proxy (e.g. `openai/gpt-4o`) |
 | `ATLAS_SKIP_INTERCEPT` | `false` | Disable auto-intercept |
 | `ATLAS_FORCE_INTERCEPT` | `false` | Always run Atlas even if model supports images |
 | `VISION_FALLBACK_PROVIDER` | — | Secondary provider if primary fails |
@@ -381,8 +394,10 @@ npx atlas-vision-mcp costs --today
 npx atlas-vision-mcp costs --session
 npx atlas-vision-mcp costs --range 7
 
-# Golden evaluation (v0.6.0)
+# Golden evaluation (v0.6.0+)
 npx atlas-vision-mcp eval
+npx atlas-vision-mcp eval --gate --threshold 0.8   # CI gate: core screenshots @ 80%
+npx atlas-vision-mcp eval --tier core              # real screenshots only
 npx atlas-vision-mcp eval --model gpt-4o --provider openai-responses
 
 # Auto-install hooks (v0.5.0)
@@ -420,7 +435,20 @@ See [`examples/opencode.jsonc`](examples/opencode.jsonc).
 
 ### Factory Droid
 
+Two modes — pick based on your main model:
+
+| Mode | When | Setup |
+| --- | --- | --- |
+| **Hooks (auto-intercept)** | Text-only main model | `npx atlas-vision-mcp install-hooks droid` + `MAIN_MODEL_REF=deepseek/...` |
+| **MCP (manual tools)** | Agent calls vision on demand | `droid mcp add atlas-vision ...` below |
+
+Hooks skip automatically for vision models (Composer, GPT-4o) via proxy resolution + runtime signals.
+
 ```bash
+# Auto-intercept
+npx atlas-vision-mcp install-hooks droid
+
+# MCP manual (text-only agents)
 droid mcp add atlas-vision "npx -y atlas-vision-mcp" \
   --env VISION_PROVIDER=openai-compatible \
   --env VISION_BASE_URL=https://api.openai.com/v1 \
@@ -428,7 +456,7 @@ droid mcp add atlas-vision "npx -y atlas-vision-mcp" \
   --env VISION_MODEL=gpt-4o-mini
 ```
 
-Use with text-only main models (`noImageSupport: true`).
+Verify routing without API key: `pnpm smoke:agents`
 
 ### Claude Code
 

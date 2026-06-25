@@ -43,7 +43,7 @@ const COMMAND_FLAGS: Record<string, string[]> = {
   doctor: ["--json"],
   capabilities: ["--model", "--provider", "--json"],
   "should-intercept": ["--model", "--provider"],
-  eval: ["--threshold", "--json"],
+  eval: ["--threshold", "--edge-threshold", "--gate", "--tier", "--json"],
   config: ["--json", "--output"],
   estimate: ["--json"],
   costs: ["--today", "--session", "--range", "--json"],

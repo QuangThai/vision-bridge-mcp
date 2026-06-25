@@ -47,6 +47,7 @@ export async function interceptImagesForTextModel(
       providerId: input.providerId,
       messageText: input.messageText,
       runtimeSupportsVision: input.runtimeSupportsVision,
+      env: input.env,
     },
     options,
     options.modelsDev ?? {},

@@ -2,7 +2,8 @@ import { lookupBundledCapability } from "./bundled-registry.js";
 import { detectImagesInText } from "./detect-images.js";
 import { planVisionCalls } from "./infer-tool.js";
 import { type ModelsDevClientOptions, getModelCapabilities, parseModelRef } from "./models-dev.js";
-import type { ImageInterceptOptions, ImageInterceptPlan } from "./types.js";
+import { resolveCapabilityLookup } from "./proxy-resolver.js";
+import type { ImageInterceptOptions, ImageInterceptPlan, ModelCapabilities } from "./types.js";
 
 export interface ImageInterceptInput {
   mainModelRef: string;
@@ -10,6 +11,35 @@ export interface ImageInterceptInput {
   messageText: string;
   /** When set (e.g. from pi `ctx.model.input`), overrides models.dev for intercept decisions. */
   runtimeSupportsVision?: boolean;
+  env?: NodeJS.ProcessEnv;
+}
+
+async function resolveCapabilitiesForIntercept(
+  input: ImageInterceptInput,
+  mergedDevOptions: ModelsDevClientOptions,
+): Promise<ModelCapabilities> {
+  const resolution = resolveCapabilityLookup({
+    mainModelRef: input.mainModelRef,
+    providerId: input.providerId,
+    env: input.env,
+  });
+
+  if (resolution.proxySupportsVision !== undefined) {
+    return {
+      modelId: resolution.lookup.modelId,
+      providerId: resolution.lookup.providerId,
+      supportsVision: resolution.proxySupportsVision,
+      supportsTools: true,
+      supportsReasoning: false,
+      inputModalities: resolution.proxySupportsVision ? ["text", "image"] : ["text"],
+      outputModalities: ["text"],
+      contextWindow: 0,
+      maxOutputTokens: 0,
+      source: "heuristic",
+    };
+  }
+
+  return getModelCapabilities(resolution.lookup, mergedDevOptions);
 }
 
 export function buildInjectedVisionContext(imagePath: string, markdown: string): string {
@@ -44,7 +74,7 @@ export async function planImageIntercept(
   // (cursor-sdk, opencode-go, etc.).
   const capabilities =
     input.runtimeSupportsVision === undefined
-      ? await getModelCapabilities(lookup, mergedDevOptions)
+      ? await resolveCapabilitiesForIntercept(input, mergedDevOptions)
       : {
           modelId: lookup.modelId,
           providerId: lookup.providerId,

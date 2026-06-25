@@ -100,6 +100,9 @@ Use pi package on pi; use hooks on other agents; use MCP for on-demand tools eve
 ## Verify
 
 ```bash
+pnpm build
+pnpm smoke:agents   # routing matrix, no API key
+
 MAIN_MODEL_REF=deepseek/deepseek-v4-flash atlas-vision doctor
 atlas-vision capabilities deepseek/deepseek-v4-flash
 ```
