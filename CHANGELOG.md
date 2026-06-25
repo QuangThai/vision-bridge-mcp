@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.8.0 — 2026-06-25
+
+### Added
+
+- **GitHub issue templates** — bug report + feature request templates
+- **PR template** — checklist for build/test/lint/typecheck
+- **Shell completions** — `atlas-vision completion bash|zsh|fish` generates tab-completion
+  scripts for all commands, subcommands, and flags
+- **Eval text match rate** — `runEval()` now reports `text_match_rate` per fixture and
+  `overall_text_match_rate` across all fixtures. Accepts `--threshold` flag
+  (default 50%)
+- **Eval element tracking** — `expected_elements` are now checked and reported separately
+
+### Changed
+
+- **Integration docs** — quickstart now recommends `atlas-vision config init` first
+- **Examples README** — added config file vs env vars comparison table
+
 ## 0.7.0 — 2026-06-25
 
 ### Added

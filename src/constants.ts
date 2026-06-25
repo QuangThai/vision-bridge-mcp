@@ -1,2 +1,2 @@
 export const PACKAGE_NAME = "atlas-vision-mcp";
-export const VERSION = "0.7.0";
+export const VERSION = "0.8.0";
