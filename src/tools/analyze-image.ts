@@ -49,7 +49,8 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     "For partially obscured or blurry text: note the uncertainty rather than guessing.",
     "Disambiguate similar-looking characters (1/l/I, 0/O, 5/S) using context.",
     "The image may contain Vietnamese, Chinese, Japanese or other non-English text.",
-    "For Vietnamese: accurately detect diacritics (à, á, ả, ã, ạ, ă, â, đ, ê, ô, ơ, ư).",
+    "Vietnamese uses unique characters: ă, Â, đ, ê, ô, ơ, ư (never English/French). Double diacritics = Vietnamese: ấ ầ ẩ ẫ ậ, ắ ằ ẳ ẵ ặ, ớ ờ ở ỡ ợ.",
+    "Common Vietnamese patterns: ng, ngh, nh, tr, ch, kh, ph. Transcribe ALL diacritics — they change meaning.",
     "For Chinese/Japanese: detect CJK characters and kana accurately — do not substitute missing radicals.",
   ];
 

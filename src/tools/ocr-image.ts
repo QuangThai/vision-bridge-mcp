@@ -74,14 +74,24 @@ function buildOcrPrompt(input: OcrImageInput): string {
 
   // Multi-language support
   lines.push("The image may contain Vietnamese, Chinese, Japanese or other non-English text.");
+  lines.push("Vietnamese diacritics guide — distinguish from English/French:");
   lines.push(
-    "For Vietnamese: accurately detect diacritics (à, á, ả, ã, ạ, ă, â, đ, ê, ô, ơ, ư) — they change word meaning.",
+    "Characters UNIQUE to Vietnamese: ă, Â, đ, ê, ô, ơ, ư (never appear in English/French).",
   );
   lines.push(
-    "For Chinese/Japanese: detect CJK characters (kanji/hanzi), kana (hiragana/katakana), and mixed-script text accurately.",
+    "Double diacritics on one letter = Vietnamese ONLY: ấ ầ ẩ ẫ ậ (circumflex + tone), ắ ằ ẳ ẵ ặ (breve + tone), ớ ờ ở ỡ ợ (horn + tone).",
   );
   lines.push(
-    "Do not substitute missing diacritics or CJK radicals — transcribe exactly what you see.",
+    "Vietnamese puts tones on ALL vowels: a ă â e ê i o ô ơ u ư y — English/French only accents a e i o u.",
+  );
+  lines.push(
+    "Common Vietnamese patterns: ng, ngh, nh, tr, ch, kh, ph, th, gi, qu at word start; words starting with 'ng'/'ngh' are almost certainly Vietnamese.",
+  );
+  lines.push(
+    "Transcribe ALL diacritics exactly — they change word meaning in Vietnamese (bò ≠ bỏ ≠ bõ).",
+  );
+  lines.push(
+    "For Chinese/Japanese: detect CJK characters (hanzi/kanji), kana (hiragana/katakana), and mixed-script text. Do not confuse with Vietnamese.",
   );
   lines.push(
     "For code screenshots with non-English comments: preserve the original comment language exactly.",
