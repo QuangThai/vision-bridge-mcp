@@ -228,7 +228,9 @@ function tryLoadConfigFile(): ConfigFile | null {
   try {
     return loadConfigFileSync();
   } catch (err) {
-    console.warn(`[atlas-vision] Warning: ignoring invalid config file (${err instanceof Error ? err.message : String(err)})`);
+    console.warn(
+      `[atlas-vision] Warning: ignoring invalid config file (${err instanceof Error ? err.message : String(err)})`,
+    );
     return null;
   }
 }

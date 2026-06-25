@@ -108,7 +108,9 @@ function validateConfigFile(raw: unknown): ConfigFile {
   const knownKeys = new Set(["config_version", "provider", "cache", "atlas"]);
   for (const key of Object.keys(obj)) {
     if (!knownKeys.has(key)) {
-      console.warn(`[atlas-vision] Warning: unknown config section "${key}" — did you mean one of: ${Array.from(knownKeys).join(", ")}?`);
+      console.warn(
+        `[atlas-vision] Warning: unknown config section "${key}" — did you mean one of: ${Array.from(knownKeys).join(", ")}?`,
+      );
       break; // only warn once per file
     }
   }
