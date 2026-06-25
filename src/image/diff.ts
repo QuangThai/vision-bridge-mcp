@@ -13,12 +13,6 @@ export interface DiffOptions {
 const DEFAULT_THRESHOLD = 0.05;
 const RED = { r: 255, g: 0, b: 0 };
 
-interface PixelDiff {
-  x: number;
-  y: number;
-  changed: boolean;
-}
-
 /**
  * Generate a visual diff image between two PNG buffers.
  *
