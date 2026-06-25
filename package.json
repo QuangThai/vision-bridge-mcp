@@ -35,6 +35,7 @@
     "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:golden": "node dist/cli/main.js eval --threshold 0.5",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",

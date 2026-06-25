@@ -8,16 +8,8 @@
       "width": 1280,
       "height": 800,
       "type": "web_page",
-      "expected_text": [
-        "Example Domain",
-        "Learn more",
-        "documentation examples"
-      ],
-      "expected_elements": [
-        "heading",
-        "paragraph",
-        "link"
-      ]
+      "expected_text": ["Example Domain", "Learn more", "documentation examples"],
+      "expected_elements": ["heading", "paragraph", "link"]
     },
     {
       "id": "diagram-agent-arch",
@@ -33,12 +25,7 @@
         "File Watcher",
         "PostgreSQL"
       ],
-      "expected_elements": [
-        "nodes",
-        "edges",
-        "labels",
-        "legend"
-      ]
+      "expected_elements": ["nodes", "edges", "labels", "legend"]
     },
     {
       "id": "diagram-company-arch",
@@ -47,18 +34,8 @@
       "width": 1920,
       "height": 1080,
       "type": "diagram",
-      "expected_text": [
-        "AI agents",
-        "Session files",
-        "Control Plane",
-        "Policy Enforcement"
-      ],
-      "expected_elements": [
-        "nodes",
-        "edges",
-        "labels",
-        "flow arrows"
-      ]
+      "expected_text": ["AI agents", "Session files", "Control Plane", "Policy Enforcement"],
+      "expected_elements": ["nodes", "edges", "labels", "flow arrows"]
     },
     {
       "id": "chart-revenue",
@@ -67,18 +44,8 @@
       "width": 1280,
       "height": 720,
       "type": "chart",
-      "expected_text": [
-        "Monthly Revenue",
-        "Jan",
-        "Feb",
-        "Mar",
-        "Total Revenue"
-      ],
-      "expected_elements": [
-        "bar chart",
-        "labels",
-        "values"
-      ]
+      "expected_text": ["Monthly Revenue", "Jan", "Feb", "Mar", "Total Revenue"],
+      "expected_elements": ["bar chart", "labels", "values"]
     },
     {
       "id": "error-dialog",
@@ -87,18 +54,8 @@
       "width": 1047,
       "height": 751,
       "type": "error_screenshot",
-      "expected_text": [
-        "Connection Failed",
-        "ERR_CONNECTION_TIMED_OUT",
-        "Retry",
-        "Cancel"
-      ],
-      "expected_elements": [
-        "error icon",
-        "heading",
-        "paragraph",
-        "buttons"
-      ]
+      "expected_text": ["Connection Failed", "ERR_CONNECTION_TIMED_OUT", "Retry", "Cancel"],
+      "expected_elements": ["error icon", "heading", "paragraph", "buttons"]
     },
     {
       "id": "form-ui",
@@ -107,19 +64,8 @@
       "width": 1047,
       "height": 751,
       "type": "form",
-      "expected_text": [
-        "Create Account",
-        "Full name",
-        "Password",
-        "Sign Up",
-        "Terms of Service"
-      ],
-      "expected_elements": [
-        "input fields",
-        "checkbox",
-        "submit button",
-        "error message"
-      ]
+      "expected_text": ["Create Account", "Full name", "Password", "Sign Up", "Terms of Service"],
+      "expected_elements": ["input fields", "checkbox", "submit button", "error message"]
     },
     {
       "id": "dashboard",
@@ -128,19 +74,8 @@
       "width": 1047,
       "height": 751,
       "type": "dashboard",
-      "expected_text": [
-        "Dashboard",
-        "Total Revenue",
-        "Active Users",
-        "Orders",
-        "Bounce Rate"
-      ],
-      "expected_elements": [
-        "stat cards",
-        "table",
-        "activity feed",
-        "badges"
-      ]
+      "expected_text": ["Dashboard", "Total Revenue", "Active Users", "Orders", "Bounce Rate"],
+      "expected_elements": ["stat cards", "table", "activity feed", "badges"]
     },
     {
       "id": "dark-mode-ui",
@@ -157,13 +92,7 @@
         "Save Changes",
         "Notifications"
       ],
-      "expected_elements": [
-        "sidebar",
-        "toggles",
-        "dropdown",
-        "buttons",
-        "dark theme"
-      ]
+      "expected_elements": ["sidebar", "toggles", "dropdown", "buttons", "dark theme"]
     },
     {
       "id": "solid-color",
@@ -203,11 +132,7 @@
       "height": 800,
       "type": "simple",
       "expected_text": [],
-      "expected_elements": [
-        "lines",
-        "horizontal",
-        "color"
-      ]
+      "expected_elements": ["lines", "horizontal", "color"]
     },
     {
       "id": "blurry",
@@ -237,11 +162,7 @@
       "height": 600,
       "type": "simple",
       "expected_text": [],
-      "expected_elements": [
-        "grid",
-        "table",
-        "cells"
-      ]
+      "expected_elements": ["grid", "table", "cells"]
     },
     {
       "id": "wide",

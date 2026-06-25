@@ -64,3 +64,9 @@ jobs:
         env:
           VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:e2e
+
+      - name: Golden eval (real provider)
+        if: env.VISION_API_KEY != ''
+        env:
+          VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
+        run: pnpm test:golden

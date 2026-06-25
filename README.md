@@ -1,5 +1,13 @@
 # Atlas Vision MCP
 
+<div align="center">
+
+[![npm version](https://img.shields.io/npm/v/atlas-vision-mcp?color=blue&logo=npm)](https://www.npmjs.com/package/atlas-vision-mcp)
+[![CI](https://github.com/QuangThai/vision-bridge-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/QuangThai/vision-bridge-mcp/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
+
 MCP vision bridge for **text-only coding agents**. Atlas reads local images, calls a dedicated vision provider, and returns markdown plus structured JSON evidence so agents can work from screenshots, diagrams, and UI mockups without native vision support.
 
 ## Problem
@@ -43,44 +51,50 @@ Atlas does **not** make the main model multimodal. Vision is exposed as MCP tool
 
 ## Quick start
 
-### 1. Install and verify
+### 1. Configure
 
 ```bash
-pnpm install
-pnpm build
-pnpm test
-npx atlas-vision-mcp doctor
-```
+# Create a config file (replaces all --env flags)
+npx atlas-vision-mcp config init
+# Edit atlas-vision.toml: set api_key, base_url, model
 
-Set provider env vars first:
-
-```bash
-export VISION_PROVIDER=openai-compatible
-export VISION_BASE_URL=https://api.openai.com/v1
+# Or use env vars:
 export VISION_API_KEY=your-key
+export VISION_BASE_URL=https://api.openai.com/v1
 export VISION_MODEL=gpt-4o-mini
 ```
 
-### 2. Run the MCP server
-
-`npx -y atlas-vision-mcp` starts the stdio MCP server by default.
-
-Explicit CLI:
-
-```bash
-npx atlas-vision-mcp serve --transport stdio
-```
-
-### 3. Try the CLI without an agent
+### 2. Verify
 
 ```bash
 npx atlas-vision-mcp doctor
-npx atlas-vision-mcp config          # show resolved config
-npx atlas-vision-mcp config init    # create atlas-vision.toml
-npx atlas-vision-mcp analyze ./screenshot.png --mode error_screenshot --json
-npx atlas-vision-mcp ocr ./error.png --preserve-layout
-npx atlas-vision-mcp compare ./before.png ./after.png --focus layout
 ```
+
+### 3. Try the CLI
+
+```bash
+npx atlas-vision-mcp config                # show resolved config
+npx atlas-vision-mcp analyze ./screenshot.png
+npx atlas-vision-mcp ocr ./error.png
+npx atlas-vision-mcp compare ./before.png ./after.png
+npx atlas-vision-mcp estimate ./screenshot.png
+```
+
+### 4. Use with coding agents
+
+```bash
+# Pi (auto-intercept)
+pi install npm:atlas-vision-mcp
+
+# Cursor / Codex / Claude / Droid — install hooks
+npx atlas-vision-mcp install-hooks cursor
+
+# Or MCP config for any stdio client
+# Server command: npx -y atlas-vision-mcp
+```
+
+For agent-specific instructions, see [`examples/`](examples/) and
+[`docs/product/integration.md`](docs/product/integration.md).
 
 ## MCP tools (6)
 
@@ -115,6 +129,33 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zhipuai` for GLM models |
 
 ## Config file (v0.7.0)
+
+## CLI reference
+
+| Command | Description |
+| --- | --- |
+| `serve` | Start MCP stdio server (default) |
+| `doctor` | Check environment and provider connectivity |
+| `analyze` | Analyze an image → structured evidence |
+| `ocr` | Extract visible text from an image |
+| `compare` | Compare two images for visual differences |
+| `config` | Show / init / path configuration |
+| `completion` | Generate shell completion (bash\|zsh\|fish) |
+| `estimate` | Estimate vision API cost for an image |
+| `costs` | Show vision API cost summary |
+| `cache` | Manage vision response cache (stats, clear) |
+| `capabilities` | Look up model vision support |
+| `install-hooks` | Install hooks for agents |
+| `hook` | Agent hook helpers |
+| `eval` | Run golden fixture evaluation |
+
+```bash
+atlas-vision --help       # full usage
+atlas-vision <command> --help  # per-command flags
+atlas-vision completion bash   # tab-complete
+```
+
+## Configuration
 
 All environment variables can also be set via `atlas-vision.toml` (preferred) or
 `atlas-vision.json`. The config file fills in defaults that env vars can still
