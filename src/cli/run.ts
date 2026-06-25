@@ -120,9 +120,9 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
   }
 
   if (command === "cache") {
-    const [subcommand] = rest;
+    const [subcommand, ...cacheArgs] = rest;
     if (subcommand === "stats" || !subcommand) {
-      return runCacheStatsCommand();
+      return runCacheStatsCommand(cacheArgs);
     }
     if (subcommand === "clear") {
       return runCacheClearCommand();

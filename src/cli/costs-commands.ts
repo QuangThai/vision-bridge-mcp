@@ -5,7 +5,7 @@ export async function runCostsCommand(args: string[]): Promise<number> {
   const flagsResult = parseFlags(args);
   if (flagsResult instanceof Error) {
     console.error(flagsResult.message);
-    console.error("Usage: atlas-vision costs [--today] [--session] [--range <days>]");
+    console.error("Usage: atlas-vision costs [--today] [--session] [--range <days>] [--json]");
     return 1;
   }
   const flags = flagsResult;
@@ -14,8 +14,20 @@ export async function runCostsCommand(args: string[]): Promise<number> {
   const entries = await tracker.readAll();
 
   if (entries.length === 0) {
-    console.log("No cost records found.");
-    console.log("Cost tracking is enabled by default (ATLAS_TRACK_COSTS=true).");
+    const emptyJson = {
+      period: "all",
+      total_calls: 0,
+      total_tokens: 0,
+      estimated_cost_usd: 0,
+      log_size_bytes: 0,
+      models: [],
+    };
+    if (flags.json) {
+      console.log(JSON.stringify(emptyJson));
+    } else {
+      console.log("No cost records found.");
+      console.log("Cost tracking is enabled by default (ATLAS_TRACK_COSTS=true).");
+    }
     return 0;
   }
   let filtered = entries;
@@ -54,8 +66,29 @@ export async function runCostsCommand(args: string[]): Promise<number> {
     byModel[entry.model].tokens += entry.totalTokens ?? 0;
   }
 
-  // Print report
   const logSize = await tracker.logSizeBytes();
+
+  // JSON output
+  if (flags.json) {
+    const models = Object.entries(byModel).map(([model, stats]) => ({
+      model,
+      calls: stats.calls,
+      estimated_cost_usd: Number(stats.cost.toFixed(4)),
+      tokens: stats.tokens,
+    }));
+    const output = {
+      period: describePeriod(flags),
+      total_calls: totalCalls,
+      total_tokens: totalTokens,
+      estimated_cost_usd: Number(totalCost.toFixed(4)),
+      log_size_bytes: logSize,
+      models,
+    };
+    console.log(JSON.stringify(output, null, 2));
+    return 0;
+  }
+
+  // Print human-readable report
   console.log("─".repeat(50));
   console.log("  Atlas Vision Cost Report");
   console.log("─".repeat(50));
@@ -101,16 +134,20 @@ function formatBytes(bytes: number): string {
 }
 
 interface CostFlags {
+  json: boolean;
   today: boolean;
   session: boolean;
   days: number | undefined;
 }
 
 function parseFlags(args: string[]): CostFlags | Error {
-  const flags: CostFlags = { today: false, session: false, days: undefined };
+  const flags: CostFlags = { json: false, today: false, session: false, days: undefined };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
+      case "--json":
+        flags.json = true;
+        break;
       case "--today":
         flags.today = true;
         break;

@@ -775,9 +775,14 @@ export async function runEvalCommand(
     }
 
     const report = await runEval(goldenDir, evalConfig, provider, { threshold });
-    const text = renderEvalReport(report);
 
-    log.log(text);
+    if (hasFlag(flags, "json")) {
+      log.log(JSON.stringify(report, null, 2));
+    } else {
+      const text = renderEvalReport(report);
+      log.log(text);
+    }
+
     return report.failed > 0 ? 1 : 0;
   } catch (error) {
     log.error(formatCliFailure(error));

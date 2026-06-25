@@ -1,8 +1,23 @@
 import { CacheStore } from "../capabilities/cache.js";
 
-export async function runCacheStatsCommand(): Promise<number> {
+export async function runCacheStatsCommand(args?: string[]): Promise<number> {
+  const useJson = args?.includes("--json") ?? false;
+
   const store = new CacheStore();
   const stats = await store.stats();
+
+  if (useJson) {
+    const output = {
+      directory: store.directory,
+      total_entries: stats.totalEntries,
+      max_entries: stats.maxEntries,
+      total_size_bytes: stats.totalSizeBytes,
+      max_size_bytes: stats.maxSizeBytes,
+      oldest_entry: stats.oldestEntry,
+    };
+    console.log(JSON.stringify(output, null, 2));
+    return 0;
+  }
 
   console.log("Cache location:", store.directory);
   console.log("Total entries:", stats.totalEntries);

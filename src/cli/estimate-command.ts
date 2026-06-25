@@ -118,16 +118,24 @@ export async function estimateCost(imagePath: string): Promise<EstimateResult> {
 }
 
 export async function runEstimateCommand(args: string[]): Promise<number> {
-  if (args.length === 0) {
-    console.error("Usage: atlas-vision estimate <image-path>");
+  const useJson = args.includes("--json");
+  const positional = args.filter((a) => !a.startsWith("--"));
+
+  if (positional.length === 0) {
+    console.error("Usage: atlas-vision estimate <image-path> [--json]");
     console.error("Estimate vision API cost for an image.");
     return 1;
   }
 
-  const imagePath = args[0];
+  const imagePath = positional[0];
 
   try {
     const result = await estimateCost(imagePath);
+
+    if (useJson) {
+      console.log(JSON.stringify(result, null, 2));
+      return 0;
+    }
 
     console.log("=== Cost Estimate ===");
     console.log("File:", result.filePath);
