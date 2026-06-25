@@ -43,9 +43,11 @@ describe("runDoctorCommand", () => {
         baseUrl: "https://api.example.com/v1",
         apiKey: "sk-test-1234",
         model: "gpt-4o-mini",
+        temperature: 0.1,
         timeoutMs: 60_000,
         maxImageMb: 10,
         maxOutputTokens: 4_000,
+        retryMax: 3,
       },
       atlas: {
         allowedDirs: ["."],
@@ -53,7 +55,16 @@ describe("runDoctorCommand", () => {
         logLevel: "info",
         logImageContent: false,
         redactSecrets: true,
+        checkPii: false,
         defaultDetailLevel: "standard",
+        adaptiveDetail: true,
+        trackCosts: false,
+      },
+      cache: {
+        disableCache: true,
+        ttlHours: 24,
+        maxEntries: 500,
+        maxSizeMb: 100,
       },
     };
 
@@ -104,9 +115,11 @@ describe("runDoctorCommand", () => {
         baseUrl: "https://api.example.com/v1",
         apiKey: "sk-test-1234",
         model: "gpt-4o-mini",
+        temperature: 0.1,
         timeoutMs: 60_000,
         maxImageMb: 10,
         maxOutputTokens: 4_000,
+        retryMax: 3,
       },
       atlas: {
         allowedDirs: ["."],
@@ -114,7 +127,16 @@ describe("runDoctorCommand", () => {
         logLevel: "info",
         logImageContent: false,
         redactSecrets: true,
+        checkPii: false,
         defaultDetailLevel: "standard",
+        adaptiveDetail: true,
+        trackCosts: false,
+      },
+      cache: {
+        disableCache: true,
+        ttlHours: 24,
+        maxEntries: 500,
+        maxSizeMb: 100,
       },
     };
 

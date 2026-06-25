@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { CacheStore } from "../capabilities/cache.js";
 import {
   type ModelCapabilities,
   type ModelsDevClientOptions,
@@ -486,8 +487,67 @@ export async function runDoctorCommand(
     }
   }
 
-  // ── Main model capability (optional) ────────────────────────
+  // ── Main model capability & intercept (optional) ────────────
   await appendMainModelCapabilityLines(lines, env, lookupCapabilities, dependencies.fetch);
+
+  // If MAIN_MODEL_REF is set, show should-intercept status
+  const mainModelRef = env.MAIN_MODEL_REF?.trim();
+  if (mainModelRef && config) {
+    try {
+      const lookup = parseModelRef(mainModelRef, env.MAIN_MODEL_PROVIDER?.trim());
+      const modelsDevOptions: ModelsDevClientOptions = dependencies.fetch
+        ? { fetch: dependencies.fetch }
+        : {};
+      const capabilities = await lookupCapabilities(lookup, modelsDevOptions);
+      const intercept = !capabilities.supportsVision;
+      lines.push(
+        `Atlas intercept: ${intercept ? "YES (text-only model)" : "NO (model has native vision)"}`,
+      );
+    } catch {
+      // ignore — lookup error already shown above
+    }
+  }
+
+  // ── Cache status ────────────────────────────────────────────
+  lines.push("");
+  if (config && !config.cache.disableCache) {
+    const cacheStore = new CacheStore({
+      ttlHours: config.cache.ttlHours,
+      maxEntries: config.cache.maxEntries,
+      maxSizeMb: config.cache.maxSizeMb,
+    });
+    try {
+      const stats = await cacheStore.stats();
+      const active =
+        stats.totalEntries > 0
+          ? `${stats.totalEntries} entries, ${(stats.totalSizeBytes / 1024 / 1024).toFixed(1)} MB`
+          : "empty";
+      lines.push(
+        `Cache: ${active} (max ${stats.maxEntries} entries / ${(stats.maxSizeBytes / 1024 / 1024).toFixed(0)} MB)`,
+      );
+    } catch {
+      lines.push("Cache: unable to read");
+    }
+  } else {
+    lines.push("Cache: disabled");
+  }
+
+  // ── Cost tracking ──────────────────────────────────────────
+  if (config) {
+    lines.push(`Cost tracking: ${config.atlas.trackCosts ? "active" : "disabled"}`);
+  }
+
+  // ── Fallback status ────────────────────────────────────────
+  if (config?.vision.fallback) {
+    lines.push(
+      `Fallback: ${config.vision.fallback.provider}/${config.vision.fallback.model} (configured)`,
+    );
+  }
+
+  // ── Adaptive detail ────────────────────────────────────────
+  if (config) {
+    lines.push(`Adaptive detail: ${config.atlas.adaptiveDetail ? "on" : "off"}`);
+  }
 
   log.log(lines.join("\n"));
   return exitCode;
