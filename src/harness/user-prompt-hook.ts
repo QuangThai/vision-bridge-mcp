@@ -49,19 +49,17 @@ export interface UserPromptHookResult {
   stdout: string;
 }
 
+/**
+ * Infer provider from model ID only for REAL providers where the mapping
+ * is unambiguous. Proxy providers (cursor, opencode, opencode-go) are NOT
+ * inferred because they can route to any upstream model — users must set
+ * MAIN_MODEL_REF explicitly for those.
+ */
 function inferProviderFromModelId(modelId: string): string | undefined {
   const lower = modelId.toLowerCase();
-  if (lower.startsWith("deepseek")) {
-    return "deepseek";
-  }
-  // models.dev canonical provider id
-  if (lower.startsWith("glm")) {
-    return "zhipuai";
-  }
-  // Cursor custom model names — all have vision (Claude/GPT underneath)
-  if (lower.startsWith("composer")) {
-    return "cursor";
-  }
+  if (lower.startsWith("deepseek")) return "deepseek";
+  if (lower.startsWith("glm")) return "zai";
+  // Composer → NOT inferred (cursor is a proxy provider)
   return undefined;
 }
 

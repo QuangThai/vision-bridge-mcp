@@ -173,12 +173,12 @@ describe("ModelsDevClient", () => {
     });
 
     const caps = await client.getModelCapabilities({
-      providerId: "glm",
+      providerId: "zai",
       modelId: "glm-5.2",
     });
 
     expect(caps.supportsVision).toBe(false);
-    // Bundled registry catches glm-5.2 before "unknown" fallback
+    // Bundled registry catches glm-5.2 from zai provider before "unknown" fallback
     expect(caps.source).toBe("bundled");
   });
 

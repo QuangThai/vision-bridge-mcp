@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
+import { getModelCapabilities, parseModelRef } from "./capabilities/index.js";
 import { type AtlasConfig, ConfigError, loadConfig } from "./config.js";
 import { PACKAGE_NAME, VERSION } from "./constants.js";
 import {
@@ -121,6 +122,7 @@ export interface AtlasServerDependencies {
   config?: AtlasConfig;
   cwd?: string;
   fetch?: FetchFn;
+  env?: NodeJS.ProcessEnv;
   analyze?: typeof analyzeImage;
   analyzeImageBatch?: typeof analyzeImageBatch;
   extractRegion?: typeof extractRegion;
@@ -390,7 +392,47 @@ export async function serveStdio(dependencies: AtlasServerDependencies = {}): Pr
   // Redirect console output to stderr to prevent MCP protocol corruption on stdout
   setupConsoleRedirection();
 
-  const server = createAtlasMcpServer(dependencies);
+  const env = dependencies.env ?? process.env;
+
+  // ── Conditional tool registration ──
+  // When MAIN_MODEL_REF is set and the model supports native vision, skip
+  // registering all atlas vision tools to prevent models from calling them
+  // unnecessarily (double cost). The system prompt / resources are still
+  // provided so agents know atlas exists if they need it.
+  const mainModelRef = env.MAIN_MODEL_REF?.trim();
+  let suppressTools = false;
+
+  if (mainModelRef) {
+    try {
+      const lookup = parseModelRef(mainModelRef, env.MAIN_MODEL_PROVIDER?.trim());
+      // Use a 0ms cache TTL here since we only check once at server start
+      const capabilities = await getModelCapabilities(lookup, {
+        fetch: dependencies.fetch,
+      });
+      if (capabilities.supportsVision) {
+        suppressTools = true;
+      }
+    } catch {
+      // Lookup failure → register tools (safe default)
+    }
+  }
+
+  const server = new McpServer({
+    name: PACKAGE_NAME,
+    version: VERSION,
+  });
+
+  if (!suppressTools) {
+    registerAnalyzeImageTool(server, dependencies);
+    registerExtractRegionTool(server, dependencies);
+    registerAnalyzeImageBatchTool(server, dependencies);
+    registerOcrImageTool(server, dependencies);
+    registerAnalyzeUiScreenshotTool(server, dependencies);
+    registerCompareImagesTool(server, dependencies);
+  }
+
+  registerVisionInstructionsPrompt(server);
+
   const transport = new StdioServerTransport();
   await connectAtlasMcpServer(server, transport);
 }

@@ -96,6 +96,15 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
       return;
     }
 
+    // ── Early short-circuit: model has native vision → zero cost ──
+    // ctx.model.input is absolute truth from pi runtime. When it includes
+    // "image", the model can see images natively. No need for atlas at all.
+    // This check runs BEFORE any work (no status set, no image persist)
+    // to guarantee zero overhead for vision-capable models.
+    if (ctx.model?.input?.includes("image") && !envFlag("ATLAS_FORCE_INTERCEPT")) {
+      return;
+    }
+
     const mainModelRef = resolveMainModelRef(ctx.model);
     if (!mainModelRef) {
       return;

@@ -37,6 +37,11 @@ export async function planImageIntercept(
     overrides: [...(options.overrides ?? []), ...(modelsDevOptions.overrides ?? [])],
   };
 
+  // ── Runtime signal is absolute truth ──
+  // When pi's ctx.model.input is available, it definitively tells us whether
+  // the model supports images. NO heuristic/models.dev consulted — this signal
+  // is 100% accurate for the actual model being used, even behind proxy providers
+  // (cursor-sdk, opencode-go, etc.).
   const capabilities =
     input.runtimeSupportsVision === undefined
       ? await getModelCapabilities(lookup, mergedDevOptions)

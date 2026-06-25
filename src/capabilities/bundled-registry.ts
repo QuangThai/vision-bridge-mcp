@@ -3,25 +3,30 @@
  *
  * ## Design rationale
  *
- * Hardcoding every model is fragile and outdated on arrival.
- * Instead, Atlas uses **provider-level heuristics**:
+ * Atlas uses **provider-level heuristics** only for REAL providers where ALL
+ * models are consistently vision-native or consistently text-only.
  *
- *   - `openai/*`, `anthropic/*`, `google/*` → ALL models have vision
- *   - `deepseek/*`, `zhipuai/*`, `kimi/*` → ALL models are text-only
+ *   - `openai/*`, `openai-codex/*`, `anthropic/*`, `google/*` → ALL models have vision
+ *   - `deepseek/*`, `zai/*`, `kimi/*` → ALL models are text-only
  *
- * This covers ALL current and future models from these providers
- * without needing updates. Only add specific overrides when a
- * provider's default modality changes.
+ * Providers with mixed capabilities (e.g. `opencode`, `opencode-go` which serve
+ * both deepseek text-only and minimax vision models) are deliberately excluded.
+ * For those, the pi extension path (`ctx.model.input`) is always correct, while
+ * the MCP server path requires `MAIN_MODEL_REF` to resolve capabilities via
+ * models.dev or user overrides.
+ *
+ * Specific overrides handle the rare case where a provider has mixed models
+ * (e.g. ZhipuAI's GLM-5V-Turbo has vision but GLM-5.2 is text-only).
  *
  * Users can extend via `ATLAS_MODEL_CAPABILITIES_FILE` env var.
  *
  * ## Priority chain
  *
- *   runtimeSupportsVision (pi ctx.model.input)
+ *   runtimeSupportsVision (pi ctx.model.input) — absolute truth when set
  *     → ATLAS_MODEL_CAPABILITIES_FILE (user config)
- *     → Provider heuristics (this file)
+ *     → Specific overrides (this file, per-model exceptions)
+ *     → Provider heuristics (this file, provider-wide defaults)
  *     → models.dev catalog (remote)
- *     → Specific overrides (this file, edge cases)
  *     → Unknown policy (ATLAS_INTERCEPT_MODE)
  */
 
@@ -48,29 +53,33 @@ import type { ProviderVisionPattern, VisionCapabilityOverride } from "./types.js
 export const PROVIDER_HEURISTICS: ProviderVisionPattern[] = [
   // ── Vision-native providers ──
   { providerId: "openai", modelGlob: "*", supportsVision: true, priority: 0 },
+  // openai-codex (ChatGPT via pi): ALL models (gpt-4o, gpt-5.5, o3, etc.) have vision
+  { providerId: "openai-codex", modelGlob: "*", supportsVision: true, priority: 0 },
   { providerId: "anthropic", modelGlob: "*", supportsVision: true, priority: 0 },
   { providerId: "google", modelGlob: "*", supportsVision: true, priority: 0 },
   { providerId: "amazon", modelGlob: "*", supportsVision: true, priority: 0 }, // Nova series
   { providerId: "mistral", modelGlob: "*", supportsVision: true, priority: 0 }, // Pixtral, Mistral Large
+  // azure-openai-responses: ALL Azure OpenAI models have vision
+  { providerId: "azure-openai-responses", modelGlob: "*", supportsVision: true, priority: 0 },
 
   // ── Text-only providers ──
   // DeepSeek: V4 Flash/Pro may claim vision in models.dev but does NOT
   // work in practice (opencode issue #26103 confirmed). Remain text-only.
   { providerId: "deepseek", modelGlob: "*", supportsVision: false, priority: 1 },
-  // ZhipuAI GLM series: confirmed text-only (GLM-4.x, 5.x — no image modality)
-  { providerId: "zhipuai", modelGlob: "*", supportsVision: false, priority: 1 },
+  // Z.ai (ZhipuAI) GLM series: confirmed text-only (GLM-4.x, 5.x — no image modality)
+  // Note: GLM-5V-Turbo is an exception with vision (handled via specific override below).
+  { providerId: "zai", modelGlob: "*", supportsVision: false, priority: 1 },
   // Kimi: text-only
   { providerId: "kimi", modelGlob: "*", supportsVision: false, priority: 1 },
   // Qwen (non-VL): text-only. Qwen-VL is separate.
   { providerId: "qwen", modelGlob: "qwen*-vl*", supportsVision: true, priority: 0 }, // VL = vision
   { providerId: "qwen", modelGlob: "*", supportsVision: false, priority: 1 }, // non-VL = text-only
 
-  // ── Cursor / opencode (pi running inside Cursor via cursor-sdk) ──
-  // When pi bridges Cursor's model, provider is typically "opencode-go" or "opencode".
-  // Cursor Composer models (composer-2.5-*) all use Claude/GPT underneath → vision.
-  { providerId: "cursor", modelGlob: "*", supportsVision: true, priority: 0 },
-  { providerId: "opencode", modelGlob: "*", supportsVision: true, priority: 0 },
-  { providerId: "opencode-go", modelGlob: "*", supportsVision: true, priority: 0 },
+  // ── Proxy providers deliberately excluded ──
+  // cursor, opencode, opencode-go are PROXY providers — they can route to
+  // ANY upstream model. Capabilities depend on the underlying model, not the
+  // proxy. Users MUST set MAIN_MODEL_REF to the real model for these.
+  // Without it, lookup falls to models.dev or "unknown" → safe default (intercept).
 ];
 
 // ══════════════════════════════════════════════════════════
@@ -96,12 +105,10 @@ export const SPECIFIC_OVERRIDES: VisionCapabilityOverride[] = [
   },
   { modelId: "DeepSeek-V4-Pro", providerId: "deepseek", supportsVision: false, source: "bundled" },
 
-  // GLM series (belt-and-suspenders with provider heuristic above)
-  { modelId: "glm-5.1", providerId: "zhipuai", supportsVision: false, source: "bundled" },
-  { modelId: "glm-5.2", providerId: "zhipuai", supportsVision: false, source: "bundled" },
-  // Also match via "glm" alias (before user-prompt alias fix)
-  { modelId: "glm-5.1", providerId: "glm", supportsVision: false, source: "bundled" },
-  { modelId: "glm-5.2", providerId: "glm", supportsVision: false, source: "bundled" },
+  // Z.ai (ZhipuAI) GLM series: most are text-only, but GLM-5V-Turbo has vision
+  { modelId: "glm-5.1", providerId: "zai", supportsVision: false, source: "bundled" },
+  { modelId: "glm-5.2", providerId: "zai", supportsVision: false, source: "bundled" },
+  { modelId: "glm-5v-turbo", providerId: "zai", supportsVision: true, source: "bundled" },
 ];
 
 // ══════════════════════════════════════════════════════════
