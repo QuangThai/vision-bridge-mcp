@@ -48,6 +48,9 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     "For code: preserve exact indentation, syntax highlighting language, and bracket matching.",
     "For partially obscured or blurry text: note the uncertainty rather than guessing.",
     "Disambiguate similar-looking characters (1/l/I, 0/O, 5/S) using context.",
+    "The image may contain Vietnamese, Chinese, Japanese or other non-English text.",
+    "For Vietnamese: accurately detect diacritics (à, á, ả, ã, ạ, ă, â, đ, ê, ô, ơ, ư).",
+    "For Chinese/Japanese: detect CJK characters and kana accurately — do not substitute missing radicals.",
   ];
 
   if (input.mode === "diagram") {

@@ -72,6 +72,21 @@ function buildOcrPrompt(input: OcrImageInput): string {
     );
   }
 
+  // Multi-language support
+  lines.push("The image may contain Vietnamese, Chinese, Japanese or other non-English text.");
+  lines.push(
+    "For Vietnamese: accurately detect diacritics (à, á, ả, ã, ạ, ă, â, đ, ê, ô, ơ, ư) — they change word meaning.",
+  );
+  lines.push(
+    "For Chinese/Japanese: detect CJK characters (kanji/hanzi), kana (hiragana/katakana), and mixed-script text accurately.",
+  );
+  lines.push(
+    "Do not substitute missing diacritics or CJK radicals — transcribe exactly what you see.",
+  );
+  lines.push(
+    "For code screenshots with non-English comments: preserve the original comment language exactly.",
+  );
+
   if (input.extract_code) {
     lines.push("Prioritize accurate extraction of code snippets and monospace text.");
     lines.push("Detect and note the programming language based on syntax patterns and keywords.");
