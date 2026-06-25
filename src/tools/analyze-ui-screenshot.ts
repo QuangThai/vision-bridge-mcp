@@ -125,13 +125,14 @@ export async function analyzeUiScreenshot(
   // Auto-detected detail level for UI screenshots
   // Map "medium" → "high" — provider API doesn't support medium natively.
   const detectedLevel = image.detailLevel ?? undefined;
-  const providerDetailLevel =
-    detectedLevel === "medium" ? "high" : detectedLevel;
+  const providerDetailLevel = detectedLevel === "medium" ? "high" : detectedLevel;
 
   const raw = await provider.analyzeImage({
     image: toEncodedImage(image),
     userPrompt: buildUiScreenshotPrompt(parsedInput),
-    detailLevel: providerDetailLevel as import("../providers/types.js").ImageDetailLevel | undefined,
+    detailLevel: providerDetailLevel as
+      | import("../providers/types.js").ImageDetailLevel
+      | undefined,
   });
 
   const parsedJson = extractJsonFromText(raw.text);

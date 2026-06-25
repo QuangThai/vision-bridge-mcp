@@ -13,14 +13,15 @@ async function createSolidPng(
   b = 240,
 ): Promise<Buffer> {
   const sharp = await import("sharp");
-  return sharp.default({
-    create: {
-      width,
-      height,
-      channels: 3,
-      background: { r, g, b },
-    },
-  })
+  return sharp
+    .default({
+      create: {
+        width,
+        height,
+        channels: 3,
+        background: { r, g, b },
+      },
+    })
     .png()
     .toBuffer();
 }
@@ -35,9 +36,10 @@ async function createNoisePng(width: number, height: number): Promise<Buffer> {
   for (let i = 0; i < pixels.length; i++) {
     pixels[i] = Math.floor(Math.random() * 256);
   }
-  return sharp.default(pixels, {
-    raw: { width, height, channels: 3 },
-  })
+  return sharp
+    .default(pixels, {
+      raw: { width, height, channels: 3 },
+    })
     .png()
     .toBuffer();
 }
@@ -58,9 +60,7 @@ async function createUiScreenshot(width: number, height: number): Promise<Buffer
       <rect x="250" y="440" width="${width - 270}" height="150" fill="#ffffff" rx="8"/>
     </svg>`;
 
-  return sharp.default(Buffer.from(svg))
-    .png()
-    .toBuffer();
+  return sharp.default(Buffer.from(svg)).png().toBuffer();
 }
 
 describe("autoDetectDetailLevel", () => {
@@ -135,14 +135,17 @@ describe("autoDetectDetailLevel", () => {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const idx = (y * width + x) * 3;
-        pixels[idx] = Math.floor((x / width) * 255);     // R gradient
+        pixels[idx] = Math.floor((x / width) * 255); // R gradient
         pixels[idx + 1] = Math.floor((y / height) * 255); // G gradient
-        pixels[idx + 2] = 128;                             // B constant
+        pixels[idx + 2] = 128; // B constant
       }
     }
-    const buf = await sharp.default(pixels, {
-      raw: { width, height, channels: 3 },
-    }).png().toBuffer();
+    const buf = await sharp
+      .default(pixels, {
+        raw: { width, height, channels: 3 },
+      })
+      .png()
+      .toBuffer();
     const result = await autoDetectDetailLevel(buf, "gradient.png");
     // Smooth gradient has many unique colors → high
     expect(result).toBe("high");
@@ -151,9 +154,12 @@ describe("autoDetectDetailLevel", () => {
   it("returns 'low' for unnamed images with very few unique colors", async () => {
     // Pure solid color image (1 unique color)
     const sharp = await import("sharp");
-    const buf = await sharp.default({
-      create: { width: 1920, height: 1080, channels: 3, background: { r: 200, g: 200, b: 200 } },
-    }).png().toBuffer();
+    const buf = await sharp
+      .default({
+        create: { width: 1920, height: 1080, channels: 3, background: { r: 200, g: 200, b: 200 } },
+      })
+      .png()
+      .toBuffer();
     const result = await autoDetectDetailLevel(buf);
     expect(result).toBe("low");
   });
@@ -191,14 +197,7 @@ describe("preprocessImage with adaptive mode", () => {
 
   it("preprocessImage respects explicit detailLevel over adaptive mode", async () => {
     const ui = await createUiScreenshot(1920, 1080);
-    const result = await preprocessImage(
-      ui,
-      "image/png",
-      20,
-      undefined,
-      "high",
-      true,
-    );
+    const result = await preprocessImage(ui, "image/png", 20, undefined, "high", true);
     // When explicit detail is provided, adaptive does NOT override,
     // so detailLevel is undefined (tool layer uses mapDetailLevel instead).
     expect(result.detailLevel).toBeUndefined();
@@ -208,14 +207,7 @@ describe("preprocessImage with adaptive mode", () => {
 
   it("preprocessImage does not run adaptive when adaptive is falsy", async () => {
     const ui = await createUiScreenshot(1920, 1080);
-    const result = await preprocessImage(
-      ui,
-      "image/png",
-      20,
-      undefined,
-      undefined,
-      false,
-    );
+    const result = await preprocessImage(ui, "image/png", 20, undefined, undefined, false);
     // No detail level was explicitly set and adaptive is off
     expect(result.detailLevel).toBeUndefined();
   });

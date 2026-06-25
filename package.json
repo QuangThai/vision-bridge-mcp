@@ -1,6 +1,6 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "license": "MIT",
@@ -46,6 +46,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "sharp": "^0.33.5",
+    "smol-toml": "^1.7.0",
     "zod": "^3.24.1"
   }
 }

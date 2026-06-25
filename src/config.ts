@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  type ConfigFile,
+  configFileToEnv,
+  getConfigFilePath,
+  loadConfigFileSync,
+} from "./config-file.js";
 
 const visionProviderSchema = z.enum(["openai-compatible", "gemini"]);
 
@@ -187,8 +193,51 @@ function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
   };
 }
 
+/**
+ * Merge config file values into raw env map.
+ * Env vars always take priority over config file values.
+ */
+function mergeConfigFile(
+  raw: Record<string, string | undefined>,
+  configFile: ConfigFile | null,
+): Record<string, string | undefined> {
+  if (!configFile) return raw;
+
+  const fromConfig = configFileToEnv(configFile);
+  const merged: Record<string, string | undefined> = { ...raw };
+
+  // Config file fills in gaps that env vars didn't set
+  for (const [key, value] of Object.entries(fromConfig)) {
+    if (merged[key] === undefined) {
+      merged[key] = value;
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * Load and return the resolved config file path (or null).
+ * This is useful for the `config path` CLI command to show which file is active.
+ */
+export function getActiveConfigPath(): string | null {
+  return getConfigFilePath();
+}
+
+function tryLoadConfigFile(): ConfigFile | null {
+  try {
+    return loadConfigFileSync();
+  } catch (err) {
+    console.warn(`[atlas-vision] Warning: ignoring invalid config file (${err instanceof Error ? err.message : String(err)})`);
+    return null;
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AtlasConfig {
-  const result = rawEnvSchema.safeParse(toRawEnv(env));
+  const configFile = tryLoadConfigFile();
+  const mergedEnv = mergeConfigFile(toRawEnv(env), configFile);
+
+  const result = rawEnvSchema.safeParse(mergedEnv);
   if (!result.success) {
     const issues = formatZodIssues(result.error);
     throw new ConfigError(

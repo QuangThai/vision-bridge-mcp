@@ -8,6 +8,7 @@ import {
   parseModelRef,
   planImageIntercept,
 } from "../capabilities/index.js";
+import { getConfigFilePath } from "../config-file.js";
 import { type AtlasConfig, ConfigError, loadConfig, validateProviderConfig } from "../config.js";
 import {
   type AnalyzeImageMode,
@@ -397,12 +398,20 @@ export async function runDoctorCommand(
     suggestions.push("Install Node.js >= 20 from https://nodejs.org");
   }
 
-  // ── .env file ──────────────────────────────────────────────
+  // ── Config files ────────────────────────────────────────────
   const dotenv = checkDotenvFile();
   if (dotenv.exists) {
-    lines.push(`Config file: ${dotenv.path} (present)`);
+    lines.push(`Config file (.env): ${dotenv.path} (present)`);
   } else {
-    lines.push("Config file: .env not found (using environment variables)");
+    lines.push("Config file (.env): not found (using environment variables)");
+  }
+
+  const cfgPath = getConfigFilePath();
+  if (cfgPath) {
+    lines.push(`Config file (toml/json): ${cfgPath} (present)`);
+    lines.push("  Tip: Run 'atlas-vision config' to see all resolved values");
+  } else {
+    lines.push("Config file (toml/json): not found (use 'atlas-vision config init' to create)");
   }
 
   // ── Environment variables ──────────────────────────────────

@@ -62,14 +62,9 @@ function formatCost(costUsd: number): string {
   return `~ $${costUsd.toFixed(2)}`;
 }
 
-function estimateCallCost(
-  promptTokens: number,
-  completionTokens: number,
-  model: string,
-): string {
+function estimateCallCost(promptTokens: number, completionTokens: number, model: string): string {
   const pricing = ESTIMATE_PRICING[model] ?? { input: 0.15, output: 0.6 };
-  const cost =
-    (promptTokens * pricing.input + completionTokens * pricing.output) / 1_000_000;
+  const cost = (promptTokens * pricing.input + completionTokens * pricing.output) / 1_000_000;
   return formatCost(cost);
 }
 

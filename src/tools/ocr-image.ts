@@ -109,13 +109,14 @@ export async function ocrImage(
   // Use auto-detected detail level if available (adaptive mode)
   // Map "medium" → "high" — provider API doesn't support medium natively.
   const detectedLevel = image.detailLevel ?? "high";
-  const providerDetailLevel =
-    detectedLevel === "medium" ? "high" : detectedLevel;
+  const providerDetailLevel = detectedLevel === "medium" ? "high" : detectedLevel;
 
   const raw = await provider.analyzeImage({
     image: toEncodedImage(image),
     userPrompt: buildOcrPrompt(parsedInput),
-    detailLevel: providerDetailLevel as import("../providers/types.js").ImageDetailLevel | undefined,
+    detailLevel: providerDetailLevel as
+      | import("../providers/types.js").ImageDetailLevel
+      | undefined,
   });
 
   const parsedJson = extractJsonFromText(raw.text);

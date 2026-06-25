@@ -95,7 +95,7 @@ export class CacheStore {
   private async _evictIfNeeded(): Promise<void> {
     if (this.maxEntries <= 0 && this.maxSizeBytes <= 0) return;
 
-    let files: { name: string; size: number; mtime: Date }[] = [];
+    const files: { name: string; size: number; mtime: Date }[] = [];
     try {
       const entries = await readdir(this.dir).catch(() => [] as string[]);
       for (const name of entries) {
@@ -116,8 +116,12 @@ export class CacheStore {
     const totalCount = files.length;
 
     // Check if we're over any limit
-    if (this.maxEntries > 0 && totalCount <= this.maxEntries &&
-        this.maxSizeBytes > 0 && totalSize <= this.maxSizeBytes) {
+    if (
+      this.maxEntries > 0 &&
+      totalCount <= this.maxEntries &&
+      this.maxSizeBytes > 0 &&
+      totalSize <= this.maxSizeBytes
+    ) {
       return;
     }
     if (this.maxEntries <= 0 && (this.maxSizeBytes <= 0 || totalSize <= this.maxSizeBytes)) {
@@ -139,7 +143,10 @@ export class CacheStore {
       sizeToFree = totalSize - targetSize;
     }
 
-    const toFree = Math.max(countToFree, Math.ceil(sizeToFree / (totalSize / Math.max(totalCount, 1))));
+    const toFree = Math.max(
+      countToFree,
+      Math.ceil(sizeToFree / (totalSize / Math.max(totalCount, 1))),
+    );
 
     // Keep a margin — delete oldest 10% + extra if still over
     const deleteCount = Math.min(

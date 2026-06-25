@@ -158,13 +158,14 @@ export async function analyzeImage(
   // We pre-resize to 1024px before sending, so the provider sees a smaller image
   // and the token cost is lower (fewer 512px tiles).
   const detectedLevel = image.detailLevel ?? mapDetailLevel(parsedInput.detail_level);
-  const providerDetailLevel =
-    detectedLevel === "medium" ? "high" : detectedLevel;
+  const providerDetailLevel = detectedLevel === "medium" ? "high" : detectedLevel;
 
   const raw = await provider.analyzeImage({
     image: toEncodedImage(image),
     userPrompt: buildAnalyzePrompt(parsedInput),
-    detailLevel: providerDetailLevel as import("../providers/types.js").ImageDetailLevel | undefined,
+    detailLevel: providerDetailLevel as
+      | import("../providers/types.js").ImageDetailLevel
+      | undefined,
   });
 
   const parsedJson = extractJsonFromText(raw.text);

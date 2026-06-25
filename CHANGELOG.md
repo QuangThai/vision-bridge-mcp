@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.7.0 — 2026-06-25
+
+### Added
+
+- **Config file support** — `atlas-vision.toml` / `atlas-vision.json` with layered search:
+  `ATLAS_VISION_CONFIG` env → `./atlas-vision.toml` → `~/.config/atlas-vision/config.toml`
+- **`atlas-vision config` CLI** — `config show`, `config path`, `config init` commands
+- **Config file warnings** — warns on malformed files and unknown sections (typo detection)
+
+### Changed
+
+- **`config.ts`** — `loadConfig()` auto-merges config file values as env var fallbacks
+  (env vars always take priority over config file)
+- **`doctor` command** — shows both `.env` and config file status
+
+### Fixed
+
+- **Config file silent failure** — malformed config file now logs a warning instead of
+  silently falling through to defaults
+- **Preprocess param reassign** — `preprocessImage` no longer reassigns `detailLevel`
+  parameter (lint fix). Uses `effectiveDetail` local variable for auto-detected level
+
 ## 0.6.0 — 2026-06-25
 
 ### Added

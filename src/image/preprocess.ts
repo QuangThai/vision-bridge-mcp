@@ -21,7 +21,7 @@ const DETAIL_TARGET_SHORT_SIDE: Record<string, number> = {
 // Unique color ratio thresholds for auto-detection.
 // Coding screenshots (code, terminal, IDE) typically have many syntax-highlighted
 // colors but still need at least medium detail to render small text readable.
-const RATIO_LOW = 0.15;   // < 15% → simple UI (safe for 512px)
+const RATIO_LOW = 0.15; // < 15% → simple UI (safe for 512px)
 const RATIO_MEDIUM = 0.4; // 15-40% → coding screenshot (1024px for text readability)
 // > 40% → photo/complex diagram (2048px)
 
@@ -65,7 +65,9 @@ export async function autoDetectDetailLevel(
     }
   }
 
-  const metadata = await sharp(buffer).metadata().catch(() => null);
+  const metadata = await sharp(buffer)
+    .metadata()
+    .catch(() => null);
   if (!metadata) return "high"; // safe default
 
   const width = metadata.width ?? 0;
@@ -89,7 +91,9 @@ export async function autoDetectDetailLevel(
   }
 
   // 3. Variation analysis via sharp stats
-  const stats = await sharp(buffer).stats().catch(() => null);
+  const stats = await sharp(buffer)
+    .stats()
+    .catch(() => null);
   if (stats) {
     const c0 = stats.channels[0]?.stdev ?? 0;
     const c1 = stats.channels[1]?.stdev ?? 0;
@@ -219,11 +223,14 @@ export async function preprocessImage(
   // auto-detected vs user-provided values and apply proper provider mapping).
   let detected: string | undefined;
   if (adaptive && !detailLevel) {
-    detailLevel = await autoDetectDetailLevel(buffer, filePath);
-    detected = detailLevel;
+    detected = await autoDetectDetailLevel(buffer, filePath);
   }
 
-  if (buffer.length <= maxBytes && !detailLevel) {
+  // Use auto-detected level (if any) for resize decisions; the original
+  // detailLevel param is left untouched so the tool layer can apply proper mapping.
+  const effectiveDetail = detected ?? detailLevel;
+
+  if (buffer.length <= maxBytes && !effectiveDetail) {
     return { buffer, mimeType, resized: false, detailLevel: detected };
   }
 
@@ -242,8 +249,9 @@ export async function preprocessImage(
   const shortSide = Math.min(width, height);
 
   // Determine target short side from detail level
-  const targetShortSide = detailLevel
-    ? (DETAIL_TARGET_SHORT_SIDE[detailLevel] ?? INITIAL_MAX_DIMENSION)
+  // Prefers auto-detected level (detected) for resize, falls back to user-supplied detailLevel
+  const targetShortSide = effectiveDetail
+    ? (DETAIL_TARGET_SHORT_SIDE[effectiveDetail] ?? INITIAL_MAX_DIMENSION)
     : INITIAL_MAX_DIMENSION;
 
   let current = buffer;
