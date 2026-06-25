@@ -172,7 +172,7 @@ export class OpenAIResponsesProvider implements VisionProvider {
           },
         ],
         temperature: 0,
-        max_output_tokens: 10,
+        max_output_tokens: 20,
       };
 
       const response = await this.rawRequest("/responses", {
