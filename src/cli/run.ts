@@ -11,6 +11,7 @@ import {
   runShouldInterceptCommand,
 } from "./commands.js";
 import { runCostsCommand } from "./costs-commands.js";
+import { runEstimateCommand } from "./estimate-command.js";
 import { runHookCaptureImageCommand, runHookUserPromptCommand } from "./hook-commands.js";
 import { runInstallHooksCommand } from "./install-hooks-commands.js";
 
@@ -33,6 +34,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
     console.log("  eval     Run golden fixture evaluation against the provider");
     console.log("  install-hooks  Install atlas hooks for a client (cursor|claude|codex|droid)");
     console.log("  costs    Show vision API cost summary (--today, --session, --range <days>)");
+    console.log("  estimate Estimate vision API cost for an image");
     console.log("  cache    Manage vision response cache (stats, clear)");
     console.log("  hook     Agent hook helpers (user-prompt, capture-image)");
     console.log("  serve    Start MCP server over stdio");
@@ -96,6 +98,10 @@ export function runCli(argv: string[] = process.argv.slice(2)): number | Promise
 
   if (command === "costs") {
     return runCostsCommand(rest);
+  }
+
+  if (command === "estimate") {
+    return runEstimateCommand(rest);
   }
 
   if (command === "cache") {

@@ -111,6 +111,7 @@ export async function compareImages(
     maxImageMb: dependencies.config.vision.maxImageMb,
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,
+    adaptiveDetail: dependencies.config.atlas.adaptiveDetail,
   };
 
   const [before, after] = await Promise.all([

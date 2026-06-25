@@ -25,6 +25,8 @@ export interface RawVisionResult {
   provider: string;
   model: string;
   raw: unknown;
+  /** Whether this result was served from cache. */
+  _cached?: boolean;
 }
 
 export interface ProviderHealth {

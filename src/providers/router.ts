@@ -15,7 +15,11 @@ let sharedCostTracker: CostTracker | null = null;
 
 function getCacheStore(config: AtlasConfig): CacheStore {
   if (!sharedCacheStore) {
-    sharedCacheStore = new CacheStore({ ttlHours: config.cache.ttlHours });
+    sharedCacheStore = new CacheStore({
+      ttlHours: config.cache.ttlHours,
+      maxEntries: config.cache.maxEntries,
+      maxSizeMb: config.cache.maxSizeMb,
+    });
   }
   return sharedCacheStore;
 }

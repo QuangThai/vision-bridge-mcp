@@ -5,7 +5,7 @@ import { PACKAGE_NAME, VERSION } from "../src/index.js";
 describe("package skeleton", () => {
   it("exports package metadata", () => {
     expect(PACKAGE_NAME).toBe("atlas-vision-mcp");
-    expect(VERSION).toBe("0.5.0");
+    expect(VERSION).toBe("0.6.0");
   });
 
   it("prints help without exiting", () => {

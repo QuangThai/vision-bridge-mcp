@@ -7,7 +7,7 @@ export {
   SUPPORTED_MIME_TYPES,
   type SupportedMimeType,
 } from "./mime.js";
-export { preprocessImage, readImageMetadata, type PreprocessResult } from "./preprocess.js";
+export { autoDetectDetailLevel, preprocessImage, readImageMetadata, type PreprocessResult } from "./preprocess.js";
 export {
   type LoadedImage,
   readImageFromPath,

@@ -146,16 +146,25 @@ export async function analyzeImage(
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,
     detailLevel: parsedInput.detail_level,
+    adaptiveDetail: dependencies.config.atlas.adaptiveDetail,
   });
 
   const provider =
     dependencies.provider ??
     createVisionProvider(dependencies.config, { fetch: dependencies.fetch });
 
+  // Use auto-detected detail level if available (adaptive mode)
+  // Map "medium" → "high" since the provider API doesn't support medium natively.
+  // We pre-resize to 1024px before sending, so the provider sees a smaller image
+  // and the token cost is lower (fewer 512px tiles).
+  const detectedLevel = image.detailLevel ?? mapDetailLevel(parsedInput.detail_level);
+  const providerDetailLevel =
+    detectedLevel === "medium" ? "high" : detectedLevel;
+
   const raw = await provider.analyzeImage({
     image: toEncodedImage(image),
     userPrompt: buildAnalyzePrompt(parsedInput),
-    detailLevel: mapDetailLevel(parsedInput.detail_level),
+    detailLevel: providerDetailLevel as import("../providers/types.js").ImageDetailLevel | undefined,
   });
 
   const parsedJson = extractJsonFromText(raw.text);
@@ -167,8 +176,11 @@ export async function analyzeImage(
   const validated = analyzeImageOutputSchema.parse(secured);
   const markdown = renderAnalyzeImageMarkdown(validated);
 
+  // Annotate cache hit in the markdown summary
+  const cacheNote = raw._cached ? "> ⚡ _Result from cache — saved ~85 vision tokens._\n\n" : "";
+
   return {
-    markdown,
+    markdown: cacheNote + markdown,
     structured: validated,
     image,
   };

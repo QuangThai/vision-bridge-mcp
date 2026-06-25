@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.6.0 — 2026-06-25
+
+### Added
+
+- **Adaptive detail level** — `autoDetectDetailLevel()` analyzes image content (unique color ratio,
+  color variation, file-path heuristics) and auto-selects between `low` (85 tokens, 512px),
+  `medium` (1024px, ~500-1700 tokens), and `high` (2048px, full detail).
+- **Medium detail level** — new 1024px level between low and high. Coding screenshots (code,
+  terminal, error messages) use medium — text stays readable at ~30-60% cost savings vs high.
+- **`ATLAS_ADAPTIVE_DETAIL`** — env var (default `true`) controlling automatic detail detection
+- **Cache LRU eviction** — `CacheStore` limits: `maxEntries` (500) + `maxSizeMb` (100 MB).
+  Oldest entries auto-deleted when limits exceeded. Configurable via `ATLAS_CACHE_MAX_ENTRIES`
+  and `ATLAS_CACHE_MAX_SIZE_MB`.
+- **Cache savings reporting** — `CachedVisionProvider` tracks hit/miss counts; cached results
+  show `⚡ Result from cache` in markdown output
+- **`atlas-vision estimate <image>`** — CLI command to preview token cost per detail level
+  and estimated USD cost across 8 popular models
+- **`_cached` field on `RawVisionResult`** — typed boolean indicating cache origin
+
+### Fixed
+
+- **`preprocessImage` detail level leak** — user-facing detail level values ("standard") no longer
+  passed directly to provider API. Auto-detected levels correctly return `undefined` when
+  adaptive mode doesn't run, so tool layer uses `mapDetailLevel()` mapping.
+- **Cache test strengthened** — LRU eviction test now asserts which entries are evicted
+  (`expect(k2).toBeNull()`)
+
+### Changed
+
+- **`autoDetectDetailLevel`** returns `"low" | "medium" | "high"` instead of `"low" | "high"`
+- **`PreprocessResult`** gains `detailLevel?: string` field
+- **`LoadedImage`** gains `detailLevel?: string` field
+- **`CacheStoreOptions`** gains `maxEntries` and `maxSizeMb`
+- **`CacheStore.stats()`** now includes `maxEntries` and `maxSizeBytes`
+- **Tools** (`analyzeImage`, `ocrImage`, `analyzeUiScreenshot`) map `"medium"` → `"high"` for
+  provider API (pre-resized 1024px image tiles at 512px internally)
+
 ## 0.4.0 — 2026-06-25
 
 ### Added

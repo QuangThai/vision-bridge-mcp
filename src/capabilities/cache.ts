@@ -6,6 +6,7 @@ import {
   readdir,
   stat,
   unlink,
+  utimes,
   writeFile,
 } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -49,6 +50,10 @@ export interface CacheStoreOptions {
   dir?: string;
   /** TTL in hours (default 24) */
   ttlHours?: number;
+  /** Max cache entries before LRU eviction (0 = unlimited, default 500). */
+  maxEntries?: number;
+  /** Max cache size in MB before LRU eviction (0 = unlimited, default 100). */
+  maxSizeMb?: number;
 }
 
 export class CacheStore {
@@ -59,10 +64,96 @@ export class CacheStore {
     return this.dir;
   }
   private readonly ttlHours: number;
+  private readonly maxEntries: number;
+  private readonly maxSizeBytes: number;
 
   constructor(options: CacheStoreOptions = {}) {
     this.dir = options.dir ?? cacheDir();
     this.ttlHours = options.ttlHours ?? 24;
+    this.maxEntries = options.maxEntries ?? 500;
+    this.maxSizeBytes = (options.maxSizeMb ?? 100) * 1024 * 1024;
+  }
+
+  // ---- LRU eviction -------------------------------------------------------
+
+  /**
+   * Touch a cache entry's mtime to mark it as recently used.
+   */
+  private async _touchFile(filePath: string): Promise<void> {
+    const now = new Date();
+    try {
+      await utimes(filePath, now, now);
+    } catch {
+      // non-fatal — mtime may not be writable on all filesystems
+    }
+  }
+
+  /**
+   * Evict the oldest entries until both maxEntries and maxSizeBytes limits
+   * are satisfied. Uses file mtime (last access) as the LRU signal.
+   */
+  private async _evictIfNeeded(): Promise<void> {
+    if (this.maxEntries <= 0 && this.maxSizeBytes <= 0) return;
+
+    let files: { name: string; size: number; mtime: Date }[] = [];
+    try {
+      const entries = await readdir(this.dir).catch(() => [] as string[]);
+      for (const name of entries) {
+        if (!name.endsWith(".json")) continue;
+        const filePath = join(this.dir, name);
+        try {
+          const s = await stat(filePath);
+          files.push({ name, size: s.size, mtime: s.mtime ?? new Date(0) });
+        } catch {
+          // skip inaccessible
+        }
+      }
+    } catch {
+      return;
+    }
+
+    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+    const totalCount = files.length;
+
+    // Check if we're over any limit
+    if (this.maxEntries > 0 && totalCount <= this.maxEntries &&
+        this.maxSizeBytes > 0 && totalSize <= this.maxSizeBytes) {
+      return;
+    }
+    if (this.maxEntries <= 0 && (this.maxSizeBytes <= 0 || totalSize <= this.maxSizeBytes)) {
+      return;
+    }
+
+    // Sort by mtime ascending (oldest first)
+    files.sort((a, b) => a.mtime.getTime() - b.mtime.getTime());
+
+    let sizeToFree = 0;
+    let countToFree = 0;
+    const targetEntries = this.maxEntries > 0 ? this.maxEntries : totalCount;
+    const targetSize = this.maxSizeBytes > 0 ? this.maxSizeBytes : totalSize;
+
+    if (totalCount > targetEntries) {
+      countToFree = totalCount - targetEntries;
+    }
+    if (totalSize > targetSize) {
+      sizeToFree = totalSize - targetSize;
+    }
+
+    const toFree = Math.max(countToFree, Math.ceil(sizeToFree / (totalSize / Math.max(totalCount, 1))));
+
+    // Keep a margin — delete oldest 10% + extra if still over
+    const deleteCount = Math.min(
+      files.length,
+      Math.max(toFree + Math.max(1, Math.floor(files.length * 0.1)), countToFree),
+    );
+
+    for (let i = 0; i < deleteCount; i++) {
+      try {
+        await unlink(join(this.dir, files[i].name));
+      } catch {
+        // skip
+      }
+    }
   }
 
   // ---- key helpers ---------------------------------------------------------
@@ -100,6 +191,9 @@ export class CacheStore {
         return null;
       }
 
+      // Touch mtime for LRU tracking
+      await this._touchFile(filePath);
+
       return entry.result;
     } catch {
       return null;
@@ -126,6 +220,9 @@ export class CacheStore {
       // fallback: direct write if rename fails (cross-device edge case)
       await writeFile(filePath, JSON.stringify(entry), "utf-8");
     }
+
+    // Evict LRU entries if over limit
+    await this._evictIfNeeded().catch(() => {});
   }
 
   // ---- stats / cleanup -----------------------------------------------------
@@ -134,6 +231,8 @@ export class CacheStore {
     totalEntries: number;
     totalSizeBytes: number;
     oldestEntry: string | null;
+    maxEntries: number;
+    maxSizeBytes: number;
   }> {
     let totalEntries = 0;
     let totalSizeBytes = 0;
@@ -161,6 +260,8 @@ export class CacheStore {
       totalEntries,
       totalSizeBytes,
       oldestEntry: oldest?.toISOString() ?? null,
+      maxEntries: this.maxEntries,
+      maxSizeBytes: this.maxSizeBytes,
     };
   }
 
@@ -203,6 +304,17 @@ export interface CachedVisionProviderOptions {
  *
  * `healthCheck` is never cached (always live).
  */
+export interface CacheStats {
+  hitCount: number;
+  missCount: number;
+}
+
+/**
+ * Rough average tokens saved per cache hit (low-detail image = 85 tokens).
+ * Actual savings vary; this provides a minimum estimate.
+ */
+const ESTIMATED_TOKENS_PER_HIT = 85;
+
 export class CachedVisionProvider implements VisionProvider {
   readonly name: string;
 
@@ -210,6 +322,8 @@ export class CachedVisionProvider implements VisionProvider {
   private readonly store: CacheStore;
   private readonly model: string;
   private readonly disabled: boolean;
+  private hitCount = 0;
+  private missCount = 0;
 
   constructor(inner: VisionProvider, options: CachedVisionProviderOptions) {
     this.inner = inner;
@@ -217,6 +331,19 @@ export class CachedVisionProvider implements VisionProvider {
     this.store = options.store;
     this.model = options.model;
     this.disabled = options.disabled ?? false;
+  }
+
+  /**
+   * Return current cache hit/miss stats and estimated cost savings.
+   */
+  cacheStats(): CacheStats & {
+    estimatedTokensSaved: number;
+  } {
+    return {
+      hitCount: this.hitCount,
+      missCount: this.missCount,
+      estimatedTokensSaved: this.hitCount * ESTIMATED_TOKENS_PER_HIT,
+    };
   }
 
   async analyzeImage(
@@ -235,9 +362,11 @@ export class CachedVisionProvider implements VisionProvider {
 
     const cached = await this.store.get(key);
     if (cached) {
-      return cached;
+      this.hitCount++;
+      return { ...cached, _cached: true };
     }
 
+    this.missCount++;
     const result = await this.inner.analyzeImage(input);
     await this.store.set(key, result).catch(() => {
       // cache write failure is non-fatal
@@ -263,9 +392,11 @@ export class CachedVisionProvider implements VisionProvider {
 
     const cached = await this.store.get(key);
     if (cached) {
-      return cached;
+      this.hitCount++;
+      return { ...cached, _cached: true };
     }
 
+    this.missCount++;
     const result = await this.inner.compareImages(input);
     await this.store.set(key, result).catch(() => {});
     return result;

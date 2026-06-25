@@ -6,7 +6,12 @@ export async function runCacheStatsCommand(): Promise<number> {
 
   console.log("Cache location:", store.directory);
   console.log("Total entries:", stats.totalEntries);
+  console.log("Max entries:", stats.maxEntries > 0 ? String(stats.maxEntries) : "unlimited");
   console.log("Total size:", formatBytes(stats.totalSizeBytes));
+  console.log("Max size:", stats.maxSizeBytes > 0 ? formatBytes(stats.maxSizeBytes) : "unlimited");
+  if (stats.maxSizeBytes > 0) {
+    console.log("Usage:", `${((stats.totalSizeBytes / stats.maxSizeBytes) * 100).toFixed(1)}%`);
+  }
   console.log("Oldest entry:", stats.oldestEntry ?? "N/A");
 
   return 0;

@@ -99,16 +99,23 @@ export async function ocrImage(
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,
     detailLevel: "high",
+    adaptiveDetail: dependencies.config.atlas.adaptiveDetail,
   });
 
   const provider =
     dependencies.provider ??
     createVisionProvider(dependencies.config, { fetch: dependencies.fetch });
 
+  // Use auto-detected detail level if available (adaptive mode)
+  // Map "medium" → "high" — provider API doesn't support medium natively.
+  const detectedLevel = image.detailLevel ?? "high";
+  const providerDetailLevel =
+    detectedLevel === "medium" ? "high" : detectedLevel;
+
   const raw = await provider.analyzeImage({
     image: toEncodedImage(image),
     userPrompt: buildOcrPrompt(parsedInput),
-    detailLevel: "high",
+    detailLevel: providerDetailLevel as import("../providers/types.js").ImageDetailLevel | undefined,
   });
 
   const parsedJson = extractJsonFromText(raw.text);

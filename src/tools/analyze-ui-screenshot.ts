@@ -115,15 +115,23 @@ export async function analyzeUiScreenshot(
     maxImageMb: dependencies.config.vision.maxImageMb,
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,
+    adaptiveDetail: dependencies.config.atlas.adaptiveDetail,
   });
 
   const provider =
     dependencies.provider ??
     createVisionProvider(dependencies.config, { fetch: dependencies.fetch });
 
+  // Auto-detected detail level for UI screenshots
+  // Map "medium" → "high" — provider API doesn't support medium natively.
+  const detectedLevel = image.detailLevel ?? undefined;
+  const providerDetailLevel =
+    detectedLevel === "medium" ? "high" : detectedLevel;
+
   const raw = await provider.analyzeImage({
     image: toEncodedImage(image),
     userPrompt: buildUiScreenshotPrompt(parsedInput),
+    detailLevel: providerDetailLevel as import("../providers/types.js").ImageDetailLevel | undefined,
   });
 
   const parsedJson = extractJsonFromText(raw.text);

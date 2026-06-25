@@ -15,6 +15,8 @@ export interface LoadedImage {
   width?: number;
   height?: number;
   sourceUrl?: string;
+  /** Auto-detected optimal detail level for the provider API call. */
+  detailLevel?: string;
 }
 
 export interface ReadImageOptions {
@@ -22,6 +24,8 @@ export interface ReadImageOptions {
   cwd?: string;
   allowedDirs?: string[];
   detailLevel?: string;
+  /** Auto-detect optimal detail level when not explicitly set. */
+  adaptiveDetail?: boolean;
 }
 
 async function assertReadableFile(absolutePath: string): Promise<void> {
@@ -165,6 +169,7 @@ export async function readImageFromPath(
       options.maxImageMb,
       imagePath,
       options.detailLevel,
+      options.adaptiveDetail,
     );
     const metadata = await readImageMetadata(processed.buffer, imagePath);
 
@@ -178,6 +183,7 @@ export async function readImageFromPath(
       width: metadata.width,
       height: metadata.height,
       sourceUrl: imagePath,
+      detailLevel: processed.detailLevel,
     };
   }
 
@@ -216,6 +222,7 @@ export async function readImageFromPath(
     options.maxImageMb,
     absolutePath,
     options.detailLevel,
+    options.adaptiveDetail,
   );
   const metadata = await readImageMetadata(processed.buffer, absolutePath);
 
@@ -228,6 +235,7 @@ export async function readImageFromPath(
     resized: processed.resized,
     width: metadata.width,
     height: metadata.height,
+    detailLevel: processed.detailLevel,
   };
 }
 

@@ -123,6 +123,47 @@ describe("CacheStore", () => {
     const result = await store.get(key);
     expect(result).toBeNull();
   });
+
+  it("evicts oldest entries when maxEntries is exceeded", async () => {
+    const limited = new CacheStore({ dir, ttlHours: 24, maxEntries: 2 });
+    await limited.set("key-a", makeResult("a"));
+    await limited.set("key-b", makeResult("b"));
+    await limited.set("key-c", makeResult("c")); // triggers eviction
+
+    const stats = await limited.stats();
+    expect(stats.totalEntries).toBeLessThanOrEqual(2);
+    expect(stats.maxEntries).toBe(2);
+  });
+
+  it("stats includes max settings", async () => {
+    const limited = new CacheStore({ dir, ttlHours: 24, maxEntries: 100, maxSizeMb: 50 });
+    await limited.set("k1", makeResult("x"));
+
+    const stats = await limited.stats();
+    expect(stats.maxEntries).toBe(100);
+    expect(stats.maxSizeBytes).toBe(50 * 1024 * 1024);
+  });
+
+  it("get updates mtime for LRU (recently used entries survive eviction)", async () => {
+    const limited = new CacheStore({ dir, ttlHours: 24, maxEntries: 3 });
+    await limited.set("k1", makeResult("1"));
+    await limited.set("k2", makeResult("2"));
+    await limited.set("k3", makeResult("3"));
+
+    // Access k1 to make it recently used
+    const cached = await limited.get("k1");
+    expect(cached?.text).toBe("1");
+
+    // Add a fourth entry — eviction should remove oldest (k2 unless mtime updated)
+    await limited.set("k4", makeResult("4"));
+
+    // k1 was accessed (most recent), k4 just written (most recent)
+    // k2 and k3 are oldest → should be evicted
+    const stillThere = await limited.get("k1");
+    expect(stillThere?.text).toBe("1");
+    expect(await limited.get("k2")).toBeNull();
+    expect(await limited.get("k3")).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
