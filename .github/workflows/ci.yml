@@ -59,14 +59,30 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Determine provider: prefer OpenAI key, fall back to Gemini
+      - name: Configure provider
+        id: provider
+        run: |
+          if [ -n "${{ secrets.VISION_API_KEY }}" ]; then
+            echo "provider=openai" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "provider=gemini" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: E2E tests (real provider)
-        if: env.VISION_API_KEY != ''
+        if: steps.provider.outputs.provider != ''
         env:
-          VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
+          VISION_API_KEY: ${{ secrets.VISION_API_KEY || secrets.GEMINI_API_KEY }}
+          VISION_PROVIDER: ${{ steps.provider.outputs.provider == 'gemini' && 'gemini' || 'openai-compatible' }}
+          VISION_BASE_URL: ${{ steps.provider.outputs.provider == 'gemini' && 'https://generativelanguage.googleapis.com/v1beta' || 'https://api.openai.com/v1' }}
+          VISION_MODEL: ${{ steps.provider.outputs.provider == 'gemini' && 'gemini-2.0-flash' || 'gpt-4o-mini' }}
         run: pnpm test:e2e
 
       - name: Golden eval (real provider)
-        if: env.VISION_API_KEY != ''
+        if: steps.provider.outputs.provider != ''
         env:
-          VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
+          VISION_API_KEY: ${{ secrets.VISION_API_KEY || secrets.GEMINI_API_KEY }}
+          VISION_PROVIDER: ${{ steps.provider.outputs.provider == 'gemini' && 'gemini' || 'openai-compatible' }}
+          VISION_BASE_URL: ${{ steps.provider.outputs.provider == 'gemini' && 'https://generativelanguage.googleapis.com/v1beta' || 'https://api.openai.com/v1' }}
+          VISION_MODEL: ${{ steps.provider.outputs.provider == 'gemini' && 'gemini-2.0-flash' || 'gpt-4o-mini' }}
         run: pnpm test:golden
