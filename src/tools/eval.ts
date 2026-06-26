@@ -5,9 +5,20 @@ import type { VisionProvider } from "../providers/types.js";
 import { analyzeImage } from "./analyze-image.js";
 import { ocrImage } from "./ocr-image.js";
 
-/** Legacy default when neither --gate nor --threshold is set. */
+/**
+ * Threshold constants for eval gating.
+ *
+ * | Constant                    | Used when                                         |
+ * |-----------------------------|----------------------------------------------------|
+ * | LEGACY_MATCH_THRESHOLD      | Neither --gate nor --threshold is set (fallback)   |
+ * | CORE_GATE_THRESHOLD         | --gate is on (core tier, no explicit --threshold)  |
+ * | EDGE_DEFAULT_THRESHOLD      | --gate is on (edge tier, informational only)       |
+ * | CORE_ELEMENTS_GATE_THRESHOLD| --gate-elements is on (element matching)          |
+ */
+
+/** Legacy fallback when neither --gate nor --threshold is set. */
 export const LEGACY_MATCH_THRESHOLD = 0.5;
-/** Default threshold for core-tier fixtures under --gate. */
+/** Default threshold for core-tier fixtures under --gate (no explicit --threshold). */
 export const CORE_GATE_THRESHOLD = 0.8;
 /** Default threshold for edge-tier fixtures (informational under --gate). */
 export const EDGE_DEFAULT_THRESHOLD = 0.5;

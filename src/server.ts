@@ -452,7 +452,7 @@ export async function serveStdio(dependencies: AtlasServerDependencies = {}): Pr
   if (mainModelRef) {
     try {
       const lookup = parseModelRef(mainModelRef, env.MAIN_MODEL_PROVIDER?.trim());
-      // Use a 0ms cache TTL here since we only check once at server start
+      // No caching needed — single capability check at server start
       const capabilities = await getModelCapabilities(lookup, {
         fetch: dependencies.fetch,
       });

@@ -30,11 +30,12 @@ export const analyzeImageInputSchema = z
     }
   });
 
+/** Region coordinates from vision model output. `unit` may be "relative" → allow floats. */
 export const sourceRegionSchema = z.object({
-  x: z.number(),
-  y: z.number(),
-  width: z.number(),
-  height: z.number(),
+  x: z.number().min(0),
+  y: z.number().min(0),
+  width: z.number().positive(),
+  height: z.number().positive(),
   unit: z.enum(["pixel", "relative", "unknown"]).default("unknown"),
 });
 
