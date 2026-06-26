@@ -11,6 +11,8 @@ export const LEGACY_MATCH_THRESHOLD = 0.5;
 export const CORE_GATE_THRESHOLD = 0.8;
 /** Default threshold for edge-tier fixtures (informational under --gate). */
 export const EDGE_DEFAULT_THRESHOLD = 0.5;
+/** Default threshold for expected_elements when --gate-elements is on. */
+export const CORE_ELEMENTS_GATE_THRESHOLD = 0.5;
 
 export type GoldenTier = "core" | "edge";
 
@@ -53,6 +55,7 @@ export interface FixtureEvalSummary {
   tier: GoldenTier;
   passed: boolean;
   best_text_match_rate: number;
+  element_match_rate: number;
   gate_blocking: boolean;
   analyze_passed: boolean;
   ocr_passed: boolean;
@@ -86,6 +89,10 @@ export interface EvalOptions {
   edgeThreshold?: number;
   /** When true, only core-tier fixture failures fail the run. */
   gate?: boolean;
+  /** When true with gate, core fixtures must also pass expected_elements threshold. */
+  gateElements?: boolean;
+  /** Match threshold for expected_elements when gateElements is on. */
+  elementsThreshold?: number;
   /** Restrict which tiers to run. Default: both. */
   tiers?: GoldenTier[];
   modelName?: string;
@@ -149,6 +156,8 @@ function summarizeFixtures(
   results: EvalResult[],
   options: EvalOptions,
 ): FixtureEvalSummary[] {
+  const elementsThreshold = options.elementsThreshold ?? CORE_ELEMENTS_GATE_THRESHOLD;
+
   return fixtures.map((fixture) => {
     const tier = fixtureTier(fixture);
     const threshold = thresholdForFixture(fixture, options);
@@ -160,21 +169,36 @@ function summarizeFixtures(
       ocr?.details.text_match_rate ?? 0,
     );
 
+    const elemMatches = analyze?.details.matches_expected_elements ?? [];
+    const elemMissing = analyze?.details.missing_expected_elements ?? [];
+    const elemTotal = elemMatches.length + elemMissing.length;
+    const elementMatchRate = elemTotal > 0 ? elemMatches.length / elemTotal : 1;
+
     const analyzePassed = analyze?.passed ?? false;
     const ocrPassed = ocr?.passed ?? false;
     const hasExpectedText = fixture.expected_text.length > 0;
     const hasOutput =
       (analyze?.details.observations_count ?? 0) > 0 || (ocr?.details.text_blocks_count ?? 0) > 0;
 
-    const passed = hasExpectedText
+    const textPassed = hasExpectedText
       ? bestRate >= threshold && (analyzePassed || ocrPassed)
       : hasOutput;
+
+    const elementsRequired =
+      options.gate &&
+      options.gateElements &&
+      tier === "core" &&
+      fixture.expected_elements.length > 0;
+    const elementsPassed = !elementsRequired || elementMatchRate >= elementsThreshold;
+
+    const passed = textPassed && elementsPassed;
 
     return {
       fixture_id: fixture.id,
       tier,
       passed,
       best_text_match_rate: bestRate,
+      element_match_rate: elementMatchRate,
       gate_blocking: options.gate ? tier === "core" && !passed : !passed,
       analyze_passed: analyzePassed,
       ocr_passed: ocrPassed,
@@ -396,7 +420,7 @@ export function renderEvalReport(report: EvalReport): string {
     const icon = summary.passed ? "✅" : summary.gate_blocking ? "❌" : "⚠️";
     const tierLabel = summary.tier === "core" ? "core" : "edge/info";
     lines.push(
-      `- ${icon} \`${summary.fixture_id}\` [${tierLabel}] best=${(summary.best_text_match_rate * 100).toFixed(0)}% analyze=${summary.analyze_passed ? "pass" : "fail"} ocr=${summary.ocr_passed ? "pass" : "fail"}`,
+      `- ${icon} \`${summary.fixture_id}\` [${tierLabel}] best=${(summary.best_text_match_rate * 100).toFixed(0)}% elements=${(summary.element_match_rate * 100).toFixed(0)}% analyze=${summary.analyze_passed ? "pass" : "fail"} ocr=${summary.ocr_passed ? "pass" : "fail"}`,
     );
   }
 

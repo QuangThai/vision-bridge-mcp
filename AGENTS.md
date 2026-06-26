@@ -6,7 +6,7 @@
 
 - **Stack:** TypeScript, Node.js ≥ 20, pnpm, MCP SDK (stdio), zod, sharp, vitest, tsup, biome
 - **CLI entrypoint:** `npx atlas-vision-mcp` (or `atlas-vision doctor`, `analyze`, `ocr`, `compare`, `serve`)
-- **4 MCP tools:** `analyze_image`, `ocr_image`, `analyze_ui_screenshot`, `compare_images`
+- **7 MCP tools:** `should_use_atlas_vision`, `analyze_image`, `ocr_image`, `analyze_ui_screenshot`, `compare_images`, `extract_region`, `analyze_image_batch`
 - **Code:** `src/` (cli, config, extraction, image, providers, security, tools)
 - **Tests:** `tests/` — 34 files, 248 tests
 

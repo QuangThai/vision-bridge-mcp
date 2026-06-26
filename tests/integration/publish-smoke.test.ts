@@ -25,6 +25,7 @@ const TOOL_NAMES = [
   "compare_images",
   "extract_region",
   "ocr_image",
+  "should_use_atlas_vision",
 ];
 
 describe("publish smoke", () => {
@@ -41,7 +42,7 @@ describe("publish smoke", () => {
     expect(packageJson.files).toContain("README.md");
   });
 
-  it("registers all six MCP tools", async () => {
+  it("registers all seven MCP tools", async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createAtlasMcpServer();
     await server.connect(serverTransport);

@@ -131,9 +131,9 @@ export function inferUpstreamProviderFromModelId(modelId: string): string | unde
  * Resolve the effective provider/model pair used for capability lookup.
  *
  * Priority for proxy refs:
- *   1. MAIN_MODEL_REF (when different from hook ref)
- *   2. CURSOR_UNDERLYING_MODEL / ATLAS_UNDERLYING_MODEL
- *   3. Known proxy-native patterns (composer*, auto*)
+ *   1. Known proxy-native patterns (composer*, auto*) — authoritative for vision routing
+ *   2. MAIN_MODEL_REF (when different from hook ref, for unknown proxy models)
+ *   3. CURSOR_UNDERLYING_MODEL / ATLAS_UNDERLYING_MODEL
  *   4. Upstream provider inferred from model id prefix
  *   5. Direct proxy ref (falls through to unknown → safe intercept)
  */
@@ -153,6 +153,15 @@ export function resolveCapabilityLookup(
 
   const env = input.env ?? process.env;
   const trimmedRef = input.mainModelRef.trim();
+
+  const proxyPattern = findProxyModelPattern(normalizedProvider, parsed.modelId);
+  if (proxyPattern) {
+    return {
+      lookup: directLookup,
+      resolutionSource: "proxy-pattern",
+      proxySupportsVision: proxyPattern.supportsVision,
+    };
+  }
 
   const mainModelRef = env.MAIN_MODEL_REF?.trim();
   if (mainModelRef && mainModelRef !== trimmedRef) {
@@ -177,15 +186,6 @@ export function resolveCapabilityLookup(
       },
       resolvedFrom: trimmedRef,
       resolutionSource: "underlying-model-env",
-    };
-  }
-
-  const proxyPattern = findProxyModelPattern(normalizedProvider, parsed.modelId);
-  if (proxyPattern) {
-    return {
-      lookup: directLookup,
-      resolutionSource: "proxy-pattern",
-      proxySupportsVision: proxyPattern.supportsVision,
     };
   }
 

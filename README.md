@@ -22,7 +22,7 @@ Atlas uses a **multi-layer capability chain** to decide whether a model needs vi
 1. ctx.model.input (pi runtime)        → certain vision → skip
 2. Hook supports_vision / input_modalities → runtime signal → skip or intercept
 3. ATLAS_MODEL_CAPABILITIES_FILE       → user overrides
-4. Proxy resolution (MAIN_MODEL_REF, CURSOR_UNDERLYING_MODEL, composer* patterns, upstream inference)
+4. Proxy resolution (composer* patterns, hook model, MAIN_MODEL_REF fallback, upstream inference)
 5. Provider heuristics (v0.4.0)        → openai/* = vision, deepseek/* = text-only
 6. models.dev catalog                  → remote lookup
 7. ATLAS_INTERCEPT_MODE                → policy fallback
@@ -41,11 +41,14 @@ Atlas uses a **multi-layer capability chain** to decide whether a model needs vi
 **Proxy providers** (`cursor/*`, `opencode-go/*`, `opencode/*`) route to arbitrary upstream models. Atlas resolves capabilities via:
 
 1. Runtime signal from hooks (`supports_vision`, `input_modalities`) or pi (`ctx.model.input`)
-2. `MAIN_MODEL_REF` — set to the real upstream model (e.g. `openai/gpt-4o`)
-3. `CURSOR_UNDERLYING_MODEL` — alternative upstream override
-4. Known proxy-native patterns (`composer*`, `auto*` → vision)
-5. Upstream inference from model id prefix (`gpt-*` → openai, `deepseek-*` → deepseek, …)
-6. Safe default: intercept when unknown
+2. Known proxy-native patterns (`composer*`, `auto*` → vision) — **before** env overrides
+3. Hook `model` field — wins over `MAIN_MODEL_REF` when the agent sends it
+4. `MAIN_MODEL_REF` — fallback when hook model is unknown (avoid global export; use per-agent config)
+5. `CURSOR_UNDERLYING_MODEL` — alternative upstream override
+6. Upstream inference from model id prefix (`gpt-*` → openai, `deepseek-*` → deepseek, …)
+7. Safe default: intercept when unknown
+
+> **Do not set `MAIN_MODEL_REF` globally** if you switch between text-only models (Pi + DeepSeek) and vision models (Cursor Composer). Use per-agent config (`~/.config/atlas-vision/env` for Codex, project `.env` for Pi) or let hooks send the active `model`.
 
 ## Solution
 
@@ -106,10 +109,11 @@ npx atlas-vision-mcp install-hooks cursor
 For agent-specific instructions, see [`examples/`](examples/) and
 [`docs/product/integration.md`](docs/product/integration.md).
 
-## MCP tools (6)
+## MCP tools (7)
 
 | Tool | Use when |
 | --- | --- |
+| `should_use_atlas_vision` | Check if main model needs Atlas before calling vision tools |
 | `analyze_image` | General image analysis: diagrams, charts, errors, code screenshots |
 | `ocr_image` | Extract visible text from screenshots, documents, UI text |
 | `analyze_ui_screenshot` | UI/mockup structure, components, layout, a11y hints |
@@ -155,7 +159,7 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 | `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — control intercept behavior (v0.4.0) |
 | `ATLAS_MODEL_CAPABILITIES_FILE` | — | Path to JSON file with per-model capability overrides (v0.4.0) |
 | `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` (keyword-based), `always` — auto-read clipboard image on Windows (v0.4.0) |
-| `MAIN_MODEL_REF` | auto-detected | Override model ref e.g. `deepseek/deepseek-v4-flash` or upstream `openai/gpt-4o` for proxy providers |
+| `MAIN_MODEL_REF` | hook model wins | Fallback model ref when hook sends no model — prefer per-agent config, not global export |
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zai` (alias `zhipuai`, `glm`) for GLM models |
 | `CURSOR_UNDERLYING_MODEL` | — | Upstream model when hook ref is a proxy (e.g. `openai/gpt-4o`) |
 | `ATLAS_UNDERLYING_MODEL` | — | Alias for `CURSOR_UNDERLYING_MODEL` |
@@ -357,7 +361,7 @@ VISION_PROVIDER=openai-compatible
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `MAIN_MODEL_REF` | auto-detected | Override model ref (e.g. `deepseek/deepseek-v4-flash`, or upstream `openai/gpt-4o` for proxy providers) |
+| `MAIN_MODEL_REF` | hook model wins | Fallback when hook sends no model — use per-agent config, not global export |
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zai` (alias `zhipuai`, `glm`) for GLM models |
 | `CURSOR_UNDERLYING_MODEL` | — | Upstream model when hook ref is a proxy (e.g. `openai/gpt-4o`) |
 | `ATLAS_SKIP_INTERCEPT` | `false` | Disable auto-intercept |
@@ -397,7 +401,9 @@ npx atlas-vision-mcp costs --range 7
 # Golden evaluation (v0.6.0+)
 npx atlas-vision-mcp eval
 npx atlas-vision-mcp eval --gate --threshold 0.8   # CI gate: core screenshots @ 80%
-npx atlas-vision-mcp eval --tier core              # real screenshots only
+npx atlas-vision-mcp eval --gate --no-cache          # fresh provider calls (CI default)
+npx atlas-vision-mcp eval --gate --gate-elements     # also gate expected_elements on core tier
+npx atlas-vision-mcp eval --tier core                # real screenshots only
 npx atlas-vision-mcp eval --model gpt-4o --provider openai-responses
 
 # Auto-install hooks (v0.5.0)

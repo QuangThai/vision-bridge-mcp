@@ -172,6 +172,32 @@ describe("createAtlasMcpServer", () => {
     expect(analyzeTool?.description).toContain("untrusted evidence");
   });
 
+  it("registers should_use_atlas_vision for routing decisions", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createAtlasMcpServer({
+      config: testConfig,
+      env: { ATLAS_FORCE_INTERCEPT: "false" },
+    });
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+
+    const tools = await client.listTools();
+    expect(tools.tools.map((tool) => tool.name)).toContain("should_use_atlas_vision");
+
+    const result = await client.callTool({
+      name: "should_use_atlas_vision",
+      arguments: { main_model_ref: "cursor/composer-2.5" },
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      should_use_atlas_vision: false,
+      supports_native_vision: true,
+    });
+  });
+
   it("registers vision_instructions prompt", async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createAtlasMcpServer({ config: testConfig });

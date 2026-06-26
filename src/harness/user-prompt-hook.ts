@@ -1,5 +1,8 @@
 import { loadExternalModelOverrides } from "../capabilities/bundled-registry.js";
-import { normalizeProviderId } from "../capabilities/proxy-resolver.js";
+import {
+  inferUpstreamProviderFromModelId,
+  normalizeProviderId,
+} from "../capabilities/proxy-resolver.js";
 import type { InterceptMode, VisionCapabilityOverride } from "../capabilities/types.js";
 import { buildInterceptMessageText } from "./attached-images.js";
 import {
@@ -81,21 +84,28 @@ export function resolveMainModelRef(
     return fromOption;
   }
 
-  const fromEnv = env.MAIN_MODEL_REF?.trim();
-  if (fromEnv) {
-    return fromEnv;
-  }
-
   const hookModel = input.model?.trim();
   if (hookModel) {
     if (hookModel.includes("/")) {
       return hookModel;
     }
 
-    const fallbackProvider = env.MAIN_MODEL_PROVIDER?.trim() || inferProviderFromModelId(hookModel);
-    if (fallbackProvider) {
-      return `${normalizeProviderId(fallbackProvider)}/${hookModel}`;
+    const inferredProvider =
+      inferUpstreamProviderFromModelId(hookModel) ||
+      inferProviderFromModelId(hookModel) ||
+      env.MAIN_MODEL_PROVIDER?.trim();
+    if (inferredProvider) {
+      return `${normalizeProviderId(inferredProvider)}/${hookModel}`;
     }
+  }
+
+  const fromEnv = env.MAIN_MODEL_REF?.trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  if (hookModel) {
+    return hookModel;
   }
 
   const legacyEnv = env.CURSOR_MODEL?.trim() || env.CODEX_MODEL?.trim();

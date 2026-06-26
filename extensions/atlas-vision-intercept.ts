@@ -60,16 +60,17 @@ function envFlag(name: string): boolean {
 }
 
 function resolveMainModelRef(model: { provider: string; id: string } | undefined): string | null {
+  // Active pi model is authoritative — matches harness user-prompt-hook routing.
+  if (model?.provider?.trim() && model?.id?.trim()) {
+    return `${model.provider}/${model.id}`;
+  }
+
   const override = process.env.MAIN_MODEL_REF?.trim();
   if (override) {
     return override;
   }
 
-  if (!model) {
-    return null;
-  }
-
-  return `${model.provider}/${model.id}`;
+  return null;
 }
 
 export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {

@@ -62,6 +62,24 @@ describe("planImageIntercept proxy routing", () => {
     expect(plan.capabilities?.supportsVision).toBe(false);
   });
 
+  it("skips intercept when MAIN_MODEL_REF is text-only but hook model is composer", async () => {
+    const plan = await planImageIntercept(
+      {
+        mainModelRef: "cursor/composer-2.5",
+        messageText: "check ./image.png",
+        env: {
+          MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+          ATLAS_FORCE_INTERCEPT: "false",
+        },
+      },
+      {},
+      { cacheDir: "/tmp/unused", fetch: mockFetch },
+    );
+
+    expect(plan.shouldIntercept).toBe(false);
+    expect(plan.capabilities?.supportsVision).toBe(true);
+  });
+
   it("skips intercept when MAIN_MODEL_REF resolves proxy to vision model", async () => {
     const plan = await planImageIntercept(
       {

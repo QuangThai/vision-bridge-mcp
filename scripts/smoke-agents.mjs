@@ -22,9 +22,9 @@ const CLEAN_ENV = {
   MAIN_MODEL_REF: "",
 };
 
-function runShouldIntercept(modelRef, expectPass) {
+function runShouldIntercept(modelRef, expectPass, extraEnv = {}) {
   const result = spawnSync(process.execPath, [CLI, "should-intercept", modelRef], {
-    env: CLEAN_ENV,
+    env: { ...CLEAN_ENV, ...extraEnv },
     cwd: REPO_ROOT,
     encoding: "utf8",
   });
@@ -71,6 +71,34 @@ runShouldIntercept("cursor/composer-2.5", true);
 runShouldIntercept("openai/gpt-4o", true);
 runShouldIntercept("deepseek/deepseek-v4-flash", false);
 runShouldIntercept("zhipuai/glm-5.2", false);
+runShouldIntercept("cursor/composer-2.5", true, {
+  MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+});
+
+console.log("\n## should_use_atlas_vision routing parity");
+function runShouldUseAtlas(modelRef, expectUse, extraEnv = {}) {
+  const parity = spawnSync(process.execPath, [CLI, "should-intercept", modelRef], {
+    env: { ...CLEAN_ENV, ...extraEnv },
+    cwd: REPO_ROOT,
+    encoding: "utf8",
+  });
+  const output = `${parity.stdout}${parity.stderr}`;
+  const shouldIntercept = output.includes("Decision:  INTERCEPT");
+  const ok = expectUse ? shouldIntercept : !shouldIntercept;
+  console.log(
+    `${ok ? "✅" : "❌"} should_use_atlas_vision parity ${modelRef} → ${expectUse ? "use" : "skip"}`,
+  );
+  if (!ok) {
+    console.log(output);
+    process.exitCode = 1;
+  }
+}
+
+runShouldUseAtlas("openai/gpt-4o", false);
+runShouldUseAtlas("deepseek/deepseek-v4-flash", true);
+runShouldUseAtlas("cursor/composer-2.5", false, {
+  MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+});
 
 console.log("\n## hook routing (no API key)");
 runHook(

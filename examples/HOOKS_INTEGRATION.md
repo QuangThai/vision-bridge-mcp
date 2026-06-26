@@ -32,8 +32,13 @@ The hooks load `atlas-vision.toml` automatically using the same search order:
 export VISION_API_KEY=your-key
 export VISION_BASE_URL=https://api.openai.com/v1
 export VISION_MODEL=gpt-4o-mini
-export MAIN_MODEL_REF=deepseek/deepseek-v4-flash   # provider/model id
+export MAIN_MODEL_REF=deepseek/deepseek-v4-flash   # Pi / text-only sessions only
 ```
+
+> **Avoid a global `MAIN_MODEL_REF`** when you also use vision-native agents (Cursor Composer, GPT, Opus). Hooks send the active `model` and that wins over `MAIN_MODEL_REF`. Use per-agent config instead:
+> - Codex: `~/.config/atlas-vision/env`
+> - Pi: project `.env` or session-specific export
+> - Cursor/Droid: rely on hook `model` + `supports_vision` — no `MAIN_MODEL_REF` needed
 
 Optional (debug only — keep `false` in production):
 

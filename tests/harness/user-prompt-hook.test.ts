@@ -48,13 +48,31 @@ describe("formatUserPromptHookOutput", () => {
 });
 
 describe("resolveMainModelRef", () => {
-  it("prefers explicit MAIN_MODEL_REF env", () => {
+  it("prefers hook model over MAIN_MODEL_REF env", () => {
     expect(
       resolveMainModelRef(
         { model: "deepseek-v4-flash" },
         { MAIN_MODEL_REF: "deepseek/deepseek-v4-pro" },
       ),
-    ).toBe("deepseek/deepseek-v4-pro");
+    ).toBe("deepseek/deepseek-v4-flash");
+  });
+
+  it("prefers hook full ref over MAIN_MODEL_REF env", () => {
+    expect(
+      resolveMainModelRef(
+        { model: "cursor/composer-2.5" },
+        { MAIN_MODEL_REF: "deepseek/deepseek-v4-flash" },
+      ),
+    ).toBe("cursor/composer-2.5");
+  });
+
+  it("infers cursor provider for bare composer hook model", () => {
+    expect(
+      resolveMainModelRef(
+        { model: "composer-2.5" },
+        { MAIN_MODEL_REF: "deepseek/deepseek-v4-flash" },
+      ),
+    ).toBe("cursor/composer-2.5");
   });
 
   it("builds models.dev ref from Codex hook model slug", () => {

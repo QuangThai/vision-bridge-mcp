@@ -1,6 +1,6 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "license": "MIT",
@@ -35,12 +35,14 @@
     "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:golden": "node dist/cli/main.js eval --gate --threshold 0.8",
+    "test:golden": "node dist/cli/main.js eval --gate --threshold 0.8 --no-cache",
+    "eval:models": "node scripts/eval-models.mjs",
     "smoke:agents": "node scripts/smoke-agents.mjs",
+    "pi:manual": "node scripts/pi-manual-test.mjs",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "vitest run --testTimeout=60000 tests/e2e"
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "keywords": ["mcp", "vision", "coding-agent", "model-context-protocol", "pi-package"],
   "peerDependencies": {

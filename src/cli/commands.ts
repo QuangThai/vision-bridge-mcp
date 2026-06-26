@@ -759,6 +759,21 @@ export async function runEvalCommand(
     }
 
     const gate = hasFlag(flags, "gate");
+    const gateElements = hasFlag(flags, "gate-elements");
+
+    const elementsThresholdStr = flags.get("--elements-threshold") as string | undefined;
+    const elementsThreshold = elementsThresholdStr
+      ? Number.parseFloat(elementsThresholdStr)
+      : undefined;
+    if (
+      elementsThreshold !== undefined &&
+      (Number.isNaN(elementsThreshold) || elementsThreshold < 0 || elementsThreshold > 1)
+    ) {
+      log.error("--elements-threshold must be a number between 0 and 1");
+      return 1;
+    }
+
+    const noCache = hasFlag(flags, "no-cache");
     const tierArg = getFlagString(flags, "tier");
     let tiers: GoldenTier[] | undefined;
     if (tierArg) {
@@ -786,6 +801,10 @@ export async function runEvalCommand(
         model: modelOverride ?? config.vision.model,
         provider: (providerOverride as AtlasConfig["vision"]["provider"]) ?? config.vision.provider,
       },
+      cache: {
+        ...config.cache,
+        disableCache: noCache || config.cache.disableCache,
+      },
     };
 
     const provider = createVisionProvider(evalConfig);
@@ -802,6 +821,8 @@ export async function runEvalCommand(
       threshold,
       edgeThreshold,
       gate,
+      gateElements,
+      elementsThreshold,
       tiers,
       modelName: evalConfig.vision.model,
     });

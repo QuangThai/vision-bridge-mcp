@@ -12,6 +12,7 @@ import {
   analyzeUiScreenshotOutputSchema,
   compareImagesOutputSchema,
   ocrImageOutputSchema,
+  shouldUseAtlasVisionOutputSchema,
 } from "./extraction/schemas.js";
 import { ImageError } from "./image/errors.js";
 import { registerVisionInstructionsPrompt } from "./prompts/vision-instructions.js";
@@ -54,6 +55,11 @@ import {
   type OcrImageDependencies,
   ocrImage,
 } from "./tools/ocr-image.js";
+import {
+  SHOULD_USE_ATLAS_VISION_TOOL_DESCRIPTION,
+  SHOULD_USE_ATLAS_VISION_TOOL_NAME,
+  shouldUseAtlasVision,
+} from "./tools/should-use-atlas-vision.js";
 import { setupConsoleRedirection } from "./utils/console.js";
 
 export const analyzeImageMcpInputSchema = {
@@ -104,6 +110,12 @@ export const extractRegionMcpInputSchema = {
   detail_level: analyzeImageDetailLevelSchema.default("standard"),
 } as const;
 
+export const shouldUseAtlasVisionMcpInputSchema = {
+  main_model_ref: z.string().min(1),
+  supports_vision: z.boolean().optional(),
+  message_text: z.string().optional(),
+} as const;
+
 export const analyzeImageBatchMcpInputSchema = {
   images: z
     .array(
@@ -129,6 +141,7 @@ export interface AtlasServerDependencies {
   ocr?: typeof ocrImage;
   analyzeUiScreenshot?: typeof analyzeUiScreenshot;
   compareImages?: typeof compareImages;
+  shouldUseAtlasVision?: typeof shouldUseAtlasVision;
 }
 
 function formatToolFailure(error: unknown): string {
@@ -364,6 +377,39 @@ export function registerCompareImagesTool(
   );
 }
 
+export function registerShouldUseAtlasVisionTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    SHOULD_USE_ATLAS_VISION_TOOL_NAME,
+    {
+      description: SHOULD_USE_ATLAS_VISION_TOOL_DESCRIPTION,
+      inputSchema: shouldUseAtlasVisionMcpInputSchema,
+      outputSchema: shouldUseAtlasVisionOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const check = dependencies.shouldUseAtlasVision ?? shouldUseAtlasVision;
+        const result = await check(args, {
+          cwd: dependencies.cwd,
+          env: dependencies.env,
+        });
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
 export function createAtlasMcpServer(dependencies: AtlasServerDependencies = {}): McpServer {
   const server = new McpServer({
     name: PACKAGE_NAME,
@@ -376,6 +422,7 @@ export function createAtlasMcpServer(dependencies: AtlasServerDependencies = {})
   registerOcrImageTool(server, dependencies);
   registerAnalyzeUiScreenshotTool(server, dependencies);
   registerCompareImagesTool(server, dependencies);
+  registerShouldUseAtlasVisionTool(server, dependencies);
   registerVisionInstructionsPrompt(server);
 
   return server;
@@ -431,6 +478,7 @@ export async function serveStdio(dependencies: AtlasServerDependencies = {}): Pr
     registerCompareImagesTool(server, dependencies);
   }
 
+  registerShouldUseAtlasVisionTool(server, dependencies);
   registerVisionInstructionsPrompt(server);
 
   const transport = new StdioServerTransport();

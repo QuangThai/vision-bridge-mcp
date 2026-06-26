@@ -50,9 +50,22 @@ const ROUTING_MATRIX: RoutingCase[] = [
     expectIntercept: true,
   },
   {
+    label: "Composer skips even when MAIN_MODEL_REF is text-only",
+    mainModelRef: "cursor/composer-2.5",
+    expectIntercept: false,
+  },
+  {
     label: "Runtime supports_vision skips even for DeepSeek",
     mainModelRef: "deepseek/deepseek-v4-flash",
     runtimeSupportsVision: true,
+    expectIntercept: false,
+  },
+];
+
+const ROUTING_WITH_MAIN_MODEL_REF: RoutingCase[] = [
+  {
+    label: "Composer skips with MAIN_MODEL_REF=deepseek footgun",
+    mainModelRef: "cursor/composer-2.5",
     expectIntercept: false,
   },
 ];
@@ -66,6 +79,35 @@ describe("agent routing matrix (planImageIntercept)", () => {
           messageText: `describe ${GOLDEN_CHART}`,
           runtimeSupportsVision: testCase.runtimeSupportsVision,
           env: CLEAN_ENV,
+        },
+        {},
+        {
+          cacheDir: "/tmp/atlas-routing-unused",
+          fetch: async () =>
+            new Response(JSON.stringify({ providers: {} }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
+        },
+      );
+
+      expect(plan.shouldIntercept).toBe(testCase.expectIntercept);
+    });
+  }
+});
+
+describe("agent routing with MAIN_MODEL_REF env", () => {
+  for (const testCase of ROUTING_WITH_MAIN_MODEL_REF) {
+    it(testCase.label, async () => {
+      const plan = await planImageIntercept(
+        {
+          mainModelRef: testCase.mainModelRef,
+          messageText: `describe ${GOLDEN_CHART}`,
+          runtimeSupportsVision: testCase.runtimeSupportsVision,
+          env: {
+            ...CLEAN_ENV,
+            MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+          },
         },
         {},
         {
@@ -116,6 +158,29 @@ describe("agent hook routing (runUserPromptHook, no vision API)", () => {
         {
           client,
           env: { ...CLEAN_ENV, MAIN_MODEL_REF: "deepseek/deepseek-v4-flash" },
+        },
+      );
+
+      expect(result.intercepted).toBe(false);
+      expect(result.stdout).toBe("");
+    });
+  }
+
+  for (const client of ["cursor", "droid", "codex"] as AgentClient[]) {
+    it(`${client}: skips intercept for composer when MAIN_MODEL_REF is text-only`, async () => {
+      const result = await runUserPromptHook(
+        JSON.stringify({
+          prompt: `check ${GOLDEN_CHART}`,
+          hook_event_name: client === "cursor" ? "beforeSubmitPrompt" : "UserPromptSubmit",
+          model: "cursor/composer-2.5",
+          cwd: REPO_ROOT,
+        }),
+        {
+          client,
+          env: {
+            ...CLEAN_ENV,
+            MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+          },
         },
       );
 
@@ -255,6 +320,29 @@ describe("hook CLI subprocess routing", () => {
       timeout: 10_000,
     });
   }
+
+  it.runIf(existsSync(CLI_MAIN))(
+    "cursor hook skips vision API for composer with MAIN_MODEL_REF text-only",
+    () => {
+      const result = runHookCli(
+        "cursor",
+        {
+          prompt: `describe ${GOLDEN_CHART}`,
+          hook_event_name: "beforeSubmitPrompt",
+          model: "cursor/composer-2.5",
+          cwd: REPO_ROOT,
+        },
+        {
+          ...process.env,
+          ...CLEAN_ENV,
+          MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+        },
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stdout.trim()).toBe("");
+    },
+  );
 
   it.runIf(existsSync(CLI_MAIN))("cursor hook skips vision API for composer model", () => {
     const result = runHookCli(

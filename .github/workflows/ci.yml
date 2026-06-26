@@ -70,3 +70,7 @@ jobs:
         env:
           VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:golden
+
+      - name: Golden eval skipped (no VISION_API_KEY)
+        if: env.VISION_API_KEY == ''
+        run: echo "Skipping golden eval — set VISION_API_KEY repo secret for live vision gate on main"

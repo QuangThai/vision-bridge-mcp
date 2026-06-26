@@ -349,3 +349,25 @@ export const analyzeImageBatchOutputSchema = z.object({
 });
 
 export type AnalyzeImageBatchOutput = z.infer<typeof analyzeImageBatchOutputSchema>;
+
+// ── should_use_atlas_vision ─────────────────────────────────────────────────────
+
+export const shouldUseAtlasVisionInputSchema = z.object({
+  main_model_ref: z.string().min(1),
+  supports_vision: z.boolean().optional(),
+  message_text: z.string().optional(),
+});
+
+export type ShouldUseAtlasVisionInput = z.infer<typeof shouldUseAtlasVisionInputSchema>;
+
+export const shouldUseAtlasVisionOutputSchema = z.object({
+  main_model_ref: z.string(),
+  supports_native_vision: z.boolean(),
+  should_use_atlas_vision: z.boolean(),
+  capability_source: z.string(),
+  reason: z.string(),
+  recommendation: z.string(),
+  images_detected: z.number().int().min(0),
+});
+
+export type ShouldUseAtlasVisionOutput = z.infer<typeof shouldUseAtlasVisionOutputSchema>;

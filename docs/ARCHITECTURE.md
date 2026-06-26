@@ -1,133 +1,93 @@
 # Architecture
 
-**Stack (accepted):** TypeScript, Node.js ≥ 20, pnpm, MCP SDK (stdio), zod,
-sharp, vitest, tsup. See `docs/decisions/0001-typescript-stack.md`.
+**Stack:** TypeScript, Node.js ≥ 20, pnpm, MCP SDK (stdio), zod, sharp, vitest, tsup.
+See `docs/decisions/0001-typescript-stack.md`.
 
-No application code exists yet. Product contract lives in `docs/product/*`;
-MVP work is sliced in `docs/stories/US-001` through `US-012`.
+Atlas Vision MCP is a **local-first vision bridge** for coding agents. It reads
+local images, calls a dedicated vision provider, and returns markdown plus
+structured JSON evidence.
 
-## Discovery Before Shape
-
-Before proposing implementation shape, identify:
-
-- Product surfaces: browser, mobile, desktop, CLI, API, worker, or service.
-- Runtime stack: language, framework, database, queues, providers, and hosting.
-- Core domains: the product concepts that deserve stable names and contracts.
-- Boundary inputs: user input, API requests, webhooks, jobs, files, credentials,
-  provider payloads, and environment configuration.
-- Validation ladder: the smallest checks that can prove the selected stack.
-
-Record stack choices in `docs/decisions/` when they meaningfully constrain
-future work.
-
-## Default Layering
+## Runtime layout
 
 ```text
-domain
-  <- application
-      <- infrastructure
-          <- interface
-              <- app surfaces
+dist/
+  index.js          # library exports (capabilities, tools, harness)
+  cli/main.js       # CLI + MCP stdio entry (atlas-vision / npx atlas-vision-mcp)
+
+src/
+  capabilities/     # model capability lookup, image intercept, cache, cost
+  cli/              # doctor, analyze, eval, hook, install-hooks, serve
+  extraction/       # normalize provider output → structured evidence
+  harness/          # user-prompt hooks, clipboard, session images
+  image/            # read, preprocess, adaptive detail (sharp)
+  providers/        # OpenAI-compatible, Responses API, Gemini, fallback
+  security/         # path policy, redaction, injection guards
+  tools/            # analyze_image, ocr_image, compare_images, eval, …
+  server.ts         # MCP stdio server (6 tools)
+
+extensions/         # Pi before_agent_start auto-intercept
+hooks/              # shell wrappers for agent hook JSON
+tests/              # unit, integration, e2e (43 files, 366 tests)
 ```
 
-## Candidate Structure
+## Data flow
+
+### Auto-intercept (hooks / Pi extension)
 
 ```text
-app/
-  domain/
-    entities/
-    value-objects/
-    repositories/
-    services/
-
-  application/
-    commands/
-    queries/
-    handlers/
-
-  infrastructure/
-    database/
-    logging/
-    notifications/
-
-  interface/
-    controllers/
-    dto/
-    presenters/
-    routes/
-    middlewares/
-
-surfaces/
-  browser/
-  mobile/
-  desktop/
-  cli/
+User prompt (+ image paths)
+  → agent hook (beforeSubmitPrompt / UserPromptSubmit / pi before_agent_start)
+  → resolveMainModelRef (hook model > MAIN_MODEL_REF fallback)
+  → resolveCapabilityLookup (proxy patterns > MAIN_MODEL_REF > upstream inference)
+  → planImageIntercept (skip if native vision or runtime signal)
+  → analyze/ocr in-process
+  → inject <atlas-vision-evidence> into prompt context
+  → main model continues with text evidence
 ```
 
-This is a thinking template, not a scaffold. Create real folders only when a
-story enters implementation and the selected stack needs them.
-
-## Dependency Rule
-
-Inner layers must not depend on outer layers.
-
-| Layer | May depend on | Must not depend on |
-| --- | --- | --- |
-| domain | nothing project-external except tiny pure utilities | framework, database, UI, provider, process/env |
-| application | domain | framework, UI, provider, database concrete clients |
-| infrastructure | domain, application | interface controllers or UI |
-| interface | all backend layers | UI state or platform shell assumptions |
-| app surfaces | API contracts and app-facing clients | domain internals directly |
-
-## Parse-First Boundary Rule
-
-Unknown data must be parsed at boundaries before it enters inner code.
-
-Boundaries include:
-
-- HTTP request bodies, params, and query strings.
-- Session payloads and identity claims.
-- Environment variables.
-- Database rows returned from external clients.
-- Platform shell payloads.
-- Deep links, tokens, and signed URLs.
-- Provider webhooks, events, and async payloads.
-
-Target flow:
+### MCP manual mode
 
 ```text
-unknown input
-  -> parser
-  -> typed DTO or command
-  -> application use case
-  -> domain object/value object
+Agent → MCP stdio → tool handler → vision provider → markdown + JSON
 ```
 
-Inner layers should work with meaningful product types such as `UserId`,
-`AccountId`, `WorkspaceId`, `Role`, `DateRange`, or domain-specific IDs,
-rather than repeatedly validating raw strings.
+MCP tools are always exposed; the agent decides whether to call them. No
+server-side auto-skip by model — use hooks for automatic routing.
 
-## Command/Query Boundary
+## Capability resolution (proxy providers)
 
-If the product has both reads and writes, keep command/query separation clear at
-the code level even when the storage layer is simple:
+For `cursor/*`, `opencode-go/*`, `opencode/*`:
 
-- Commands mutate state and own audit side effects.
-- Queries read state and format for consumers.
-- Shared domain rules live in domain/application, not controllers.
+1. Known proxy-native patterns (`composer*`, `auto*` → vision)
+2. `MAIN_MODEL_REF` when different from hook ref (unknown proxy models)
+3. `CURSOR_UNDERLYING_MODEL` / `ATLAS_UNDERLYING_MODEL`
+4. Upstream inference from model id prefix
+5. Safe default: intercept when unknown
 
-## Observability Contract
+**Hook `model` wins over `MAIN_MODEL_REF`** — do not set a global
+`MAIN_MODEL_REF` when switching between text-only and vision agents.
 
-The future server should emit one canonical JSON log line per request with:
+## Dependency rule
 
-- timestamp
-- level
-- request_id
-- user_id when known
-- action
-- duration_ms
-- status_code
-- message
+| Layer | Responsibility |
+| --- | --- |
+| `tools/` | MCP/CLI tool surfaces, orchestration |
+| `capabilities/` | When to intercept, models.dev, cache |
+| `providers/` | Vision API adapters |
+| `image/` | Local file read + preprocess |
+| `security/` | Path allowlist, redaction |
+| `harness/` | Agent hook integration |
 
-Audit logs are product records. Application logs are operational records. Do not
-use one as a substitute for the other.
+Inner modules do not depend on CLI or MCP SDK types except at boundaries.
+
+## Observability
+
+- Structured CLI output (`doctor`, `eval --json`, `costs`)
+- Optional cost tracking (`ATLAS_TRACK_COSTS`)
+- Vision response cache with LRU eviction
+- Golden eval gate for CI (`eval --gate --no-cache`)
+
+## Product contract
+
+Detailed behavior lives in `docs/product/*` and user stories `docs/stories/US-001`
+through `US-012`. Roadmap: `docs/product/roadmap.md`.

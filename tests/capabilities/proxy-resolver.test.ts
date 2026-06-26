@@ -40,9 +40,30 @@ describe("resolveCapabilityLookup", () => {
     });
   });
 
-  it("uses MAIN_MODEL_REF for proxy providers", () => {
+  it("matches composer proxy patterns before MAIN_MODEL_REF override", () => {
     const result = resolveCapabilityLookup({
       mainModelRef: "cursor/composer-2.5",
+      env: { MAIN_MODEL_REF: "openai/gpt-4o" },
+    });
+
+    expect(result.resolutionSource).toBe("proxy-pattern");
+    expect(result.proxySupportsVision).toBe(true);
+    expect(result.lookup).toEqual({ providerId: "cursor", modelId: "composer-2.5" });
+  });
+
+  it("regression: composer skips MAIN_MODEL_REF text-only override", () => {
+    const result = resolveCapabilityLookup({
+      mainModelRef: "cursor/composer-2.5",
+      env: { MAIN_MODEL_REF: "deepseek/deepseek-v4-flash" },
+    });
+
+    expect(result.resolutionSource).toBe("proxy-pattern");
+    expect(result.proxySupportsVision).toBe(true);
+  });
+
+  it("uses MAIN_MODEL_REF for unknown proxy models", () => {
+    const result = resolveCapabilityLookup({
+      mainModelRef: "cursor/custom-route",
       env: { MAIN_MODEL_REF: "openai/gpt-4o" },
     });
 
@@ -52,9 +73,9 @@ describe("resolveCapabilityLookup", () => {
 
   it("uses CURSOR_UNDERLYING_MODEL when MAIN_MODEL_REF matches hook ref", () => {
     const result = resolveCapabilityLookup({
-      mainModelRef: "cursor/composer-2.5",
+      mainModelRef: "cursor/custom-route",
       env: {
-        MAIN_MODEL_REF: "cursor/composer-2.5",
+        MAIN_MODEL_REF: "cursor/custom-route",
         CURSOR_UNDERLYING_MODEL: "openai/gpt-4o",
       },
     });

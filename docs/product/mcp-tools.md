@@ -1,6 +1,30 @@
 # MCP Tools
 
-Atlas Vision MCP exposes **six** tools (v0.2.0). Additional behavior uses **parameters/modes** on these tools.
+Atlas Vision MCP exposes **seven** tools (v0.14.0). Additional behavior uses **parameters/modes** on these tools.
+
+## Tool 0: `should_use_atlas_vision`
+
+Routing helper for **manual MCP mode** — call before other Atlas tools when unsure whether the main model has native vision.
+
+### Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `main_model_ref` | string | yes | Active model, e.g. `deepseek/deepseek-v4-flash`, `cursor/composer-2.5` |
+| `supports_vision` | boolean | no | Runtime signal from agent when available |
+| `message_text` | string | no | Prompt text to detect image references (defaults to probe) |
+
+### Output
+
+- `should_use_atlas_vision` — `true` when Atlas tools should run
+- `supports_native_vision` — whether main model can read images directly
+- `capability_source`, `reason`, `recommendation`, `images_detected`
+
+### Tool Description
+
+```text
+Check whether the coding agent should call Atlas Vision tools for the current main model. Call before analyze_image when routing is unclear. Returns false for vision-native models (GPT-4o, Composer, Claude).
+```
 
 ## Shared Response Shape
 
