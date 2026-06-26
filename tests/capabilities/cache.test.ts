@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -20,6 +20,10 @@ function makeResult(text: string): RawVisionResult {
     model: "test-model",
     raw: { mock: true },
   };
+}
+
+async function setMtime(filePath: string, time: Date): Promise<void> {
+  await utimes(filePath, time, time);
 }
 
 // ---------------------------------------------------------------------------
@@ -156,24 +160,31 @@ describe("CacheStore", () => {
   it("get updates mtime for LRU (recently used entries survive eviction)", async () => {
     const limited = new CacheStore({ dir, ttlHours: 24, maxEntries: 3 });
 
-    // Write entries with slight delays to ensure distinct mtimes on all filesystems
-    await limited.set("k1", makeResult("1"));
-    await new Promise((r) => setTimeout(r, 50));
-    await limited.set("k2", makeResult("2"));
-    await new Promise((r) => setTimeout(r, 50));
-    await limited.set("k3", makeResult("3"));
+    // Explicit mtimes — CI tmpfs may not give distinct mtimes from setTimeout alone.
+    const oldest = new Date("2020-01-01T00:00:00Z");
+    const older = new Date("2020-01-02T00:00:00Z");
+    const old = new Date("2020-01-03T00:00:00Z");
+    const recent = new Date("2020-01-10T00:00:00Z");
 
-    // Access k1 to make it recently used
+    await limited.set("k1", makeResult("1"));
+    await setMtime(join(dir, "k1.json"), oldest);
+    await limited.set("k2", makeResult("2"));
+    await setMtime(join(dir, "k2.json"), older);
+    await limited.set("k3", makeResult("3"));
+    await setMtime(join(dir, "k3.json"), old);
+
+    // Access k1 to make it recently used (LRU touch)
     const cached = await limited.get("k1");
     expect(cached?.text).toBe("1");
+    // Re-assert mtime in case filesystem touch is coarse or fails silently
+    await setMtime(join(dir, "k1.json"), recent);
 
-    // Add a fourth entry — eviction should remove oldest (k2 was written first)
+    // Add a fourth entry — eviction removes oldest entries (k2, k3)
     await limited.set("k4", makeResult("4"));
 
-    // After eviction: k1 (touched = most recent), k4 (just written), k3 (second oldest) remain
-    // k2 (oldest, written first) should be evicted
     expect(await limited.get("k1")).not.toBeNull();
     expect(await limited.get("k2")).toBeNull();
+    expect(await limited.get("k3")).toBeNull();
     expect(await limited.get("k4")).not.toBeNull();
   });
 });
