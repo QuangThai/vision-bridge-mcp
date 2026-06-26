@@ -435,6 +435,28 @@ export async function connectAtlasMcpServer(
   await server.connect(transport);
 }
 
+/**
+ * Decide whether to suppress atlas vision tools based on MAIN_MODEL_REF.
+ * Returns true when the configured model has native vision (skip atlas tools).
+ * On lookup failure (network error, unknown model) returns false (safe default).
+ */
+export async function shouldSuppressVisionTools(
+  env: NodeJS.ProcessEnv,
+  fetchFn?: FetchFn,
+): Promise<boolean> {
+  const mainModelRef = env.MAIN_MODEL_REF?.trim();
+  if (!mainModelRef) return false;
+
+  try {
+    const lookup = parseModelRef(mainModelRef, env.MAIN_MODEL_PROVIDER?.trim());
+    const capabilities = await getModelCapabilities(lookup, { fetch: fetchFn });
+    return capabilities.supportsVision;
+  } catch {
+    // Network error or unknown model → safe default (don't suppress)
+    return false;
+  }
+}
+
 export async function serveStdio(dependencies: AtlasServerDependencies = {}): Promise<void> {
   // Redirect console output to stderr to prevent MCP protocol corruption on stdout
   setupConsoleRedirection();
@@ -446,23 +468,7 @@ export async function serveStdio(dependencies: AtlasServerDependencies = {}): Pr
   // registering all atlas vision tools to prevent models from calling them
   // unnecessarily (double cost). The system prompt / resources are still
   // provided so agents know atlas exists if they need it.
-  const mainModelRef = env.MAIN_MODEL_REF?.trim();
-  let suppressTools = false;
-
-  if (mainModelRef) {
-    try {
-      const lookup = parseModelRef(mainModelRef, env.MAIN_MODEL_PROVIDER?.trim());
-      // No caching needed — single capability check at server start
-      const capabilities = await getModelCapabilities(lookup, {
-        fetch: dependencies.fetch,
-      });
-      if (capabilities.supportsVision) {
-        suppressTools = true;
-      }
-    } catch {
-      // Lookup failure → register tools (safe default)
-    }
-  }
+  const suppressTools = await shouldSuppressVisionTools(env, dependencies.fetch);
 
   const server = new McpServer({
     name: PACKAGE_NAME,

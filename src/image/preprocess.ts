@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp, { type Metadata } from "sharp";
 import { ImageError } from "./errors.js";
 import { assertWithinLimit } from "./limits.js";
 import type { SupportedMimeType } from "./mime.js";
@@ -111,7 +111,7 @@ export async function autoDetectDetailLevel(
 /** Estimate the ratio of unique colors by sampling random pixels. */
 async function estimateUniqueColorRatio(
   buffer: Buffer,
-  _metadata: sharp.Metadata,
+  _metadata: Metadata,
   width: number,
   height: number,
 ): Promise<number | null> {

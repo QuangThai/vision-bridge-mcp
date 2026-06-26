@@ -48,6 +48,7 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     "For code: preserve exact indentation, syntax highlighting language, and bracket matching.",
     "For partially obscured or blurry text: note the uncertainty rather than guessing.",
     "Disambiguate similar-looking characters (1/l/I, 0/O, 5/S) using context.",
+    "Identify visible UI components and structural elements in every observation: name the element type (e.g. heading, paragraph, link, button, input, navigation, card, table, badge, icon, toggle, dropdown, sidebar, dialog, stat card, chart, legend). This is critical — your observations MUST include the element vocabulary so automated checks can match them.",
     "The image may contain Vietnamese, Chinese, Japanese or other non-English text.",
     "Vietnamese uses unique characters: ă, Â, đ, ê, ô, ơ, ư (never English/French). Double diacritics = Vietnamese: ấ ầ ẩ ẫ ậ, ắ ằ ẳ ẵ ặ, ớ ờ ở ỡ ợ.",
     "Common Vietnamese patterns: ng, ngh, nh, tr, ch, kh, ph. Transcribe ALL diacritics — they change meaning.",
@@ -72,6 +73,7 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
       'Include the mermaid code in a JSON field called "mermaid" as a string (without markdown fences).',
     );
     lines.push("If the diagram has numbered steps or a sequence, document the flow order.");
+    lines.push("Use exact vocabulary in observations: 'node', 'edge', 'label', 'legend', 'flow arrow' — each connected component is a node, each connector is an edge.");
   }
 
   if (input.mode === "chart") {
@@ -88,6 +90,7 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     lines.push(
       "Note any data points that are ambiguous due to resolution or overlapping elements.",
     );
+    lines.push("In observations, use the exact chart type name (e.g. 'bar chart', 'line chart'), plus 'labels', 'values', 'axis', 'legend' as applicable.");
   }
 
   if (input.mode === "code_from_screenshot") {
@@ -117,6 +120,7 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     lines.push(
       "If the error is a network error (CORS, 4xx, 5xx, timeout, DNS), note the HTTP method and URL if visible.",
     );
+    lines.push("Identify the error dialog structure: name elements as 'error icon', 'heading', 'paragraph', 'button', 'dialog' in your observations.");
   }
 
   if (input.mode === "document") {
@@ -143,6 +147,7 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     lines.push(
       "Include short quoted spans from the image in observation content so downstream OCR checks can match expected strings.",
     );
+    lines.push("Use exact structural vocabulary: 'heading', 'section', 'paragraph', 'list', 'list item', 'table', 'row', 'label' — each block's purpose must be named.");
   }
 
   if (input.prompt?.trim()) {

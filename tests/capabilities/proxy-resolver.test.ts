@@ -116,4 +116,37 @@ describe("resolveCapabilityLookup", () => {
     expect(result.lookup).toEqual({ providerId: "openai", modelId: "gpt-5.5" });
     expect(result.resolutionSource).toBe("upstream-inference");
   });
+
+  it("uses ATLAS_UNDERLYING_MODEL when CURSOR_UNDERLYING_MODEL is not set", () => {
+    const result = resolveCapabilityLookup({
+      mainModelRef: "cursor/custom",
+      env: {
+        MAIN_MODEL_REF: "cursor/custom",
+        ATLAS_UNDERLYING_MODEL: "deepseek/deepseek-v4-flash",
+      },
+    });
+
+    expect(result.lookup).toEqual({ providerId: "deepseek", modelId: "deepseek-v4-flash" });
+    expect(result.resolutionSource).toBe("underlying-model-env");
+  });
+
+  it("matches opencode-go composer proxy patterns as vision-native", () => {
+    const result = resolveCapabilityLookup({
+      mainModelRef: "opencode-go/composer-2.5",
+      env: {},
+    });
+
+    expect(result.resolutionSource).toBe("proxy-pattern");
+    expect(result.proxySupportsVision).toBe(true);
+  });
+
+  it("falls through to direct lookup for unknown proxy with empty env", () => {
+    const result = resolveCapabilityLookup({
+      mainModelRef: "cursor/unknown-model",
+      env: {},
+    });
+
+    expect(result.resolutionSource).toBe("direct");
+    expect(result.lookup).toEqual({ providerId: "cursor", modelId: "unknown-model" });
+  });
 });

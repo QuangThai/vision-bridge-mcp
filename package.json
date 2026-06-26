@@ -1,6 +1,6 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "license": "MIT",
@@ -26,16 +26,23 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "extensions", "hooks", "README.md"],
+  "files": [
+    "dist",
+    "extensions",
+    "hooks",
+    "README.md"
+  ],
   "pi": {
-    "extensions": ["./extensions"]
+    "extensions": [
+      "./extensions"
+    ]
   },
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:golden": "node dist/cli/main.js eval --gate --threshold 0.8 --no-cache",
+    "test:golden": "node dist/cli/main.js eval --gate --threshold 0.8 --gate-elements --elements-threshold 0.25 --no-cache",
     "eval:models": "node scripts/eval-models.mjs",
     "smoke:agents": "node scripts/smoke-agents.mjs",
     "pi:manual": "node scripts/pi-manual-test.mjs",
@@ -44,20 +51,26 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
-  "keywords": ["mcp", "vision", "coding-agent", "model-context-protocol", "pi-package"],
+  "keywords": [
+    "mcp",
+    "vision",
+    "coding-agent",
+    "model-context-protocol",
+    "pi-package"
+  ],
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@types/node": "^22.10.5",
-    "tsup": "^8.3.5",
+    "@types/node": "^26.0.1",
+    "tsup": "^8.5.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.2",
     "smol-toml": "^1.7.0",
     "zod": "^3.24.1"
   }

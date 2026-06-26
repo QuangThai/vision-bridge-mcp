@@ -204,7 +204,7 @@ export class GeminiProvider implements VisionProvider {
           ok: false,
           provider: this.name,
           model: this.visionConfig.model,
-          message: "Authentication failed. Check VISION_API_KEY.",
+          message: "Authentication failed. Check VISION_API_KEY (or GEMINI_KEY for eval-models.mjs).",
         };
       }
 

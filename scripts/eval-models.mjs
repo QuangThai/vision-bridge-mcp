@@ -43,16 +43,28 @@ if (!existsSync(CLI)) {
   process.exit(1);
 }
 
+/**
+ * Models to evaluate.
+ * Uses openai-compatible for all OpenAI models (same endpoint).
+ * Gemini is added when GEMINI_KEY is set.
+ */
 const MODEL_MATRIX = [
-  { label: "gpt-4o-mini (openai-compatible)", model: "gpt-4o-mini", provider: "openai-compatible" },
-  { label: "gpt-4o (openai-responses)", model: "gpt-4o", provider: "openai-responses" },
+  { label: "gpt-4o-mini", model: "gpt-4o-mini", provider: "openai-compatible" },
+  { label: "gpt-4o", model: "gpt-4o", provider: "openai-compatible" },
+  { label: "gpt-4.1", model: "gpt-4.1", provider: "openai-compatible" },
 ];
 
-if (process.env.GEMINI_API_KEY?.trim() || process.env.VISION_PROVIDER === "gemini") {
+if (process.env.GEMINI_KEY?.trim()) {
   MODEL_MATRIX.push({
     label: "gemini-2.0-flash",
-    model: process.env.VISION_MODEL?.trim() || "gemini-2.0-flash",
+    model: "gemini-2.0-flash",
     provider: "gemini",
+    /** Gemini needs VISION_API_KEY (same as GEMINI_KEY), VISION_PROVIDER=gemini */
+    envOverrides: {
+      VISION_API_KEY: process.env.GEMINI_KEY.trim(),
+      VISION_PROVIDER: "gemini",
+      VISION_BASE_URL: "https://generativelanguage.googleapis.com/v1beta",
+    },
   });
 }
 
@@ -80,7 +92,7 @@ for (const entry of MODEL_MATRIX) {
     ],
     {
       cwd: REPO_ROOT,
-      env: process.env,
+      env: { ...process.env, ...(entry.envOverrides || {}) },
       encoding: "utf8",
     },
   );

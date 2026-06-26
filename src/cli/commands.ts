@@ -761,7 +761,7 @@ export async function runEvalCommand(
     const gate = hasFlag(flags, "gate");
     const gateElements = hasFlag(flags, "gate-elements");
 
-    const elementsThresholdStr = flags.get("--elements-threshold") as string | undefined;
+    const elementsThresholdStr = getFlagString(flags, "elements-threshold");
     const elementsThreshold = elementsThresholdStr
       ? Number.parseFloat(elementsThresholdStr)
       : undefined;
