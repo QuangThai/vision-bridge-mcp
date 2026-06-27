@@ -11,6 +11,7 @@
  */
 
 import { execFile } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -199,6 +200,8 @@ export function scheduleClipboardCleanup(filePath: string): void {
   };
 
   process.once("exit", disposable);
+  process.on("SIGINT", disposable);
+  process.on("SIGTERM", disposable);
   // Also clean up after a generous grace period (5 min)
   setTimeout(disposable, 5 * 60 * 1_000).unref();
 }
@@ -234,7 +237,7 @@ async function findPowerShell(): Promise<string | null> {
   return null;
 }
 
-/** Short random hex suffix for unique temp filenames. */
+/** Short cryptographically-random hex suffix for unique temp filenames. */
 function randomHex(): string {
-  return Math.random().toString(16).slice(2, 10);
+  return randomBytes(4).toString("hex");
 }

@@ -1,3 +1,4 @@
+import { realpath } from "node:fs/promises";
 import { isAbsolute, normalize, resolve } from "node:path";
 
 export interface PathPolicyOptions {
@@ -69,30 +70,37 @@ export function resolveImagePath(imagePath: string, cwd: string): string {
   return isAbsolute(imagePath) ? normalize(resolve(imagePath)) : normalize(resolve(cwd, imagePath));
 }
 
-export function assertPathAllowed(
+export async function assertPathAllowed(
   imagePath: string,
   options: PathPolicyOptions,
-): ResolvedImagePath {
+): Promise<ResolvedImagePath> {
   const cwd = normalize(resolve(options.cwd));
   const absolutePath = resolveImagePath(imagePath, cwd);
+
+  // Resolve symlinks to prevent symlink traversal bypasses
+  let realPath: string;
+  try {
+    realPath = await realpath(absolutePath);
+  } catch {
+    // If realpath fails (file doesn't exist yet), use the resolved path
+    realPath = absolutePath;
+  }
+
   const allowedRoots = options.allowedDirs.map((dir) => resolveAllowedRoot(dir, cwd));
-  const allowed = allowedRoots.some((root) => isPathInsideRoot(absolutePath, root));
+  const allowed = allowedRoots.some((root) => isPathInsideRoot(realPath, root));
 
   if (!allowed) {
-    throw new PathPolicyError(
-      `Image path is outside allowed directories: ${imagePath}. Resolved path: ${absolutePath}. Current working directory: ${cwd}. Allowed directories: ${options.allowedDirs.join(", ")}`,
-      {
-        inputPath: imagePath,
-        absolutePath,
-        cwd,
-        allowedDirs: options.allowedDirs,
-      },
-    );
+    throw new PathPolicyError(`Image path is outside allowed directories: ${imagePath}.`, {
+      inputPath: imagePath,
+      absolutePath,
+      cwd,
+      allowedDirs: options.allowedDirs,
+    });
   }
 
   return {
     inputPath: imagePath,
-    absolutePath,
+    absolutePath: realPath,
   };
 }
 

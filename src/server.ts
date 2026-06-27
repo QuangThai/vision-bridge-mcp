@@ -152,17 +152,45 @@ export interface AtlasServerDependencies {
 }
 
 function formatToolFailure(error: unknown): string {
-  if (
-    error instanceof ConfigError ||
-    error instanceof ImageError ||
-    error instanceof PathPolicyError ||
-    error instanceof ProviderError
-  ) {
-    return error.message;
+  if (error instanceof ConfigError || error instanceof PathPolicyError) {
+    // Sanitize internal path/configuration details from error messages
+    return "Configuration or path policy error. Check your setup and allowed directories.";
+  }
+
+  if (error instanceof ImageError) {
+    // Return safe subset of image errors without leaking file paths
+    if (error.message.includes("not found") || error.message.includes("not_allowed")) {
+      return "Image file not found or path not allowed.";
+    }
+    if (error.message.includes("timeout") || error.message.includes("interrupted")) {
+      return "Failed to download image: connection timed out or interrupted.";
+    }
+    if (error.message.includes("Content-Type") || error.message.includes("not an image")) {
+      return "The URL does not point to a supported image format.";
+    }
+    if (error.message.includes("exceeded maximum size")) {
+      return "The downloaded image exceeds the maximum allowed size.";
+    }
+    // Generic image error with no sensitive details
+    return "An image processing error occurred.";
+  }
+
+  if (error instanceof ProviderError) {
+    // Return safe error without leaking provider/model details
+    if (error.code === "auth") {
+      return "Vision provider authentication failed. Check your API key configuration.";
+    }
+    if (error.code === "timeout") {
+      return "Vision provider request timed out. Check network connectivity.";
+    }
+    if (error.code === "rate_limit") {
+      return "Rate limited by vision provider. Retry later or reduce request frequency.";
+    }
+    return "A vision provider error occurred. Check your provider configuration.";
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return "An unexpected error occurred.";
   }
 
   return "Unknown error";

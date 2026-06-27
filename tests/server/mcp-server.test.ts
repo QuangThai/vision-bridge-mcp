@@ -358,7 +358,7 @@ describe("createAtlasMcpServer", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.content).toEqual([{ type: "text", text: "Provider timeout" }]);
+    expect(result.content).toEqual([{ type: "text", text: "An unexpected error occurred." }]);
   });
 });
 
