@@ -3,7 +3,7 @@ export interface EncodedImage {
   base64: string;
 }
 
-export type ImageDetailLevel = "auto" | "low" | "high" | "original";
+export type ImageDetailLevel = "auto" | "low" | "high" | "xhigh" | "original";
 
 export interface AnalyzeImageInput {
   image: EncodedImage;
@@ -53,7 +53,7 @@ export function mapDetailLevel(atlasLevel: string): ImageDetailLevel | undefined
     case "standard":
       return "high";
     case "detailed":
-      return "original";
+      return "xhigh";
     default:
       return undefined;
   }
@@ -74,6 +74,7 @@ export function mapDetailToMediaResolution(detailLevel?: string): string | undef
       return "low";
     case "high":
       return undefined; // default
+    case "xhigh":
     case "original":
       return "original";
     default:

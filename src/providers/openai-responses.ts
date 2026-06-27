@@ -61,17 +61,6 @@ interface ResponseUsage {
   total_tokens: number;
 }
 
-interface CreateResponseRequest {
-  model: string;
-  input: EasyInputMessageParam[];
-  instructions?: string;
-  temperature?: number;
-  max_output_tokens?: number;
-  text?: {
-    format?: { type: "text" | "json_object" };
-  };
-}
-
 interface CreateResponseResponse {
   id: string;
   object: string;
@@ -162,7 +151,7 @@ export class OpenAIResponsesProvider implements VisionProvider {
   async healthCheck(): Promise<ProviderHealth> {
     try {
       // Use a minimal text-only response to verify connectivity
-      const body: CreateResponseRequest = {
+      const body: Record<string, unknown> = {
         model: this.visionConfig.model,
         input: [
           {
@@ -172,7 +161,8 @@ export class OpenAIResponsesProvider implements VisionProvider {
           },
         ],
         temperature: 0,
-        max_output_tokens: 20,
+        thinking: { type: "disabled" },
+        store: false,
       };
 
       const response = await this.rawRequest("/responses", {
@@ -220,12 +210,13 @@ export class OpenAIResponsesProvider implements VisionProvider {
     inputMessages: EasyInputMessageParam[],
     systemPrompt: string,
   ): Promise<RawVisionResult> {
-    const body: CreateResponseRequest = {
+    const body: Record<string, unknown> = {
       model: this.visionConfig.model,
       input: inputMessages,
       instructions: systemPrompt,
       temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
-      max_output_tokens: this.visionConfig.maxOutputTokens,
+      thinking: { type: this.visionConfig.responsesThinking },
+      store: this.visionConfig.responsesStore,
       text: {
         format: { type: "json_object" },
       },

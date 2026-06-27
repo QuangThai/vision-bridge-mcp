@@ -27,6 +27,7 @@ function estimateTokens(width: number, height: number, detailLevel: string): num
       return 170 + 170 * tiles;
     }
     case "high":
+    case "xhigh":
     case "original": {
       const tiles = Math.ceil(width / 512) * Math.ceil(height / 512);
       return 170 + 170 * tiles;
