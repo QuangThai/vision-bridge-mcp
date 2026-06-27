@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CacheStore } from "../capabilities/cache.js";
@@ -31,6 +31,7 @@ import { analyzeUiScreenshot } from "../tools/analyze-ui-screenshot.js";
 import { compareImages } from "../tools/compare-images.js";
 import { type GoldenTier, evalExitCode, renderEvalReport, runEval } from "../tools/eval.js";
 import { ocrImage } from "../tools/ocr-image.js";
+import { type SnapshotAction, updateAllSnapshots, verifyAllSnapshots } from "../tools/snapshot.js";
 import { getFlagString, hasFlag, parseArgs } from "./parse-args.js";
 
 function resolveCliMode(value: string | undefined): AnalyzeImageMode {
@@ -827,8 +828,83 @@ export async function runEvalCommand(
       modelName: evalConfig.vision.model,
     });
 
+    // ── Snapshot handling ────────────────────────────────────────────────
+    const snapshotAction = (getFlagString(flags, "snapshot") ?? "verify") as SnapshotAction;
+    let snapshotDiffs:
+      | Array<{ fixture_id: string; mode: string; passed: boolean; details: string[] }>
+      | undefined;
+
+    if (snapshotAction === "update") {
+      const count = updateAllSnapshots(goldenDir, report);
+      log.log(`\n📸 Snapshots updated: ${count}`);
+    } else if (snapshotAction === "verify") {
+      snapshotDiffs = verifyAllSnapshots(goldenDir, report);
+      const failed = snapshotDiffs.filter((d) => !d.passed);
+      if (failed.length > 0) {
+        log.log(
+          `\n📸 Snapshot verification: ${failed.length}/${snapshotDiffs.length} fixtures have structural differences`,
+        );
+        for (const diff of failed) {
+          log.log(`  ❌ ${diff.fixture_id} [${diff.mode}]:`);
+          for (const detail of diff.details) {
+            log.log(`      ${detail}`);
+          }
+        }
+      } else {
+        log.log(
+          `\n📸 Snapshot verification: ${snapshotDiffs.length}/${snapshotDiffs.length} passed ✅`,
+        );
+      }
+    }
+    // ── End snapshot handling ────────────────────────────────────────────
+
+    const output: Record<string, unknown> = {
+      ...report,
+      snapshot_diffs: snapshotDiffs,
+    };
+
+    // ── Output persistence ────────────────────────────────────────────────
+    const outputPath = getFlagString(flags, "output");
+    if (outputPath) {
+      // Check for previous baseline before overwriting
+      let previousReport: { overall_text_match_rate?: number; core_passed?: number } | null = null;
+      if (existsSync(outputPath)) {
+        try {
+          previousReport = JSON.parse(readFileSync(outputPath, "utf8"));
+        } catch {
+          /* not a valid previous report */
+        }
+      }
+
+      // Save current report
+      const jsonOutput = `${JSON.stringify(output, null, 2)}\n`;
+      await writeFile(outputPath, jsonOutput, "utf8");
+      log.log(`\n💾 Report saved to: ${outputPath}`);
+
+      // Baseline comparison if a previous report existed
+      if (previousReport?.overall_text_match_rate !== undefined) {
+        const prevPct = (previousReport.overall_text_match_rate * 100).toFixed(1);
+        const currPct = (report.overall_text_match_rate * 100).toFixed(1);
+        const diffPp = (
+          (report.overall_text_match_rate - previousReport.overall_text_match_rate) *
+          100
+        ).toFixed(1);
+        const arrow =
+          report.overall_text_match_rate >= previousReport.overall_text_match_rate ? "📈" : "📉";
+        const sign = Number.parseFloat(diffPp) > 0 ? "+" : "";
+        log.log(`${arrow} Baseline: ${prevPct}% → ${currPct}% (${sign}${diffPp}pp)`);
+
+        const corePrev = previousReport.core_passed ?? 0;
+        const coreCurr = report.core_passed;
+        if (coreCurr < corePrev) {
+          log.log(`⚠️  Core passes dropped: ${corePrev} → ${coreCurr}`);
+        }
+      }
+    }
+    // ── End output persistence ────────────────────────────────────────────
+
     if (hasFlag(flags, "json")) {
-      log.log(JSON.stringify(report, null, 2));
+      log.log(JSON.stringify(output, null, 2));
     } else {
       const text = renderEvalReport(report);
       log.log(text);

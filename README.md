@@ -121,6 +121,18 @@ For agent-specific instructions, see [`examples/`](examples/) and
 | `extract_region` | Crop and analyze a specific region of an image |
 | `analyze_image_batch` | Process multiple images in a single call |
 
+### URL image support
+
+All tools accept `image_url` in addition to `image_path`. When a URL is provided,
+Atlas downloads the image with SSRF protection (blocks private/local networks)
+before analysis:
+
+```bash
+atlas-vision analyze --image-url https://example.com/screenshot.png
+atlas-vision ocr --image-url https://example.com/error.png
+atlas-vision compare --before-url ... --after-url ...
+```
+
 ### Extract region — focused analysis
 
 ```bash
@@ -147,18 +159,21 @@ Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `VISION_PROVIDER` | `openai-compatible` | Vision adapter — `openai-compatible`, `gemini`, `openai-responses` |
+| `VISION_PROVIDER` | `openai-compatible` | Vision adapter — `openai-compatible`, `openai-responses`, `gemini`, `claude` |
 | `VISION_BASE_URL` | `https://api.openai.com/v1` | Provider API base |
 | `VISION_API_KEY` | _(required for live calls)_ | Provider credential |
 | `VISION_MODEL` | `gpt-4o-mini` | Vision model id |
+| `VISION_TEMPERATURE` | `0.1` | Generation temperature |
+| `VISION_RETRY_MAX` | `3` | Max retries on transient errors (429, 5xx, network) |
 | `VISION_MAX_IMAGE_MB` | `10` | Max image size before resize |
 | `ATLAS_ALLOWED_DIRS` | `.` | Comma-separated readable roots |
 | `ATLAS_REDACT_SECRETS` | `true` | Redact likely secrets in OCR output |
 | `ATLAS_LOG_IMAGE_CONTENT` | `false` | Do not log image bytes/text by default |
 | `ATLAS_STORE_HISTORY` | `false` | No persistence by default |
-| `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — control intercept behavior (v0.4.0) |
-| `ATLAS_MODEL_CAPABILITIES_FILE` | — | Path to JSON file with per-model capability overrides (v0.4.0) |
-| `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` (keyword-based), `always` — auto-read clipboard image on Windows (v0.4.0) |
+| `ATLAS_ADAPTIVE_DETAIL` | `true` | Auto-detect optimal detail level per image |
+| `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` |
+| `ATLAS_MODEL_CAPABILITIES_FILE` | — | Path to JSON with per-model capability overrides |
+| `ATLAS_CLIPBOARD_DETECT` | `off` | `smart` or `always` — auto-read clipboard image on Windows |
 | `MAIN_MODEL_REF` | hook model wins | Fallback model ref when hook sends no model — prefer per-agent config, not global export |
 | `MAIN_MODEL_PROVIDER` | inferred | Override provider ID e.g. `zai` (alias `zhipuai`, `glm`) for GLM models |
 | `CURSOR_UNDERLYING_MODEL` | — | Upstream model when hook ref is a proxy (e.g. `openai/gpt-4o`) |
@@ -200,11 +215,11 @@ atlas-vision completion bash   # tab-complete
 | Provider | Config value | Best for | Auth |
 | --- | --- | --- | --- |
 | OpenAI Compatible | `openai-compatible` | OpenAI, Anthropic, Ollama, DeepSeek, any openai-compatible endpoint | `Authorization: Bearer` header |
-| OpenAI Responses API | `openai-responses` | OpenAI models via the new `/v1/responses` endpoint (v0.10.0+) | `Authorization: Bearer` header |
-| Google Gemini | `gemini` | Gemini models via Google AI API | `x-goog-api-key` header |
+| OpenAI Responses API | `openai-responses` | OpenAI models via `/v1/responses` | `Authorization: Bearer` header |
+| Google Gemini | `gemini` | Gemini via Google AI API | `x-goog-api-key` header |
+| **Anthropic Claude** | `claude` | Claude via Messages API | `x-api-key` + `anthropic-version` headers |
 
-Set `VISION_PROVIDER=openai-responses` (or `VISION_PROVIDER=gemini`) and the
-matching `VISION_MODEL` + `VISION_API_KEY` to switch providers.
+Set `VISION_PROVIDER` and matching `VISION_MODEL` + `VISION_API_KEY` to switch:
 
 ```bash
 # OpenAI (default)
@@ -216,7 +231,10 @@ VISION_PROVIDER=openai-responses VISION_MODEL=gpt-4o
 # Google Gemini
 VISION_PROVIDER=gemini VISION_MODEL=gemini-2.0-flash
 
-# Fallback: primary provider fails → secondary kicks in (v0.9.0+)
+# Anthropic Claude
+VISION_PROVIDER=claude VISION_MODEL=claude-sonnet-4-20250514
+
+# Fallback: primary fails → secondary kicks in (v0.9.0+)
 VISION_PROVIDER=openai-compatible \
   VISION_FALLBACK_PROVIDER=gemini \
   VISION_FALLBACK_API_KEY=gemini-key...
@@ -400,10 +418,12 @@ npx atlas-vision-mcp costs --range 7
 
 # Golden evaluation (v0.6.0+)
 npx atlas-vision-mcp eval
-npx atlas-vision-mcp eval --gate --threshold 0.8   # CI gate: core screenshots @ 80%
-npx atlas-vision-mcp eval --gate --no-cache          # fresh provider calls (CI default)
-npx atlas-vision-mcp eval --gate --gate-elements     # also gate expected_elements on core tier
-npx atlas-vision-mcp eval --tier core                # real screenshots only
+npx atlas-vision-mcp eval --gate --threshold 0.8               # CI gate: core @ 80%
+npx atlas-vision-mcp eval --gate --gate-elements               # gate expected_elements on core
+npx atlas-vision-mcp eval --tier core                          # core fixtures only
+npx atlas-vision-mcp eval --snapshot verify                     # structural diff vs baseline
+npx atlas-vision-mcp eval --snapshot update                     # save/update baselines
+npx atlas-vision-mcp eval --output ./report.json                # persist report for comparison
 npx atlas-vision-mcp eval --model gpt-4o --provider openai-responses
 
 # Auto-install hooks (v0.5.0)
@@ -466,6 +486,16 @@ Verify routing without API key: `pnpm smoke:agents`
 
 ### Claude Code
 
+Two modes:
+
+**Hook-based auto-intercept** (recommended for text-only models):
+
+```bash
+npx atlas-vision-mcp install-hooks claude
+```
+
+**MCP tools** (on-demand):
+
 ```bash
 claude mcp add -s user atlas-vision \
   --env VISION_PROVIDER=openai-compatible \
@@ -475,7 +505,7 @@ claude mcp add -s user atlas-vision \
   -- npx -y atlas-vision-mcp
 ```
 
-**Custom provider / proxy:** if tool search hides MCP tools, disable or limit it so all four tools load upfront:
+**Custom provider / proxy:** if tool search hides MCP tools, disable or limit it:
 
 ```bash
 ENABLE_TOOL_SEARCH=false claude
@@ -483,7 +513,7 @@ ENABLE_TOOL_SEARCH=false claude
 ENABLE_TOOL_SEARCH=auto:5 claude
 ```
 
-Atlas exposes only four tools so they fit comfortably when tool search is off.
+Full guide: [`docs/product/claude-code-integration.md`](docs/product/claude-code-integration.md)
 
 ### Cursor / Cline / other stdio MCP clients
 

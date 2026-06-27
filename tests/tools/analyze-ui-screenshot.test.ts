@@ -160,4 +160,45 @@ describe("analyzeUiScreenshot", () => {
     expect(prompt).toContain("goal: accessibility_review");
     expect(prompt).toContain("Do not invent hidden state");
   });
+
+  it("accepts image_url as an alternative to image_path", async () => {
+    const result = await analyzeUiScreenshot(
+      {
+        image_url: "https://example.com/screenshot.png",
+        target_framework: "react",
+        style_system: "tailwind",
+        goal: "describe",
+      },
+      {
+        config: testConfig,
+        provider: createMockProvider(
+          JSON.stringify({
+            summary: "A dashboard.",
+            screen_type: "dashboard",
+            ui_elements: [],
+            layout: { structure: "", spacing_notes: [], responsive_hints: [] },
+            accessibility_issues: [],
+            implementation_plan: [],
+            uncertainties: [],
+          }),
+        ),
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.markdown).toContain("## Summary");
+  });
+
+  it("rejects when both image_path and image_url are missing", async () => {
+    await expect(
+      analyzeUiScreenshot(
+        { target_framework: "react", style_system: "tailwind", goal: "describe" },
+        {
+          config: testConfig,
+          provider: createMockProvider("{}"),
+          readImage: vi.fn(async () => mockImage),
+        },
+      ),
+    ).rejects.toThrow(/required/i);
+  });
 });

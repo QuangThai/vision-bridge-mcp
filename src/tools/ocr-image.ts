@@ -14,6 +14,7 @@ import { type LoadedImage, readImageFromPath, toEncodedImage } from "../image/re
 import { createVisionProvider } from "../providers/router.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
 import { sanitizeOcrOutput } from "../security/sanitize-output.js";
+import { resolveImageSource } from "../utils/image-source.js";
 
 export const OCR_IMAGE_TOOL_NAME = "ocr_image";
 
@@ -137,8 +138,9 @@ export async function ocrImage(
   dependencies: OcrImageDependencies,
 ): Promise<OcrImageResult> {
   const parsedInput = ocrImageInputSchema.parse(input);
+  const imageSource = resolveImageSource(parsedInput);
   const readImage = dependencies.readImage ?? readImageFromPath;
-  const image = await readImage(parsedInput.image_path, {
+  const image = await readImage(imageSource, {
     maxImageMb: dependencies.config.vision.maxImageMb,
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,

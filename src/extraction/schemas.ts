@@ -108,12 +108,23 @@ export const ocrVisibleTextBlockSchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
-export const ocrImageInputSchema = z.object({
-  image_path: z.string().min(1),
-  preserve_layout: z.boolean().default(true),
-  extract_tables: z.boolean().default(false),
-  extract_code: z.boolean().default(false),
-});
+export const ocrImageInputSchema = z
+  .object({
+    image_path: z.string().min(1).optional(),
+    image_url: z.string().url().optional(),
+    preserve_layout: z.boolean().default(true),
+    extract_tables: z.boolean().default(false),
+    extract_code: z.boolean().default(false),
+  })
+  .superRefine((value, context) => {
+    if (!value.image_path?.trim() && !value.image_url?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either image_path or image_url is required.",
+        path: ["image_path"],
+      });
+    }
+  });
 
 export const ocrImageOutputSchema = z.object({
   summary: z.string(),
@@ -200,12 +211,23 @@ export const uiLayoutSchema = z.object({
   responsive_hints: z.array(z.string()).default([]),
 });
 
-export const analyzeUiScreenshotInputSchema = z.object({
-  image_path: z.string().min(1),
-  target_framework: uiTargetFrameworkSchema.default("unknown"),
-  style_system: uiStyleSystemSchema.default("unknown"),
-  goal: uiScreenshotGoalSchema.default("describe"),
-});
+export const analyzeUiScreenshotInputSchema = z
+  .object({
+    image_path: z.string().min(1).optional(),
+    image_url: z.string().url().optional(),
+    target_framework: uiTargetFrameworkSchema.default("unknown"),
+    style_system: uiStyleSystemSchema.default("unknown"),
+    goal: uiScreenshotGoalSchema.default("describe"),
+  })
+  .superRefine((value, context) => {
+    if (!value.image_path?.trim() && !value.image_url?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either image_path or image_url is required.",
+        path: ["image_path"],
+      });
+    }
+  });
 
 export const analyzeUiScreenshotOutputSchema = z.object({
   summary: z.string(),
@@ -258,14 +280,33 @@ export const compareImagesDifferenceSchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
-export const compareImagesInputSchema = z.object({
-  before_path: z.string().min(1),
-  after_path: z.string().min(1),
-  focus: compareImagesFocusSchema.default("general"),
-  severity_threshold: compareImagesSeverityThresholdSchema.default("low"),
-  /** Optional path to save the visual diff image */
-  diff_path: z.string().optional(),
-});
+export const compareImagesInputSchema = z
+  .object({
+    before_path: z.string().min(1).optional(),
+    before_url: z.string().url().optional(),
+    after_path: z.string().min(1).optional(),
+    after_url: z.string().url().optional(),
+    focus: compareImagesFocusSchema.default("general"),
+    severity_threshold: compareImagesSeverityThresholdSchema.default("low"),
+    /** Optional path to save the visual diff image */
+    diff_path: z.string().optional(),
+  })
+  .superRefine((value, context) => {
+    if (!value.before_path?.trim() && !value.before_url?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either before_path or before_url is required.",
+        path: ["before_path"],
+      });
+    }
+    if (!value.after_path?.trim() && !value.after_url?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either after_path or after_url is required.",
+        path: ["after_path"],
+      });
+    }
+  });
 
 export const compareImagesOutputSchema = z.object({
   summary: z.string(),
@@ -294,23 +335,45 @@ export const imageRegionSchema = z.object({
 
 export type ImageRegion = z.infer<typeof imageRegionSchema>;
 
-export const extractRegionInputSchema = z.object({
-  image_path: z.string().min(1),
-  region: imageRegionSchema,
-  prompt: z.string().optional(),
-  mode: analyzeImageModeSchema.default("general"),
-  detail_level: analyzeImageDetailLevelSchema.default("standard"),
-});
+export const extractRegionInputSchema = z
+  .object({
+    image_path: z.string().min(1).optional(),
+    image_url: z.string().url().optional(),
+    region: imageRegionSchema,
+    prompt: z.string().optional(),
+    mode: analyzeImageModeSchema.default("general"),
+    detail_level: analyzeImageDetailLevelSchema.default("standard"),
+  })
+  .superRefine((value, context) => {
+    if (!value.image_path?.trim() && !value.image_url?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either image_path or image_url is required.",
+        path: ["image_path"],
+      });
+    }
+  });
 
 export type ExtractRegionInput = z.infer<typeof extractRegionInputSchema>;
 
 // ── analyze_image_batch ─────────────────────────────────────────────────────────
 
-export const batchImageItemSchema = z.object({
-  image_path: z.string().min(1),
-  prompt: z.string().optional(),
-  mode: analyzeImageModeSchema.default("general"),
-});
+export const batchImageItemSchema = z
+  .object({
+    image_path: z.string().min(1).optional(),
+    image_url: z.string().url().optional(),
+    prompt: z.string().optional(),
+    mode: analyzeImageModeSchema.default("general"),
+  })
+  .superRefine((value, context) => {
+    if (!value.image_path?.trim() && !value.image_url?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Either image_path or image_url is required.",
+        path: ["image_path"],
+      });
+    }
+  });
 
 export type BatchImageItem = z.infer<typeof batchImageItemSchema>;
 

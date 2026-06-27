@@ -8,7 +8,7 @@
 - **CLI entrypoint:** `npx atlas-vision-mcp` (or `atlas-vision doctor`, `analyze`, `ocr`, `compare`, `serve`)
 - **7 MCP tools:** `should_use_atlas_vision`, `analyze_image`, `ocr_image`, `analyze_ui_screenshot`, `compare_images`, `extract_region`, `analyze_image_batch`
 - **Code:** `src/` (cli, config, extraction, image, providers, security, tools)
-- **Tests:** `tests/` — 34 files, 248 tests
+- **Tests:** `tests/` — 46 files, 390 tests _(drifts over time; run `pnpm vitest run` for current count)_
 
 ## Quick Checks
 

@@ -15,6 +15,7 @@ import { type LoadedImage, readImageFromPath } from "../image/read-image.js";
 import { createVisionProvider } from "../providers/router.js";
 import { type FetchFn, type VisionProvider, mapDetailLevel } from "../providers/types.js";
 import { sanitizeAnalyzeOutput } from "../security/sanitize-output.js";
+import { resolveImageSource } from "../utils/image-source.js";
 
 export const EXTRACT_REGION_TOOL_NAME = "extract_region";
 
@@ -78,8 +79,9 @@ export async function extractRegion(
   const parsedInput = extractRegionInputSchema.parse(input);
   const { x, y, width, height } = parsedInput.region;
 
+  const imageSource = resolveImageSource(parsedInput);
   const readImage = dependencies.readImage ?? readImageFromPath;
-  const image = await readImage(parsedInput.image_path, {
+  const image = await readImage(imageSource, {
     maxImageMb: dependencies.config.vision.maxImageMb,
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,
@@ -115,7 +117,12 @@ export async function extractRegion(
   });
 
   const parsedJson = extractJsonFromText(raw.text);
-  const structured = normalizeAnalyzeImageOutput(parsedJson, raw, parsedInput.image_path, raw.text);
+  const structured = normalizeAnalyzeImageOutput(
+    parsedJson,
+    raw,
+    resolveImageSource(parsedInput),
+    raw.text,
+  );
   const secured = sanitizeAnalyzeOutput(structured, {
     redactSecrets: dependencies.config.atlas.redactSecrets,
     checkPii: dependencies.config.atlas.checkPii,
@@ -124,7 +131,7 @@ export async function extractRegion(
 
   const markdownLines = [
     "## Extracted Region Analysis",
-    `**Region:** (${x}, ${y}) ${width}×${height} px from "${parsedInput.image_path}"`,
+    `**Region:** (${x}, ${y}) ${width}×${height} px from "${resolveImageSource(parsedInput)}"`,
     "",
     renderAnalyzeImageMarkdown(validated),
   ];

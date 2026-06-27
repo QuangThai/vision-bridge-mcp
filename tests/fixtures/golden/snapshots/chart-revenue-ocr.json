@@ -1,0 +1,22 @@
+{
+  "fixture_id": "chart-revenue",
+  "mode": "ocr",
+  "structure": {
+    "summary": "string",
+    "observations_count": "number",
+    "text_blocks_count": "number",
+    "text_match_rate": "number",
+    "matches_expected_text": "array",
+    "missing_expected_text": "array",
+    "matches_expected_elements": "array",
+    "missing_expected_elements": "array"
+  },
+  "key_count": 8,
+  "array_lengths": {
+    "matches_expected_text": 5,
+    "missing_expected_text": 0,
+    "matches_expected_elements": 0,
+    "missing_expected_elements": 0
+  },
+  "object_keys": []
+}

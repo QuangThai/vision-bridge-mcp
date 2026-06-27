@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -37,7 +38,7 @@ jobs:
       - name: Test
         run: pnpm test
 
-  e2e:
+  e2e-tests:
     runs-on: ubuntu-latest
     needs: [check]
 
@@ -65,8 +66,35 @@ jobs:
           VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:e2e
 
+      - name: E2E tests skipped (no VISION_API_KEY)
+        if: env.VISION_API_KEY == ''
+        run: echo "Skipping E2E tests — set VISION_API_KEY repo secret"
+
+  golden-eval:
+    runs-on: ubuntu-latest
+    needs: [check]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
       - name: Golden eval (real provider — requires VISION_API_KEY secret)
         if: env.VISION_API_KEY != ''
+        timeout-minutes: 10
         env:
           VISION_API_KEY: ${{ secrets.VISION_API_KEY }}
         run: pnpm test:golden
@@ -74,3 +102,32 @@ jobs:
       - name: Golden eval skipped (no VISION_API_KEY)
         if: env.VISION_API_KEY == ''
         run: echo "Skipping golden eval — set VISION_API_KEY repo secret for live vision gate on main"
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [check]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to npm
+        run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

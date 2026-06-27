@@ -10,7 +10,8 @@ Living product contract for **Atlas Vision MCP**, derived from `SPEC.md`.
 | [security.md](./security.md) | Path policy, privacy, redaction, prompt injection |
 | [cli.md](./cli.md) | CLI commands and output format |
 | [extraction-and-evidence.md](./extraction-and-evidence.md) | Schemas, normalization, evidence graph |
-| [integration.md](./integration.md) | OpenCode, Droid, Claude Code setup |
+| [integration.md](./integration.md) | Generic MCP client setup (OpenCode, Droid, Claude Code, Cline, Windsurf, Codex, Cursor, Continue.dev) |
+| [claude-code-integration.md](./claude-code-integration.md) | Dedicated Claude Code guide (hooks + MCP) |
 | [roadmap.md](./roadmap.md) | Phases 0–6 |
 
 **Decisions:** `docs/decisions/0001`–`0007`

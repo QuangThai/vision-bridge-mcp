@@ -73,7 +73,9 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
       'Include the mermaid code in a JSON field called "mermaid" as a string (without markdown fences).',
     );
     lines.push("If the diagram has numbered steps or a sequence, document the flow order.");
-    lines.push("Use exact vocabulary in observations: 'node', 'edge', 'label', 'legend', 'flow arrow' — each connected component is a node, each connector is an edge.");
+    lines.push(
+      "Use exact vocabulary in observations: 'node', 'edge', 'label', 'legend', 'flow arrow' — each connected component is a node, each connector is an edge.",
+    );
   }
 
   if (input.mode === "chart") {
@@ -90,7 +92,9 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     lines.push(
       "Note any data points that are ambiguous due to resolution or overlapping elements.",
     );
-    lines.push("In observations, use the exact chart type name (e.g. 'bar chart', 'line chart'), plus 'labels', 'values', 'axis', 'legend' as applicable.");
+    lines.push(
+      "In observations, use the exact chart type name (e.g. 'bar chart', 'line chart'), plus 'labels', 'values', 'axis', 'legend' as applicable.",
+    );
   }
 
   if (input.mode === "code_from_screenshot") {
@@ -120,7 +124,9 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     lines.push(
       "If the error is a network error (CORS, 4xx, 5xx, timeout, DNS), note the HTTP method and URL if visible.",
     );
-    lines.push("Identify the error dialog structure: name elements as 'error icon', 'heading', 'paragraph', 'button', 'dialog' in your observations.");
+    lines.push(
+      "Identify the error dialog structure: name elements as 'error icon', 'heading', 'paragraph', 'button', 'dialog' in your observations.",
+    );
   }
 
   if (input.mode === "document") {
@@ -147,7 +153,9 @@ function buildAnalyzePrompt(input: AnalyzeImageInput): string {
     lines.push(
       "Include short quoted spans from the image in observation content so downstream OCR checks can match expected strings.",
     );
-    lines.push("Use exact structural vocabulary: 'heading', 'section', 'paragraph', 'list', 'list item', 'table', 'row', 'label' — each block's purpose must be named.");
+    lines.push(
+      "Use exact structural vocabulary: 'heading', 'section', 'paragraph', 'list', 'list item', 'table', 'row', 'label' — each block's purpose must be named.",
+    );
   }
 
   if (input.prompt?.trim()) {

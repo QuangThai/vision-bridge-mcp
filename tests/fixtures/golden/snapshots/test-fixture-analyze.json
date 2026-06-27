@@ -1,0 +1,10 @@
+{
+  "fixture_id": "test-fixture",
+  "mode": "analyze",
+  "structure": {
+    "summary": "string"
+  },
+  "key_count": 1,
+  "array_lengths": {},
+  "object_keys": []
+}

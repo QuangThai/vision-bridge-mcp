@@ -35,9 +35,7 @@ describe("shouldSuppressVisionTools", () => {
       supportsVision: true,
     } as ModelCapabilities);
 
-    const result = await shouldSuppressVisionTools(
-      { MAIN_MODEL_REF: "openai/gpt-4o" },
-    );
+    const result = await shouldSuppressVisionTools({ MAIN_MODEL_REF: "openai/gpt-4o" });
     expect(result).toBe(true);
     expect(mockGetModelCapabilities).toHaveBeenCalledOnce();
   });
@@ -47,18 +45,16 @@ describe("shouldSuppressVisionTools", () => {
       supportsVision: false,
     } as ModelCapabilities);
 
-    const result = await shouldSuppressVisionTools(
-      { MAIN_MODEL_REF: "deepseek/deepseek-v4-flash" },
-    );
+    const result = await shouldSuppressVisionTools({
+      MAIN_MODEL_REF: "deepseek/deepseek-v4-flash",
+    });
     expect(result).toBe(false);
   });
 
   it("returns false on lookup failure (safe default)", async () => {
     mockGetModelCapabilities.mockRejectedValue(new Error("Network error"));
 
-    const result = await shouldSuppressVisionTools(
-      { MAIN_MODEL_REF: "unknown/provider" },
-    );
+    const result = await shouldSuppressVisionTools({ MAIN_MODEL_REF: "unknown/provider" });
     expect(result).toBe(false);
   });
 

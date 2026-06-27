@@ -1,6 +1,7 @@
 import { CacheStore, CachedVisionProvider } from "../capabilities/cache.js";
 import { CostTracker, CostTrackingVisionProvider } from "../capabilities/cost-tracker.js";
 import { type AtlasConfig, type VisionProviderName, validateProviderConfig } from "../config.js";
+import { ClaudeProvider } from "./claude.js";
 import { ProviderError } from "./errors.js";
 import { FallbackVisionProvider } from "./fallback.js";
 import { GeminiProvider } from "./gemini.js";
@@ -35,41 +36,37 @@ function getCostTracker(config: AtlasConfig): CostTracker {
   return sharedCostTracker;
 }
 
+/**
+ * Shared provider factory — single switch statement used by both
+ * createVisionProvider (primary) and createInnerProvider (fallback).
+ */
+function instantiateProvider(cfg: AtlasConfig["vision"], fetch?: FetchFn): VisionProvider {
+  switch (cfg.provider) {
+    case "openai-compatible":
+      return new OpenAICompatibleProvider({ config: cfg, fetch });
+    case "openai-responses":
+      return new OpenAIResponsesProvider({ config: cfg, fetch });
+    case "gemini":
+      return new GeminiProvider({ config: cfg, fetch });
+    case "claude":
+      return new ClaudeProvider({ config: cfg, fetch });
+    default: {
+      const unknown: never = cfg.provider;
+      throw new ProviderError(
+        `Unsupported vision provider: ${unknown as string}`,
+        "invalid_response",
+      );
+    }
+  }
+}
+
 export function createVisionProvider(
   config: AtlasConfig,
   options: CreateVisionProviderOptions = {},
 ): VisionProvider {
   validateProviderConfig(config);
 
-  let inner: VisionProvider;
-
-  switch (config.vision.provider) {
-    case "openai-compatible":
-      inner = new OpenAICompatibleProvider({
-        config: config.vision,
-        fetch: options.fetch,
-      });
-      break;
-    case "openai-responses":
-      inner = new OpenAIResponsesProvider({
-        config: config.vision,
-        fetch: options.fetch,
-      });
-      break;
-    case "gemini":
-      inner = new GeminiProvider({
-        config: config.vision,
-        fetch: options.fetch,
-      });
-      break;
-    default: {
-      const unknownProvider: never = config.vision.provider;
-      throw new ProviderError(
-        `Unsupported vision provider: ${unknownProvider as string}`,
-        "invalid_response",
-      );
-    }
-  }
+  let inner: VisionProvider = instantiateProvider(config.vision, options.fetch);
 
   // Layer 1: caching (unless disabled)
   if (!config.cache.disableCache) {
@@ -101,51 +98,17 @@ function createInnerProvider(
   cfg: { provider: VisionProviderName; apiKey: string; baseUrl: string; model: string },
   fetch?: FetchFn,
 ): VisionProvider {
-  switch (cfg.provider) {
-    case "openai-compatible":
-      return new OpenAICompatibleProvider({
-        config: {
-          ...cfg,
-          temperature: 0.1,
-          timeoutMs: 60_000,
-          maxImageMb: 10,
-          maxOutputTokens: 4_000,
-          retryMax: 3,
-        },
-        fetch,
-      });
-    case "openai-responses":
-      return new OpenAIResponsesProvider({
-        config: {
-          ...cfg,
-          temperature: 0.1,
-          timeoutMs: 60_000,
-          maxImageMb: 10,
-          maxOutputTokens: 4_000,
-          retryMax: 3,
-        },
-        fetch,
-      });
-    case "gemini":
-      return new GeminiProvider({
-        config: {
-          ...cfg,
-          temperature: 0.1,
-          timeoutMs: 60_000,
-          maxImageMb: 10,
-          maxOutputTokens: 4_000,
-          retryMax: 3,
-        },
-        fetch,
-      });
-    default: {
-      const unknownProvider: never = cfg.provider;
-      throw new ProviderError(
-        `Unsupported fallback provider: ${unknownProvider as string}`,
-        "invalid_response",
-      );
-    }
-  }
+  return instantiateProvider(
+    {
+      ...cfg,
+      temperature: 0.1,
+      timeoutMs: 60_000,
+      maxImageMb: 10,
+      maxOutputTokens: 4_000,
+      retryMax: 3,
+    },
+    fetch,
+  );
 }
 
 /**

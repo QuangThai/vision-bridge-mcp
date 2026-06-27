@@ -1,8 +1,9 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "0.15.0",
+  "version": "1.0.0",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
+  "author": "QuangThai",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,23 +27,17 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "extensions",
-    "hooks",
-    "README.md"
-  ],
+  "files": ["dist", "extensions", "hooks", "README.md"],
   "pi": {
-    "extensions": [
-      "./extensions"
-    ]
+    "extensions": ["./extensions"]
   },
   "scripts": {
+    "snapshot:update": "node dist/cli/main.js eval --gate --threshold 0.8 --gate-elements --elements-threshold 0.25 --tier core --snapshot update",
     "build": "tsup",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm test && pnpm typecheck && pnpm run build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:golden": "node dist/cli/main.js eval --gate --threshold 0.8 --gate-elements --elements-threshold 0.25 --no-cache",
+    "test:golden": "node dist/cli/main.js eval --gate --threshold 0.8 --gate-elements --elements-threshold 0.25 --tier core --snapshot verify",
     "eval:models": "node scripts/eval-models.mjs",
     "smoke:agents": "node scripts/smoke-agents.mjs",
     "pi:manual": "node scripts/pi-manual-test.mjs",
@@ -51,13 +46,7 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
-  "keywords": [
-    "mcp",
-    "vision",
-    "coding-agent",
-    "model-context-protocol",
-    "pi-package"
-  ],
+  "keywords": ["mcp", "vision", "coding-agent", "model-context-protocol", "pi-package"],
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },

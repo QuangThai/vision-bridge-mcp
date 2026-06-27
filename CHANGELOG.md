@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.0.0 — 2026-06-27
+
+### Added
+
+- **Anthropic Claude provider** — Messages API adapter with `x-api-key` auth
+  and `anthropic-version: 2023-06-01` header. Content blocks for vision.
+- **URL image support** — All 7 tools accept `image_url` alongside `image_path`,
+  with SSRF protection (blocks private/local networks).
+- **Snapshot testing** — Structural diff verification for golden fixtures.
+  `--snapshot verify|update|skip` flag. CI now verifies snapshots.
+- **Eval report persistence** — `--output <path>` with baseline comparison.
+  Tracks overall text match rate and core pass count across runs.
+- **5 integration guides** — Cursor, Droid, OpenCode, Pi, Claude Code (+ generic).
+- **Claude Code integration guide** — Hook setup, MCP config, settings scopes.
+- **Concurrent golden eval** — Fixtures processed in parallel batches
+  (concurrency=3), reducing wall-clock time.
+- **CI parallel jobs** — E2E tests and golden eval run in separate parallel jobs.
+- **`prepublishOnly` gates** — Tests + typecheck run before publish.
+
+### Changed
+
+- **Breaking (schema):** `compare_images` input now uses `before_url`/`after_url`
+  alongside `before_path`/`after_path`. All optional; at least one required per image.
+- **Breaking (schema):** `ocr_image`, `analyze_ui_screenshot`, `extract_region`,
+  `analyze_image_batch` input schemas now accept `image_url` optionally.
+- **Provider content order** — Images placed before text per Anthropic
+  official docs (applies to all providers).
+- **`test:golden`** — now uses `--tier core` (8 fixtures instead of 22) and
+  `--snapshot verify`. Removed `--no-cache`.
+- **Provider factory** — Shared `instantiateProvider()` eliminates duplicate
+  switch in `createVisionProvider` and `createInnerProvider`.
+- **Shared utilities** — `resolveImageSource()` extracted to `src/utils/`.
+
+### Fixed
+
+- **`analyzeImageBatch` output schema** — Was using `analyzeImageOutputSchema`
+  instead of correct `analyzeImageBatchOutputSchema`.
+- **Dashboard element thresholds** — Updated `expected_elements` to match real
+  model output (`metric`, `recent`, `activity`, `dashboard`).
+- **Missing LICENSE file** — MIT license added.
+
+### Test improvements
+
+- **465 total tests** (433 unit + 32 E2E), all passing.
+- **7 E2E URL tests** — URL image loading for all tools via picsum.photos CDN.
+- **11 URL schema tests** — Acceptance + missing-source rejection for all tools.
+- **E2E tests now run in CI** alongside golden eval (parallel jobs).
+
+---
+
 ## 0.9.0 — 2026-06-25
 
 ### Added

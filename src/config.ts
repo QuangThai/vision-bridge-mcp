@@ -6,7 +6,7 @@ import {
   loadConfigFileSync,
 } from "./config-file.js";
 
-const visionProviderSchema = z.enum(["openai-compatible", "gemini", "openai-responses"]);
+const visionProviderSchema = z.enum(["openai-compatible", "gemini", "openai-responses", "claude"]);
 
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 

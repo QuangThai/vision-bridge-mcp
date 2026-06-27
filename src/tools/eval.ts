@@ -234,29 +234,34 @@ export async function runEval(
 
   const results: EvalResult[] = [];
 
-  for (const fixture of fixtures) {
+  /**
+   * Process one fixture: analyze + ocr calls. Extracted so multiple fixtures
+   * can run concurrently via batched Promise.all.
+   */
+  async function processFixture(fixture: GoldenFixture): Promise<EvalResult[]> {
     const tier = fixtureTier(fixture);
     const threshold = thresholdForFixture(fixture, options);
     const gateBlocking = gate ? tier === "core" : true;
     const imagePath = resolve(goldenDir, fixture.file);
 
     if (!existsSync(imagePath)) {
-      results.push({
-        fixture_id: fixture.id,
-        tier,
-        mode: "analyze",
-        passed: false,
-        gate_blocking: gateBlocking,
-        details: {
-          matches_expected_text: [],
-          missing_expected_text: fixture.expected_text,
-          text_match_rate: 0,
-          matches_expected_elements: [],
-          missing_expected_elements: fixture.expected_elements,
-          errors: [`Image file not found: ${fixture.file}`],
+      return [
+        {
+          fixture_id: fixture.id,
+          tier,
+          mode: "analyze",
+          passed: false,
+          gate_blocking: gateBlocking,
+          details: {
+            matches_expected_text: [],
+            missing_expected_text: fixture.expected_text,
+            text_match_rate: 0,
+            matches_expected_elements: [],
+            missing_expected_elements: fixture.expected_elements,
+            errors: [`Image file not found: ${fixture.file}`],
+          },
         },
-      });
-      continue;
+      ];
     }
 
     const analyzeMode =
@@ -274,7 +279,12 @@ export async function runEval(
                 ? "document"
                 : "general";
 
-    const detailLevel = fixture.type === "document" ? "detailed" : "standard";
+    // Edge fixtures are informational — brief detail is sufficient
+    // Core documents still need detailed; everything else defaults to standard
+    const detailLevel =
+      tier === "edge" ? "brief" : fixture.type === "document" ? "detailed" : "standard";
+
+    const fixtureResults: EvalResult[] = [];
 
     try {
       const analyzeResult = await analyzeImage(
@@ -293,7 +303,7 @@ export async function runEval(
       const fixturePassed =
         analyzeResult.structured.observations.length > 0 && textResult.rate >= threshold;
 
-      results.push({
+      fixtureResults.push({
         fixture_id: fixture.id,
         tier,
         mode: "analyze",
@@ -310,7 +320,7 @@ export async function runEval(
         },
       });
     } catch (err) {
-      results.push({
+      fixtureResults.push({
         fixture_id: fixture.id,
         tier,
         mode: "analyze",
@@ -341,7 +351,7 @@ export async function runEval(
       const ocrText = ocrResult.structured.visible_text.map((t) => t.text).join(" ");
       const textResult = matchText(fixture.expected_text, ocrText);
 
-      results.push({
+      fixtureResults.push({
         fixture_id: fixture.id,
         tier,
         mode: "ocr",
@@ -357,7 +367,7 @@ export async function runEval(
         },
       });
     } catch (err) {
-      results.push({
+      fixtureResults.push({
         fixture_id: fixture.id,
         tier,
         mode: "ocr",
@@ -372,6 +382,19 @@ export async function runEval(
           errors: [(err as Error).message],
         },
       });
+    }
+
+    return fixtureResults;
+  }
+
+  // Process fixtures in concurrent batches to reduce wall-clock time
+  // while respecting provider rate limits (concurrency=3)
+  const CONCURRENCY = 3;
+  for (let i = 0; i < fixtures.length; i += CONCURRENCY) {
+    const chunk = fixtures.slice(i, i + CONCURRENCY);
+    const chunkResults = await Promise.all(chunk.map((fixture) => processFixture(fixture)));
+    for (const batch of chunkResults) {
+      results.push(...batch);
     }
   }
 

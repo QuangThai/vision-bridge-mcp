@@ -240,4 +240,51 @@ describe("analyzeImageBatch", () => {
       ),
     ).rejects.toThrow();
   });
+
+  it("accepts image_url in batch items", async () => {
+    const provider = createMockProvider(
+      JSON.stringify({
+        summary: "URL image analyzed.",
+        observations: [{ id: "obs-1", type: "text", content: "Content from URL", confidence: 0.9 }],
+        inferences: [],
+        uncertainties: [],
+        recommended_next_steps: [],
+        provider: { name: "mock", model: "test" },
+      }),
+    );
+
+    const result = await analyzeImageBatch(
+      {
+        images: [
+          { image_url: "https://example.com/img1.png", mode: "general" },
+          { image_url: "https://example.com/img2.png", mode: "general" },
+        ],
+      },
+      {
+        config: testConfig,
+        provider,
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.structured.items).toHaveLength(2);
+    expect(result.structured.total_processed).toBe(2);
+  });
+
+  it("rejects batch item with neither image_path nor image_url", async () => {
+    const provider = createMockProvider("{}");
+
+    await expect(
+      analyzeImageBatch(
+        {
+          images: [{ mode: "general" }],
+        },
+        {
+          config: testConfig,
+          provider,
+          readImage: vi.fn(async () => mockImage),
+        },
+      ),
+    ).rejects.toThrow();
+  });
 });

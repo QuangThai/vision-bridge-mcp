@@ -53,6 +53,7 @@ export async function analyzeImageBatch(
       const result = await analyzeImage(
         {
           image_path: item.image_path,
+          image_url: item.image_url,
           prompt: item.prompt,
           mode: item.mode,
           detail_level: parsedInput.detail_level,
@@ -65,14 +66,14 @@ export async function analyzeImageBatch(
 
       items.push({
         index: i,
-        image_path: item.image_path,
+        image_path: item.image_path ?? item.image_url ?? "",
         result: result.structured,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       errors.push({
         index: i,
-        image_path: item.image_path,
+        image_path: item.image_path ?? item.image_url ?? "",
         error: message,
       });
     }

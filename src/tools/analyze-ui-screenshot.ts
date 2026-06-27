@@ -14,6 +14,7 @@ import { type LoadedImage, readImageFromPath, toEncodedImage } from "../image/re
 import { createVisionProvider } from "../providers/router.js";
 import type { FetchFn, VisionProvider } from "../providers/types.js";
 import { sanitizeUiScreenshotOutput } from "../security/sanitize-output.js";
+import { resolveImageSource } from "../utils/image-source.js";
 
 export const ANALYZE_UI_SCREENSHOT_TOOL_NAME = "analyze_ui_screenshot";
 
@@ -110,8 +111,9 @@ export async function analyzeUiScreenshot(
   dependencies: AnalyzeUiScreenshotDependencies,
 ): Promise<AnalyzeUiScreenshotResult> {
   const parsedInput = analyzeUiScreenshotInputSchema.parse(input);
+  const imageSource = resolveImageSource(parsedInput);
   const readImage = dependencies.readImage ?? readImageFromPath;
-  const image = await readImage(parsedInput.image_path, {
+  const image = await readImage(imageSource, {
     maxImageMb: dependencies.config.vision.maxImageMb,
     cwd: dependencies.cwd,
     allowedDirs: dependencies.config.atlas.allowedDirs,

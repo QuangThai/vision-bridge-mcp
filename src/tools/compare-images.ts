@@ -103,6 +103,20 @@ function buildComparePrompt(input: CompareImagesInput): string {
  * one multimodal provider request (see OpenAICompatibleProvider.compareImages). A future
  * adapter without native compare support could fall back to dual analyzeImage calls.
  */
+function resolveBeforeSource(input: CompareImagesInput): string {
+  if (input.before_url?.trim()) {
+    return input.before_url.trim();
+  }
+  return input.before_path as string;
+}
+
+function resolveAfterSource(input: CompareImagesInput): string {
+  if (input.after_url?.trim()) {
+    return input.after_url.trim();
+  }
+  return input.after_path as string;
+}
+
 export async function compareImages(
   input: unknown,
   dependencies: CompareImagesDependencies,
@@ -117,8 +131,8 @@ export async function compareImages(
   };
 
   const [before, after] = await Promise.all([
-    readImage(parsedInput.before_path, readOptions),
-    readImage(parsedInput.after_path, readOptions),
+    readImage(resolveBeforeSource(parsedInput), readOptions),
+    readImage(resolveAfterSource(parsedInput), readOptions),
   ]);
 
   const provider =

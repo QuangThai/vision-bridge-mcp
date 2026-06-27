@@ -281,4 +281,46 @@ describe("extractRegion", () => {
     expect(result.markdown).toContain("300×400");
     expect(result.regionCrop).toEqual({ x: 100, y: 200, width: 300, height: 400 });
   });
+
+  it("accepts image_url as an alternative to image_path", async () => {
+    const provider = createMockProvider(
+      JSON.stringify({
+        summary: "Region from URL.",
+        observations: [],
+        inferences: [],
+        uncertainties: [],
+        recommended_next_steps: [],
+      }),
+    );
+
+    const result = await extractRegion(
+      {
+        image_url: "https://example.com/region.png",
+        region: { x: 10, y: 10, width: 100, height: 50 },
+      },
+      {
+        config: testConfig,
+        provider,
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.markdown).toContain("## Extracted Region Analysis");
+    expect(result.regionCrop).toEqual({ x: 10, y: 10, width: 100, height: 50 });
+  });
+
+  it("rejects when both image_path and image_url are missing", async () => {
+    await expect(
+      extractRegion(
+        {
+          region: { x: 0, y: 0, width: 100, height: 50 },
+        },
+        {
+          config: testConfig,
+          provider: createMockProvider("{}"),
+          readImage: vi.fn(async () => mockImage),
+        },
+      ),
+    ).rejects.toThrow(/required/i);
+  });
 });

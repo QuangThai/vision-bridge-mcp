@@ -6,6 +6,7 @@ import { getModelCapabilities, parseModelRef } from "./capabilities/index.js";
 import { type AtlasConfig, ConfigError, loadConfig } from "./config.js";
 import { PACKAGE_NAME, VERSION } from "./constants.js";
 import {
+  analyzeImageBatchOutputSchema,
   analyzeImageDetailLevelSchema,
   analyzeImageModeSchema,
   analyzeImageOutputSchema,
@@ -72,14 +73,16 @@ export const analyzeImageMcpInputSchema = {
 } as const;
 
 export const ocrImageMcpInputSchema = {
-  image_path: z.string().min(1),
+  image_path: z.string().min(1).optional(),
+  image_url: z.string().url().optional(),
   preserve_layout: z.boolean().default(true),
   extract_tables: z.boolean().default(false),
   extract_code: z.boolean().default(false),
 } as const;
 
 export const analyzeUiScreenshotMcpInputSchema = {
-  image_path: z.string().min(1),
+  image_path: z.string().min(1).optional(),
+  image_url: z.string().url().optional(),
   target_framework: z
     .enum(["react", "vue", "svelte", "flutter", "swiftui", "android", "unknown"])
     .default("unknown"),
@@ -90,15 +93,18 @@ export const analyzeUiScreenshotMcpInputSchema = {
 } as const;
 
 export const compareImagesMcpInputSchema = {
-  before_path: z.string().min(1),
-  after_path: z.string().min(1),
+  before_path: z.string().min(1).optional(),
+  before_url: z.string().url().optional(),
+  after_path: z.string().min(1).optional(),
+  after_url: z.string().url().optional(),
   focus: z.enum(["layout", "text", "color", "component", "general"]).default("general"),
   severity_threshold: z.enum(["low", "medium", "high"]).default("low"),
   diff_path: z.string().optional(),
 } as const;
 
 export const extractRegionMcpInputSchema = {
-  image_path: z.string().min(1),
+  image_path: z.string().min(1).optional(),
+  image_url: z.string().url().optional(),
   region: z.object({
     x: z.number().int().min(0),
     y: z.number().int().min(0),
@@ -120,7 +126,8 @@ export const analyzeImageBatchMcpInputSchema = {
   images: z
     .array(
       z.object({
-        image_path: z.string().min(1),
+        image_path: z.string().min(1).optional(),
+        image_url: z.string().url().optional(),
         prompt: z.string().optional(),
         mode: analyzeImageModeSchema.default("general"),
       }),
@@ -242,7 +249,7 @@ export function registerAnalyzeImageBatchTool(
     {
       description: ANALYZE_IMAGE_BATCH_TOOL_DESCRIPTION,
       inputSchema: analyzeImageBatchMcpInputSchema,
-      outputSchema: analyzeImageOutputSchema.shape,
+      outputSchema: analyzeImageBatchOutputSchema.shape,
     },
     async (args) => {
       try {

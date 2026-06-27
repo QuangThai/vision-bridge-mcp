@@ -174,4 +174,61 @@ describe("compareImages", () => {
     expect(prompt).toContain("severity_threshold: high");
     expect(prompt).toContain("BEFORE image");
   });
+
+  it("accepts before_url / after_url as alternatives to before_path / after_path", async () => {
+    const readImage = vi.fn(async () => mockBefore);
+
+    const result = await compareImages(
+      {
+        before_url: "https://example.com/before.png",
+        after_url: "https://example.com/after.png",
+        focus: "layout",
+      },
+      {
+        config: testConfig,
+        provider: createMockProvider(
+          JSON.stringify({
+            summary: "No differences.",
+            differences: [],
+            regression_likelihood: "none",
+            recommended_next_steps: [],
+          }),
+        ),
+        readImage,
+      },
+    );
+
+    expect(readImage).toHaveBeenCalledTimes(2);
+    expect(result.markdown).toBeTruthy();
+  });
+
+  it("rejects when before_path and before_url are both missing", async () => {
+    await expect(
+      compareImages(
+        {
+          after_path: "./after.png",
+        },
+        {
+          config: testConfig,
+          provider: createMockProvider("{}"),
+          readImage: vi.fn(async () => mockBefore),
+        },
+      ),
+    ).rejects.toThrow(/required/i);
+  });
+
+  it("rejects when after_path and after_url are both missing", async () => {
+    await expect(
+      compareImages(
+        {
+          before_path: "./before.png",
+        },
+        {
+          config: testConfig,
+          provider: createMockProvider("{}"),
+          readImage: vi.fn(async () => mockBefore),
+        },
+      ),
+    ).rejects.toThrow(/required/i);
+  });
 });

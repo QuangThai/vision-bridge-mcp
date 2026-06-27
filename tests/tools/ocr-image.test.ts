@@ -136,4 +136,41 @@ describe("ocrImage", () => {
     expect(call?.userPrompt).toContain("extract_code: true");
     expect(call?.userPrompt).toContain("preserve_layout: false");
   });
+
+  it("accepts image_url as an alternative to image_path", async () => {
+    const result = await ocrImage(
+      {
+        image_url: "https://example.com/screenshot.png",
+        preserve_layout: true,
+      },
+      {
+        config: testConfig,
+        provider: createMockProvider(
+          JSON.stringify({
+            summary: "Terminal output.",
+            visible_text: [{ text: "test", region: "unknown", confidence: 0.9 }],
+            layout_text: "",
+            warnings: [],
+          }),
+        ),
+        readImage: vi.fn(async () => mockImage),
+      },
+    );
+
+    expect(result.markdown).toContain("## Summary");
+    expect(result.structured.visible_text.length).toBeGreaterThan(0);
+  });
+
+  it("rejects when both image_path and image_url are missing", async () => {
+    await expect(
+      ocrImage(
+        { preserve_layout: true },
+        {
+          config: testConfig,
+          provider: createMockProvider("{}"),
+          readImage: vi.fn(async () => mockImage),
+        },
+      ),
+    ).rejects.toThrow(/required/i);
+  });
 });

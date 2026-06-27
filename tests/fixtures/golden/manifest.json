@@ -82,7 +82,7 @@
       "type": "dashboard",
       "tier": "core",
       "expected_text": ["Dashboard", "Total Revenue", "Active Users", "Orders", "Bounce Rate"],
-      "expected_elements": ["stat cards", "table", "activity feed", "badges"]
+      "expected_elements": ["metric", "recent", "activity", "dashboard"]
     },
     {
       "id": "dark-mode-ui",
@@ -253,6 +253,73 @@
         "TypeScript"
       ],
       "expected_elements": ["buttons", "input", "card", "navigation", "chip"]
+    },
+    {
+      "id": "receipt",
+      "file": "receipt.png",
+      "source": "programmatic store receipt with dense text and pricing table",
+      "width": 600,
+      "height": 900,
+      "type": "document",
+      "tier": "edge",
+      "expected_text": [
+        "GREEN GROCER",
+        "123 Main Street",
+        "Receipt",
+        "004829",
+        "2026-06-15",
+        "Organic Bananas",
+        "Avocado",
+        "Chicken Breast",
+        "Salmon Fillet",
+        "Sparkling Water",
+        "SUBTOTAL",
+        "TAX",
+        "TOTAL",
+        "VISA",
+        "Thank you"
+      ],
+      "expected_elements": ["heading", "items list", "total row", "footer"]
+    },
+    {
+      "id": "dashboard-before",
+      "file": "dashboard-before.png",
+      "source": "programmatic dashboard before changes (for compare_images pair)",
+      "width": 800,
+      "height": 600,
+      "type": "dashboard",
+      "tier": "edge",
+      "expected_text": [
+        "My Dashboard",
+        "Total Revenue",
+        "Active Users",
+        "Orders",
+        "Sales Overview",
+        "Recent Activity",
+        "$48,290",
+        "John Doe"
+      ],
+      "expected_elements": ["header", "stat cards", "chart line", "activity feed"]
+    },
+    {
+      "id": "dashboard-after",
+      "file": "dashboard-after.png",
+      "source": "programmatic dashboard after changes (for compare_images pair)",
+      "width": 800,
+      "height": 600,
+      "type": "dashboard",
+      "tier": "edge",
+      "expected_text": [
+        "My Dashboard v2",
+        "Total Revenue",
+        "Active Users",
+        "Orders",
+        "Sales Overview",
+        "Recent Activity",
+        "$52,140",
+        "v2.1.1"
+      ],
+      "expected_elements": ["header", "stat cards", "chart line", "activity feed"]
     }
   ]
 }

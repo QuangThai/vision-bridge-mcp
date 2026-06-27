@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  imageRegionSchema,
-  sourceRegionSchema,
-} from "../../src/extraction/schemas.js";
+import { imageRegionSchema, sourceRegionSchema } from "../../src/extraction/schemas.js";
 
 describe("sourceRegionSchema", () => {
   it("accepts valid pixel coordinates", () => {
