@@ -10,6 +10,10 @@ dist/
 # Node
 node_modules/
 
+# This is a pnpm project — npm/yarn lockfiles are stray artifacts.
+package-lock.json
+yarn.lock
+
 # Downloaded Harness CLI binary for installed project instances.
 scripts/bin/harness-cli
 scripts/bin/harness-cli.exe

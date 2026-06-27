@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
+import { startProgressHeartbeat } from "./tools/progress-heartbeat.js";
 import { getModelCapabilities, parseModelRef } from "./capabilities/index.js";
 import { type AtlasConfig, ConfigError, loadConfig } from "./config.js";
 import { PACKAGE_NAME, VERSION } from "./constants.js";
@@ -263,7 +264,8 @@ export function registerAnalyzeImageTool(
       inputSchema: analyzeImageMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyze = dependencies.analyze ?? analyzeImage;
@@ -283,6 +285,8 @@ export function registerAnalyzeImageTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -299,7 +303,8 @@ export function registerExtractRegionTool(
       inputSchema: extractRegionMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const extract = dependencies.extractRegion ?? extractRegion;
@@ -319,6 +324,8 @@ export function registerExtractRegionTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -335,7 +342,8 @@ export function registerAnalyzeImageBatchTool(
       inputSchema: analyzeImageBatchMcpInputSchema,
       outputSchema: analyzeImageBatchOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyzeBatch = dependencies.analyzeImageBatch ?? analyzeImageBatch;
@@ -355,6 +363,8 @@ export function registerAnalyzeImageBatchTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -371,7 +381,8 @@ export function registerOcrImageTool(
       inputSchema: ocrImageMcpInputSchema,
       outputSchema: ocrImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const ocr = dependencies.ocr ?? ocrImage;
@@ -391,6 +402,8 @@ export function registerOcrImageTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -551,7 +564,8 @@ export function registerAnalyzeUiScreenshotTool(
       inputSchema: analyzeUiScreenshotMcpInputSchema,
       outputSchema: analyzeUiScreenshotOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyzeUi = dependencies.analyzeUiScreenshot ?? analyzeUiScreenshot;
@@ -571,6 +585,8 @@ export function registerAnalyzeUiScreenshotTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -587,7 +603,8 @@ export function registerCompareImagesTool(
       inputSchema: compareImagesMcpInputSchema,
       outputSchema: compareImagesOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const compare = dependencies.compareImages ?? compareImages;
@@ -607,6 +624,8 @@ export function registerCompareImagesTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -623,7 +642,8 @@ export function registerShouldUseAtlasVisionTool(
       inputSchema: shouldUseAtlasVisionMcpInputSchema,
       outputSchema: shouldUseAtlasVisionOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const check = dependencies.shouldUseAtlasVision ?? shouldUseAtlasVision;
         const result = await check(args, {
@@ -640,6 +660,8 @@ export function registerShouldUseAtlasVisionTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );

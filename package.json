@@ -35,6 +35,7 @@
   },
   "scripts": {
     "snapshot:update": "node dist/cli/main.js eval --gate --threshold 0.8 --gate-elements --elements-threshold 0.25 --tier core --snapshot update",
+    "prebuild": "node scripts/check-not-running.mjs",
     "build": "tsup",
     "prepublishOnly": "pnpm test && pnpm typecheck && pnpm run build",
     "test": "vitest run",
