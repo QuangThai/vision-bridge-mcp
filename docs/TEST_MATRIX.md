@@ -60,7 +60,11 @@ Mark a row `implemented` after tests or validation evidence exist locally.
 - Integration proof covers provider contracts, MCP round-trips, and service boundaries.
 - E2E proof covers live provider calls (`tests/e2e/`, requires `VISION_API_KEY`).
 - Platform proof covers CLI/bin, build scripts, and stdio server launch.
-- Golden eval runs in CI when `VISION_API_KEY` secret is configured.
+- Live provider CI is opt-in because it spends provider credits. By default,
+  maintainers run `pnpm test:e2e` and `pnpm test:golden` locally before release,
+  then CI records an intentional skip when `VISION_API_KEY` is absent.
+- Golden eval runs in CI only when a maintainer deliberately configures the
+  `VISION_API_KEY` secret for provider-spend validation.
 
 ## Source
 
