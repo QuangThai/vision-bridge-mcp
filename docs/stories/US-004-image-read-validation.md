@@ -37,8 +37,8 @@ Local images are read safely: MIME detection, size limits, supported formats, op
 | --- | --- |
 | Unit | yes — MIME, limits, read errors |
 | Integration | yes — end-to-end read + base64 |
-| E2E | no |
-| Platform | no |
+| E2E | yes — live local path, URL image, and error-mode coverage |
+| Platform | yes — exercised through built CLI and E2E test harness |
 | Release | no |
 
 ## Harness Delta
@@ -49,3 +49,4 @@ None expected.
 
 - `tests/image/read-image.test.ts` — MIME detection, limits, resize, unreadable/too-large errors
 - Verified 2026-06-24: full suite pass (79 tests)
+- Verified 2026-06-28: `pnpm test` (48 files, 434 tests), `pnpm test:e2e` (2 files, 32 tests)

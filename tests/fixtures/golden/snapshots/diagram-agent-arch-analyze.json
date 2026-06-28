@@ -15,8 +15,8 @@
   "array_lengths": {
     "matches_expected_text": 5,
     "missing_expected_text": 0,
-    "matches_expected_elements": 2,
-    "missing_expected_elements": 2
+    "matches_expected_elements": 1,
+    "missing_expected_elements": 3
   },
   "object_keys": []
 }

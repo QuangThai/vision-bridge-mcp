@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.2 - 2026-06-28
+
+### Fixed
+
+- **CLI eval env loading** - `atlas-vision eval` now loads local `.env` values
+  before resolving provider config, matching E2E hook behavior. This lets
+  `pnpm test:golden` run directly in local release checks without a shell env
+  wrapper.
+- **Version metadata sync** - CLI/package version constant now matches the npm
+  package version.
+
+### Validation
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test` - 48 files, 434 tests
+- `pnpm build`
+- `pnpm test:golden` - 16/16 snapshots, zero gate failures
+
 ## 1.0.0 — 2026-06-27
 
 ### Added

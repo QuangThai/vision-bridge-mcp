@@ -39,7 +39,7 @@ README and examples enable OpenCode, Droid, and Claude Code users to install and
 | --- | --- |
 | Unit | no |
 | Integration | yes — manual or scripted smoke: stdio server + doctor |
-| E2E | no |
+| E2E | yes — live agent hook routing and provider-backed tool workflows |
 | Platform | yes — npx-style invocation documented |
 | Release | yes — publish checklist completed |
 
@@ -53,5 +53,6 @@ Update README harness section if needed; trace recorded after MVP complete.
 - `examples/` — OpenCode, Droid, Claude Code, agent prompts
 - `docs/PUBLISH.md` — v0.1.0 publish checklist
 - `tests/integration/publish-smoke.test.ts` — four-tool registration + default stdio + doctor smoke
-- Version `0.1.0` in `package.json` and `src/constants.ts`
+- Version `1.0.2` in `package.json` and `src/constants.ts`
 - Verified 2026-06-24: full suite pass (79 tests)
+- Verified 2026-06-28: `pnpm typecheck`, `pnpm lint`, `pnpm test` (48 files, 434 tests), `pnpm build`, `pnpm test:e2e` (2 files, 32 tests), `pnpm smoke:agents`, `pnpm test:golden` (16/16 snapshots)

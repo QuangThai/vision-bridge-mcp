@@ -1,5 +1,9 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
+  loadCliDotenvEnv,
   renderAnalyzeCliText,
   renderCapabilitiesText,
   renderCompareCliText,
@@ -20,6 +24,29 @@ describe("parseArgs", () => {
     expect(parsed.positional).toEqual(["./image.png"]);
     expect(getFlagString(parsed.flags, "mode")).toBe("general");
     expect(hasFlag(parsed.flags, "json")).toBe(true);
+  });
+});
+
+describe("loadCliDotenvEnv", () => {
+  it("loads missing values from local .env without overriding existing env", () => {
+    const dir = mkdtempSync(join(tmpdir(), "atlas-cli-env-"));
+    try {
+      writeFileSync(
+        join(dir, ".env"),
+        "VISION_API_KEY=from-dotenv\nVISION_MODEL=gpt-4o-mini\nVISION_BASE_URL=https://example.test\n",
+        "utf8",
+      );
+
+      const env = loadCliDotenvEnv(dir, {
+        VISION_API_KEY: "already-exported",
+      });
+
+      expect(env.VISION_API_KEY).toBe("already-exported");
+      expect(env.VISION_MODEL).toBe("gpt-4o-mini");
+      expect(env.VISION_BASE_URL).toBe("https://example.test");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
