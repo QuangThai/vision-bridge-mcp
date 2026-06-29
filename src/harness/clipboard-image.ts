@@ -160,7 +160,7 @@ export async function readClipboardImage(): Promise<string | null> {
   try {
     const { stdout } = await execFileAsync(
       psPath,
-      ["-NoProfile", "-NonInteractive", "-Command", script],
+      ["-NoProfile", "-STA", "-NonInteractive", "-Command", script],
       {
         timeout: 10_000,
         windowsHide: true,

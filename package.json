@@ -1,13 +1,13 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "author": "QuangThai",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/QuangThai/vision-bridge-mcp"
+    "url": "git+https://github.com/QuangThai/vision-bridge-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/QuangThai/vision-bridge-mcp/issues"

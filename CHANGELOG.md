@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.0.4 - 2026-06-29
+
+### Added
+
+- **Clipboard-first MCP tools** — `analyze_clipboard`, `ocr_clipboard`,
+  `diagnose_clipboard`, and `analyze_ui_clipboard` let text-only agents read the
+  current OS clipboard image directly instead of relying on native image
+  attachments.
+- **OpenCode/Droid clipboard workflow docs** — documented that native `Alt+V`
+  attachments are still client-internal, while Atlas clipboard tools read the OS
+  clipboard directly.
+
+### Fixed
+
+- **Windows clipboard image reads** — PowerShell clipboard extraction now runs in
+  STA mode so `Get-Clipboard -Format Image` works reliably from the MCP server.
+- **MCP stdio registration parity** — `serveStdio()` now registers the same
+  vision tools as `createAtlasMcpServer()`, including clipboard tools.
+
+### Validation
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test` - 49 files, 442 tests
+- `pnpm build`
+- E2E verified with OpenCode DeepSeek/GLM and Droid DeepSeek/GLM calling
+  clipboard tools against a real Windows clipboard image.
+
 ## 1.0.3 - 2026-06-29
 
 ### Fixed

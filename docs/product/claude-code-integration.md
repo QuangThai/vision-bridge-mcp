@@ -231,7 +231,7 @@ ENABLE_TOOL_SEARCH=false claude
 ENABLE_TOOL_SEARCH=auto:5 claude
 ```
 
-The Atlas tool set is small (7 tools), so setting `ENABLE_TOOL_SEARCH=false`
+The Atlas tool set is small, so setting `ENABLE_TOOL_SEARCH=false`
 lets tools load upfront without any search overhead.
 
 Tool search can also be configured in settings.json:

@@ -8,7 +8,7 @@ Atlas Vision MCP operates with **least privilege** and **privacy by default**.
 | --- | --- |
 | Prompt injection via OCR text | Mark image text as untrusted; never follow instructions from images |
 | Path traversal / arbitrary file read | `ATLAS_ALLOWED_DIRS` path policy |
-| Secret leakage in screenshots | Optional `ATLAS_REDACT_SECRETS`; no persistence by default |
+| Secret leakage in screenshots | Optional `ATLAS_REDACT_SECRETS`; clipboard temp files deleted after analysis; no persistence by default |
 | Provider data disclosure | Local-first; user controls provider and credentials |
 | Code execution | Server does not execute code from images or tool input |
 | Verbose logging of sensitive content | `ATLAS_LOG_IMAGE_CONTENT=false` by default |
@@ -34,6 +34,7 @@ ATLAS_REDACT_SECRETS=true
 ```
 
 - No image persistence unless explicitly enabled in future
+- Clipboard tools may create a temporary PNG only for the duration of one tool call, then delete it
 - No logging of image bytes or extracted text unless `ATLAS_LOG_IMAGE_CONTENT=true`
 - Provider sends image to configured vision API — document this in README
 
@@ -52,8 +53,9 @@ When `ATLAS_REDACT_SECRETS=true`, redact common patterns from OCR output:
 
 ## Operational Rules
 
-- Do not upload images unless a tool is explicitly invoked
+- Do not upload images unless a tool is explicitly invoked or a configured hook is enabled
 - Do not persist images by default
+- Clipboard-derived files are internal inputs: Atlas temporarily extends the path allowlist only to the temp file directory for that tool call
 - MCP server runs locally via stdio for MVP
 
 ## Source

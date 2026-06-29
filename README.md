@@ -109,21 +109,40 @@ npx atlas-vision-mcp install-hooks cursor
 For agent-specific instructions, see [`examples/`](examples/) and
 [`docs/product/integration.md`](docs/product/integration.md).
 
-## MCP tools (7)
+## MCP tools (11)
 
 | Tool | Use when |
 | --- | --- |
 | `should_use_atlas_vision` | Check if main model needs Atlas before calling vision tools |
 | `analyze_image` | General image analysis: diagrams, charts, errors, code screenshots |
 | `ocr_image` | Extract visible text from screenshots, documents, UI text |
+| `analyze_clipboard` | Analyze the current OS clipboard image when no path is available |
+| `ocr_clipboard` | OCR the current OS clipboard image |
+| `diagnose_clipboard` | Diagnose clipboard error screenshots, stack traces, terminals, dialogs |
 | `analyze_ui_screenshot` | UI/mockup structure, components, layout, a11y hints |
+| `analyze_ui_clipboard` | UI/mockup analysis from the current OS clipboard image |
 | `compare_images` | Before/after visual regression and layout shifts |
 | `extract_region` | Crop and analyze a specific region of an image |
 | `analyze_image_batch` | Process multiple images in a single call |
 
+### Clipboard-first image support
+
+For text-only agents such as OpenCode or Droid with DeepSeek/GLM, native image
+paste/Alt+V can become an internal `[Image 1]` attachment that MCP tools cannot
+see. Prefer clipboard-first tools instead:
+
+```text
+Copy screenshot/image → ask "analyze my clipboard" → Atlas reads OS clipboard
+```
+
+Use `analyze_clipboard`, `ocr_clipboard`, `diagnose_clipboard`, or
+`analyze_ui_clipboard`. Atlas writes the clipboard image to a temporary local PNG,
+adds that temp directory to the internal allowlist for the tool call, sends it to
+the configured vision provider, and deletes the temp file after analysis.
+
 ### URL image support
 
-All tools accept `image_url` in addition to `image_path`. When a URL is provided,
+All path-based tools accept `image_url` in addition to `image_path`. When a URL is provided,
 Atlas downloads the image with SSRF protection (blocks private/local networks)
 before analysis:
 
