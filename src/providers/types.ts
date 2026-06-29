@@ -60,22 +60,39 @@ export function mapDetailLevel(atlasLevel: string): ImageDetailLevel | undefined
 }
 
 /**
+ * Check if a Gemini model supports media_resolution (Gemini 3+ only).
+ */
+export function supportsMediaResolution(model: string): boolean {
+  return model.startsWith("gemini-3");
+}
+
+/**
  * Map detail level to Gemini media_resolution parameter.
  *
+ * media_resolution is only supported on Gemini 3+. For older models
+ * (gemini-2.x, gemini-1.x) this function always returns undefined.
+ *
  * Gemini 3+ supports granular media resolution control:
- * - "low": up to 0.5x base tokens per image (fast, cheap)
- * - "high" (default): standard quality
- * - "original": maximum quality for fine text/small details
+ * - MEDIA_RESOLUTION_LOW: up to 0.5x base tokens per image (fast, cheap)
+ * - MEDIA_RESOLUTION_HIGH (default): standard quality
+ * - MEDIA_RESOLUTION_ORIGINAL: maximum quality for fine text/small details
  * Not set when undefined (auto).
  */
-export function mapDetailToMediaResolution(detailLevel?: string): string | undefined {
+export function mapDetailToMediaResolution(
+  detailLevel?: string,
+  model?: string,
+): string | undefined {
+  // media_resolution is only supported on Gemini 3+
+  if (model && !supportsMediaResolution(model)) {
+    return undefined;
+  }
   switch (detailLevel) {
     case "low":
-      return "low";
+      return "MEDIA_RESOLUTION_LOW";
     case "high":
       return undefined; // default
     case "original":
-      return "original";
+      return "MEDIA_RESOLUTION_ORIGINAL";
     default:
       return undefined;
   }

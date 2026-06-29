@@ -113,7 +113,7 @@ export class GeminiProvider implements VisionProvider {
       },
     ];
 
-    const mediaResolution = mapDetailToMediaResolution(input.detailLevel);
+    const mediaResolution = mapDetailToMediaResolution(input.detailLevel, this.visionConfig.model);
 
     const body: GeminiRequest = {
       contents,
@@ -155,7 +155,7 @@ export class GeminiProvider implements VisionProvider {
       },
     ];
 
-    const mediaResolution = mapDetailToMediaResolution(input.detailLevel);
+    const mediaResolution = mapDetailToMediaResolution(input.detailLevel, this.visionConfig.model);
 
     const body: GeminiRequest = {
       contents,

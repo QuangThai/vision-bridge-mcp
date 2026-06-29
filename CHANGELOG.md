@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.0.3 - 2026-06-29
+
+### Fixed
+
+- **Gemini `media_resolution` enum format** — `mapDetailToMediaResolution()` now
+  uses correct proto enum names (`MEDIA_RESOLUTION_LOW`, `MEDIA_RESOLUTION_ORIGINAL`)
+  instead of lowercase strings that were rejected by the API.
+- **Gemini model version gate** — `media_resolution` is now only sent for
+  Gemini 3+ models (where the API supports it). Older models (gemini-2.x)
+  skip the parameter entirely, avoiding `Invalid value` errors.
+
+### Added
+
+- **`supportsMediaResolution(model)`** — exported helper to check Gemini model
+  version compatibility.
+- **Gemini E2E tests** — `tests/e2e/gemini-e2e.test.ts` (24 tests) covering
+  all 7 tools against real Gemini models. Plus multi-model smoke suite
+  `tests/e2e/gemini-multi-model.test.ts` for cross-version verification.
+
+### Validation
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test` - 48 files, 434 tests
+- `pnpm build`
+- E2E verified on `gemini-3.5-flash` (17/24 pass, 7 quota-skipped)
+- E2E verified on `gemini-3.1-flash-lite` (4/4 core tools pass)
+
 ## 1.0.2 - 2026-06-28
 
 ### Fixed
