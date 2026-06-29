@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.0.5 - 2026-06-29
+
+### Fixed
+
+- **`npx atlas-vision-mcp` package execution** — added the `atlas-vision-mcp`
+  bin alias alongside `atlas-vision`, so MCP clients can run the package by name
+  on Windows and other platforms.
+- **Cross-platform clipboard image reads** — clipboard tools now support macOS
+  (`pngpaste` or AppleScript fallback) and Linux (`wl-paste` or `xclip`) in
+  addition to Windows PowerShell Desktop.
+- **Clipboard platform documentation** — README and product docs now list the
+  Windows/macOS/Linux backends and limitations.
+
+### Validation
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test` - 49 files, 442 tests
+- `pnpm build`
+- `npm publish --dry-run`
+
 ## 1.0.4 - 2026-06-29
 
 ### Added

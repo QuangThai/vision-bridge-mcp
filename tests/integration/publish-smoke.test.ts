@@ -42,6 +42,7 @@ describe("publish smoke", () => {
     ) as { bin?: Record<string, string>; files?: string[] };
 
     expect(packageJson.bin?.["atlas-vision"]).toBe("dist/cli/main.js");
+    expect(packageJson.bin?.["atlas-vision-mcp"]).toBe("dist/cli/main.js");
     expect(packageJson.files).toContain("dist");
     expect(packageJson.files).toContain("README.md");
   });

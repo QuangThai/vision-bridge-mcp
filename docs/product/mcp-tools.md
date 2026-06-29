@@ -110,6 +110,14 @@ after analysis.
 | `diagnose_clipboard` | `prompt?`, `detail_level?` | same as `analyze_image` with `mode=error_screenshot` | Clipboard error dialogs, stack traces, browser/terminal failures |
 | `analyze_ui_clipboard` | `target_framework?`, `style_system?`, `goal?` | same as `analyze_ui_screenshot` | Clipboard UI screenshots/mockups |
 
+Platform support:
+
+| OS | Clipboard image backend |
+| --- | --- |
+| Windows | Built-in PowerShell Desktop `Get-Clipboard -Format Image` |
+| macOS | `pngpaste` when installed; AppleScript fallback without extra deps |
+| Linux | `wl-paste` on Wayland or `xclip` on X11 |
+
 Security notes:
 
 - Clipboard tools are explicit tool calls; they do not upload images unless the

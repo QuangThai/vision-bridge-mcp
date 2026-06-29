@@ -82,6 +82,10 @@ Atlas exposes `analyze_clipboard`, `ocr_clipboard`, `diagnose_clipboard`, and
 `analyze_ui_clipboard` so the MCP server reads the OS clipboard directly instead
 of relying on an internal `[Image 1]` attachment.
 
+Clipboard image backends are platform-specific: Windows uses built-in PowerShell
+Desktop, macOS uses `pngpaste` when installed or AppleScript fallback, and Linux
+uses `wl-paste` (Wayland) or `xclip` (X11).
+
 ## Claude Code
 
 ```bash

@@ -140,6 +140,14 @@ Use `analyze_clipboard`, `ocr_clipboard`, `diagnose_clipboard`, or
 adds that temp directory to the internal allowlist for the tool call, sends it to
 the configured vision provider, and deletes the temp file after analysis.
 
+Platform support:
+
+| OS | Clipboard image backend |
+| --- | --- |
+| Windows | Built-in PowerShell Desktop `Get-Clipboard -Format Image` |
+| macOS | `pngpaste` when installed; AppleScript fallback without extra deps |
+| Linux | `wl-paste` on Wayland or `xclip` on X11 |
+
 ### URL image support
 
 All path-based tools accept `image_url` in addition to `image_path`. When a URL is provided,

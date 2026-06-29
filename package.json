@@ -1,6 +1,6 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "author": "QuangThai",
@@ -17,7 +17,8 @@
     "node": ">=20"
   },
   "bin": {
-    "atlas-vision": "dist/cli/main.js"
+    "atlas-vision": "dist/cli/main.js",
+    "atlas-vision-mcp": "dist/cli/main.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

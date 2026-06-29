@@ -34,7 +34,7 @@ ATLAS_REDACT_SECRETS=true
 ```
 
 - No image persistence unless explicitly enabled in future
-- Clipboard tools may create a temporary PNG only for the duration of one tool call, then delete it
+- Clipboard tools may create a temporary image file only for the duration of one tool call, then delete it
 - No logging of image bytes or extracted text unless `ATLAS_LOG_IMAGE_CONTENT=true`
 - Provider sends image to configured vision API — document this in README
 
@@ -56,6 +56,7 @@ When `ATLAS_REDACT_SECRETS=true`, redact common patterns from OCR output:
 - Do not upload images unless a tool is explicitly invoked or a configured hook is enabled
 - Do not persist images by default
 - Clipboard-derived files are internal inputs: Atlas temporarily extends the path allowlist only to the temp file directory for that tool call
+- Clipboard image extraction is cross-platform best-effort: Windows uses PowerShell Desktop, macOS uses `pngpaste`/AppleScript, and Linux uses `wl-paste`/`xclip`
 - MCP server runs locally via stdio for MVP
 
 ## Source
