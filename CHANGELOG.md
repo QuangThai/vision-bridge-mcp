@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.0.6 - 2026-06-30
+
+### Added
+
+- **Pi package gallery preview** — added a clean `pi.image` preview asset for
+  `https://pi.dev/packages/atlas-vision-mcp` so the package renders with a clear,
+  non-overflowing UI card in the Pi gallery.
+- **Pi package discoverability** — expanded npm keywords with `pi-extension`,
+  `ocr`, and `screenshot`.
+
+### Documentation
+
+- Added a Pi-specific security note explaining local extension permissions, image
+  and clipboard reads, provider upload behavior, and config review points.
+- Clarified that `pi install npm:atlas-vision-mcp` is the supported distribution
+  path; git install is not currently supported because the extension imports
+  built files from the npm tarball.
+- Converted README docs/examples links to GitHub absolute links so they work
+  correctly from npm and Pi package pages.
+
+### Validation
+
+- `pnpm build`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test` - 49 files, 442 tests
+- `npm pack --dry-run --json`
+
 ## 1.0.5 - 2026-06-29
 
 ### Fixed

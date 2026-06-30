@@ -106,8 +106,8 @@ npx atlas-vision-mcp install-hooks cursor
 # Server command: npx -y atlas-vision-mcp
 ```
 
-For agent-specific instructions, see [`examples/`](examples/) and
-[`docs/product/integration.md`](docs/product/integration.md).
+For agent-specific instructions, see [`examples/`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/) and
+[`docs/product/integration.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/integration.md).
 
 ## MCP tools (11)
 
@@ -180,7 +180,7 @@ atlas-vision analyze ./screenshot.png ./diagram.png ./chart.png
 
 **MCP:** `analyze_image_batch(images: [{ image_path, prompt?, mode? }], detail_level?)` — 1–10 images per batch.
 
-Deeper schemas: [`docs/product/mcp-tools.md`](docs/product/mcp-tools.md)
+Deeper schemas: [`docs/product/mcp-tools.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/mcp-tools.md)
 
 ## Environment variables
 
@@ -318,22 +318,22 @@ atlas-vision config --json    # JSON output
 
 Full provider and security docs:
 
-- [`docs/product/provider.md`](docs/product/provider.md)
-- [`docs/product/security.md`](docs/product/security.md)
+- [`docs/product/provider.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/provider.md)
+- [`docs/product/security.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/security.md)
 
 ## Client integration
 
-Copy-paste examples live in [`examples/`](examples/) and [`docs/product/integration.md`](docs/product/integration.md).
+Copy-paste examples live in [`examples/`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/) and [`docs/product/integration.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/integration.md).
 
 ### Auto-intercept (text-only models + images)
 
 | Client | Install |
 | --- | --- |
 | **pi** | [`pi install npm:atlas-vision-mcp`](#pi-integration) — auto-intercept in-process |
-| **opencode-go** | [OpenCode plugin](.opencode/plugin.ts) — auto-intercept via `chat.message` hook (0 MCP calls) |
-| **Cursor / Codex / Claude / Droid** | User-prompt hooks — [`examples/HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
+| **opencode-go** | [OpenCode plugin](https://github.com/QuangThai/vision-bridge-mcp/blob/main/.opencode/plugin.ts) — auto-intercept via `chat.message` hook (0 MCP calls) |
+| **Cursor / Codex / Claude / Droid** | User-prompt hooks — [`examples/HOOKS_INTEGRATION.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/HOOKS_INTEGRATION.md) |
 
-Hook env file (no shell export): copy [`examples/atlas-vision.env.example`](examples/atlas-vision.env.example) → `~/.config/atlas-vision/env`
+Hook env file (no shell export): create `~/.config/atlas-vision/env` from the [`examples/atlas-vision.env.example`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/atlas-vision.env.example) template.
 
 ## Pi integration
 
@@ -349,6 +349,8 @@ User prompt (+ attached images)
 ```
 
 ### Install
+
+Recommended distribution is the published npm package:
 
 ```bash
 pi install npm:atlas-vision-mcp
@@ -366,22 +368,21 @@ Try without installing:
 pi -e npm:atlas-vision-mcp
 ```
 
+Git install is not the supported distribution path right now; the Pi extension imports built files included in the npm tarball.
+
+> **Security:** Pi extensions run with local process permissions. Atlas may read attached images, clipboard images, and configured local image paths, then send image content to your configured vision provider. Review `ATLAS_ALLOWED_DIRS`, `.env`, and provider settings before installing or enabling it in a project.
+
 ### Configuration
 
 The extension **auto-loads** env files on startup — no manual export or direnv needed.
 
-Create a `.env` file in your project root (copy from template):
+Create a `.env` file in your project root using the [`examples/atlas-vision.env.example`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/atlas-vision.env.example) template, then run `pi` from that project.
 
-```bash
-cp examples/atlas-vision.env.example .env
-# edit .env with your API keys, then just run pi
-```
-
-Or use the global location (shared across all projects):
+Or use the global location shared across all projects:
 
 ```bash
 mkdir -p ~/.config/atlas-vision
-cp examples/atlas-vision.env.example ~/.config/atlas-vision/env
+$EDITOR ~/.config/atlas-vision/env
 ```
 
 The extension tries these locations in order (first found wins):
@@ -463,13 +464,13 @@ npx atlas-vision-mcp install-hooks claude
 | Approach | What you get |
 | --- | --- |
 | `pi install npm:atlas-vision-mcp` | Auto-intercept Pi extension (in-process) |
-| [OpenCode plugin](.opencode/plugin.ts) | Auto-intercept via `chat.message` hook (0 MCP calls, v0.4.0) |
+| [OpenCode plugin](https://github.com/QuangThai/vision-bridge-mcp/blob/main/.opencode/plugin.ts) | Auto-intercept via `chat.message` hook (0 MCP calls, v0.4.0) |
 | MCP config (`npx atlas-vision-mcp`) | stdio MCP tools for Cursor / Claude / other MCP clients |
-| User-prompt hooks | Auto-intercept for Cursor, Codex, Claude, Droid — see [`HOOKS_INTEGRATION.md`](examples/HOOKS_INTEGRATION.md) |
+| User-prompt hooks | Auto-intercept for Cursor, Codex, Claude, Droid — see [`HOOKS_INTEGRATION.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/HOOKS_INTEGRATION.md) |
 
 Use the Pi extension on Pi; use the plugin on opencode-go; use hooks on other agents; use MCP for on-demand tools everywhere.
 
-Full Pi integration guide: [`examples/PI_INTEGRATION.md`](examples/PI_INTEGRATION.md)
+Full Pi integration guide: [`examples/PI_INTEGRATION.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/PI_INTEGRATION.md)
 
 ### OpenCode Go — Plugin (auto-intercept, recommended)
 
@@ -484,7 +485,7 @@ Requires same `VISION_API_KEY`, `VISION_BASE_URL`, `VISION_MODEL` env vars.
 
 ### MCP only (manual tool calls)
 
-See [`examples/opencode.jsonc`](examples/opencode.jsonc).
+See [`examples/opencode.jsonc`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/opencode.jsonc).
 
 ### Factory Droid
 
@@ -540,7 +541,7 @@ ENABLE_TOOL_SEARCH=false claude
 ENABLE_TOOL_SEARCH=auto:5 claude
 ```
 
-Full guide: [`docs/product/claude-code-integration.md`](docs/product/claude-code-integration.md)
+Full guide: [`docs/product/claude-code-integration.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/claude-code-integration.md)
 
 ### Cursor / Cline / other stdio MCP clients
 
@@ -567,7 +568,7 @@ If the main model has no native vision support, use Atlas tools instead of
 pretending to see the image.
 ```
 
-More examples: [`examples/agent-prompts.md`](examples/agent-prompts.md)
+More examples: [`examples/agent-prompts.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/agent-prompts.md)
 
 ## Security notes
 
@@ -600,17 +601,17 @@ Requires `NPM_TOKEN` set as a GitHub Actions secret.
 
 Product contract and stories:
 
-- [`docs/product/`](docs/product/)
-- [`docs/stories/`](docs/stories/)
-- [`docs/TEST_MATRIX.md`](docs/TEST_MATRIX.md)
+- [`docs/product/`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/)
+- [`docs/stories/`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/stories/)
+- [`docs/TEST_MATRIX.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/TEST_MATRIX.md)
 
 ## Publish (maintainers)
 
-Initial npm publish checklist: [`docs/PUBLISH.md`](docs/PUBLISH.md)
+Initial npm publish checklist: [`docs/PUBLISH.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/PUBLISH.md)
 
 ## Harness
 
-This repo also uses [Harness](docs/HARNESS.md) for agent operating context (`AGENTS.md`, story packets, test matrix). Application behavior is defined in `docs/product/*`, not in the generic harness README template.
+This repo also uses [Harness](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/HARNESS.md) for agent operating context (`AGENTS.md`, story packets, test matrix). Application behavior is defined in `docs/product/*`, not in the generic harness README template.
 
 ## License
 
