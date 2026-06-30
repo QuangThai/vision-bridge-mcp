@@ -1,6 +1,6 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "author": "QuangThai",

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.0.7 - 2026-06-30
+
+### Fixed
+
+- **Pi pasted image temp paths** — auto-intercept now safely allows Pi CLI
+  clipboard temp images such as `pi-clipboard-*.png` under the current OS temp
+  directory, fixing `Image path is outside allowed directories` after users move
+  `%TEMP%` / `%TMP%` to another drive.
+- **Internal temp image handling** — Atlas-created attached-image and clipboard
+  temp files are allowed per planned vision call without globally widening
+  `ATLAS_ALLOWED_DIRS`; arbitrary temp image paths remain blocked.
+
+### Validation
+
+- `pnpm build`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm vitest run tests/harness/intercept-images.test.ts`
+- `pnpm test` - 49 files, 444 tests
+- `npm pack --dry-run --json`
+
 ## 1.0.6 - 2026-06-30
 
 ### Added
