@@ -24,6 +24,18 @@ describe("loadConfig", () => {
     expect(config.atlas.redactSecrets).toBe(true);
     expect(config.atlas.checkPii).toBe(false);
     expect(config.atlas.defaultDetailLevel).toBe("standard");
+    expect(config.vision.responsesThinking).toBe("disabled");
+    expect(config.vision.responsesStore).toBe(true);
+  });
+
+  it("parses Responses-API-specific env values", () => {
+    const config = loadConfig({
+      VISION_RESPONSES_THINKING: "enabled",
+      VISION_RESPONSES_STORE: "false",
+    });
+
+    expect(config.vision.responsesThinking).toBe("enabled");
+    expect(config.vision.responsesStore).toBe(false);
   });
 
   it("parses custom env values", () => {

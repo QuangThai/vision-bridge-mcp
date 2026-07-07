@@ -22,10 +22,7 @@ const rawEnvSchema = z.object({
   VISION_MAX_IMAGE_MB: z.coerce.number().positive().max(100).default(10),
   VISION_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().max(128_000).default(4_000),
   VISION_RETRY_MAX: z.coerce.number().int().min(0).max(10).default(3),
-  VISION_RESPONSES_THINKING: z
-    .enum(["enabled", "disabled", "auto"])
-    .default("disabled")
-    .transform((v) => v as "enabled" | "disabled" | "auto"),
+  VISION_RESPONSES_THINKING: z.enum(["enabled", "disabled", "auto"]).default("disabled"),
   VISION_RESPONSES_STORE: z
     .enum(["true", "false", "1", "0"])
     .default("true")

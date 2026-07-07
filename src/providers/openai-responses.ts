@@ -73,6 +73,23 @@ interface CreateResponseResponse {
   usage?: ResponseUsage;
 }
 
+// Fields sent to the Responses API. Deliberately has no `max_output_tokens`:
+// capping output truncates long "thinking" responses mid-stream, which makes
+// the caller retry (a full extra round-trip) rather than let the model finish
+// on its own. Modern models rarely loop indefinitely, so the cap does more
+// harm (truncation-driven retries) than good (runaway-output prevention).
+interface CreateResponseRequest {
+  model: string;
+  input: EasyInputMessageParam[];
+  instructions?: string;
+  temperature?: number;
+  thinking?: { type: "enabled" | "disabled" | "auto" };
+  store?: boolean;
+  text?: {
+    format?: { type: "text" | "json_object" };
+  };
+}
+
 function joinBaseUrl(baseUrl: string, path: string): string {
   const trimmed = baseUrl.replace(/\/+$/, "");
   return `${trimmed}${path}`;
@@ -151,7 +168,7 @@ export class OpenAIResponsesProvider implements VisionProvider {
   async healthCheck(): Promise<ProviderHealth> {
     try {
       // Use a minimal text-only response to verify connectivity
-      const body: Record<string, unknown> = {
+      const body: CreateResponseRequest = {
         model: this.visionConfig.model,
         input: [
           {
@@ -210,7 +227,7 @@ export class OpenAIResponsesProvider implements VisionProvider {
     inputMessages: EasyInputMessageParam[],
     systemPrompt: string,
   ): Promise<RawVisionResult> {
-    const body: Record<string, unknown> = {
+    const body: CreateResponseRequest = {
       model: this.visionConfig.model,
       input: inputMessages,
       instructions: systemPrompt,

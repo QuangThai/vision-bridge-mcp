@@ -44,13 +44,15 @@ describe("OpenAIResponsesProvider", () => {
         input: Array<{ type: string; role: string; content: unknown }>;
         instructions: string;
         temperature: number;
-        max_output_tokens: number;
+        thinking: { type: string };
+        store: boolean;
         text: { format: { type: string } };
       };
 
       expect(body.model).toBe("gpt-4o");
       expect(body.temperature).toBe(0.1);
-      expect(body.max_output_tokens).toBe(4_000);
+      expect(body.thinking).toEqual({ type: "disabled" });
+      expect(body.store).toBe(true);
       expect(body.instructions).toBeTruthy();
       expect(body.text.format.type).toBe("json_object");
 

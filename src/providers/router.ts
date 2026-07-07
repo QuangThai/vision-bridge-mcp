@@ -113,7 +113,6 @@ function createInnerProvider(
   );
 }
 
-
 /**
  * Reset shared singletons (for testing).
  */
