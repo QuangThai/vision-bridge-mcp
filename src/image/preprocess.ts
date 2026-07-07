@@ -15,7 +15,6 @@ const DETAIL_TARGET_SHORT_SIDE: Record<string, number> = {
   low: 512,
   medium: 1024,
   high: 2048,
-  xhigh: 4096,
   original: 99999,
 };
 

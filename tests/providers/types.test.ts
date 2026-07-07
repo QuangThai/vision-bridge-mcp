@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { mapDetailLevel, mapDetailToMediaResolution } from "../../src/providers/types.js";
 
 describe("mapDetailLevel", () => {
-  it("maps 'detailed' to 'xhigh' (Volcengine rejects 'original')", () => {
-    expect(mapDetailLevel("detailed")).toBe("xhigh");
+  it("maps 'detailed' to 'original' (shared across all providers)", () => {
+    expect(mapDetailLevel("detailed")).toBe("original");
   });
 
   it("maps 'brief' and 'standard' unchanged", () => {
@@ -17,15 +17,21 @@ describe("mapDetailLevel", () => {
 });
 
 describe("mapDetailToMediaResolution", () => {
-  it("maps 'xhigh' to Gemini's 'original' media_resolution", () => {
-    expect(mapDetailToMediaResolution("xhigh")).toBe("original");
-  });
-
-  it("maps 'original' to 'original' as before", () => {
-    expect(mapDetailToMediaResolution("original")).toBe("original");
+  it("maps 'original' to Gemini 3's MEDIA_RESOLUTION_ORIGINAL", () => {
+    expect(mapDetailToMediaResolution("original", "gemini-3-pro")).toBe(
+      "MEDIA_RESOLUTION_ORIGINAL",
+    );
   });
 
   it("leaves 'high' as the default (undefined)", () => {
-    expect(mapDetailToMediaResolution("high")).toBeUndefined();
+    expect(mapDetailToMediaResolution("high", "gemini-3-pro")).toBeUndefined();
+  });
+
+  it("returns undefined for pre-Gemini-3 models regardless of detail level", () => {
+    expect(mapDetailToMediaResolution("original", "gemini-2.5-pro")).toBeUndefined();
+  });
+
+  it("does not gate when no model is given (back-compat call site)", () => {
+    expect(mapDetailToMediaResolution("original")).toBe("MEDIA_RESOLUTION_ORIGINAL");
   });
 });
