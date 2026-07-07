@@ -1,9 +1,9 @@
 /**
  * clipboard-image.ts — Auto-detect clipboard image for Atlas vision intercept.
  *
- * When Droid blocks image attachment (noImageSupport), the Atlas hook can
- * read the clipboard image directly via PowerShell and feed it through the
- * vision pipeline.
+ * When Droid/OpenCode native image attachments are unavailable to text-only
+ * models, the Atlas hook/tool can read the OS clipboard image directly and feed
+ * it through the vision pipeline.
  *
  * Triggered by:
  *  - Env var ATLAS_CLIPBOARD_DETECT=true (always) / "smart" (keyword-based)
@@ -11,7 +11,8 @@
  */
 
 import { execFile } from "node:child_process";
-import { existsSync, unlinkSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { existsSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -131,57 +132,34 @@ export function shouldAutoDetectClipboard(prompt: string, env: NodeJS.ProcessEnv
 }
 
 /**
- * Read the current clipboard image via PowerShell and save it to a temporary
- * PNG file.
+ * Read the current OS clipboard image and save it to a temporary image file.
  *
- * Uses `Get-Clipboard -Format Image` (Windows PowerShell 5.1 / Desktop).
+ * Platform support:
+ * - Windows: built-in PowerShell Desktop `Get-Clipboard -Format Image`.
+ * - macOS: `pngpaste` when installed, with AppleScript clipboard fallback.
+ * - Linux: `wl-paste` (Wayland) or `xclip` (X11) when installed.
  *
- * @returns  Absolute path to the saved temp PNG, or `null` if no image.
+ * @returns  Absolute path to the saved temp image, or `null` if no image.
  */
 export async function readClipboardImage(): Promise<string | null> {
-  const psPath = await findPowerShell();
-  if (!psPath) return null;
-
   const tmpFile = join(tmpdir(), `atlas-clip-${Date.now()}-${randomHex()}.png`);
 
-  // PowerShell single-quote escaping: '' → '
-  const safePath = tmpFile.replace(/'/g, "''");
-
-  const script = [
-    "$img = Get-Clipboard -Format Image;",
-    "if ($img) {",
-    `  $img.Save('${safePath}');`,
-    `  if (Test-Path '${safePath}') { Write-Output 'OK'; exit 0 }`,
-    "}",
-    `Write-Error 'No image'; exit 1`,
-  ].join(" ");
-
   try {
-    const { stdout } = await execFileAsync(
-      psPath,
-      ["-NoProfile", "-NonInteractive", "-Command", script],
-      {
-        timeout: 10_000,
-        windowsHide: true,
-      },
-    );
+    const saved =
+      process.platform === "win32"
+        ? await readClipboardImageWindows(tmpFile)
+        : process.platform === "darwin"
+          ? await readClipboardImageMacOS(tmpFile)
+          : await readClipboardImageLinux(tmpFile);
 
-    if (stdout.trim() === "OK" && existsSync(tmpFile)) {
+    if (saved && existsSync(tmpFile)) {
       return tmpFile;
     }
   } catch {
-    // No image on clipboard or PowerShell unavailable
+    // No image on clipboard or platform clipboard command unavailable.
   }
 
-  // Clean up orphaned temp file on failure
-  if (existsSync(tmpFile)) {
-    try {
-      unlinkSync(tmpFile);
-    } catch {
-      // best-effort
-    }
-  }
-
+  cleanupTempFile(tmpFile);
   return null;
 }
 
@@ -199,6 +177,8 @@ export function scheduleClipboardCleanup(filePath: string): void {
   };
 
   process.once("exit", disposable);
+  process.on("SIGINT", disposable);
+  process.on("SIGTERM", disposable);
   // Also clean up after a generous grace period (5 min)
   setTimeout(disposable, 5 * 60 * 1_000).unref();
 }
@@ -206,6 +186,112 @@ export function scheduleClipboardCleanup(filePath: string): void {
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+const CLIPBOARD_IMAGE_MAX_BYTES = 25 * 1024 * 1024;
+
+function cleanupTempFile(filePath: string): void {
+  if (existsSync(filePath)) {
+    try {
+      unlinkSync(filePath);
+    } catch {
+      // best-effort
+    }
+  }
+}
+
+async function readClipboardImageWindows(tmpFile: string): Promise<boolean> {
+  const psPath = await findPowerShell();
+  if (!psPath) return false;
+
+  // PowerShell single-quote escaping: '' → '
+  const safePath = tmpFile.replace(/'/g, "''");
+
+  const script = [
+    "$img = Get-Clipboard -Format Image;",
+    "if ($img) {",
+    `  $img.Save('${safePath}');`,
+    `  if (Test-Path '${safePath}') { Write-Output 'OK'; exit 0 }`,
+    "}",
+    `Write-Error 'No image'; exit 1`,
+  ].join(" ");
+
+  const { stdout } = await execFileAsync(
+    psPath,
+    ["-NoProfile", "-STA", "-NonInteractive", "-Command", script],
+    {
+      timeout: 10_000,
+      windowsHide: true,
+    },
+  );
+
+  return stdout.trim() === "OK";
+}
+
+async function readClipboardImageMacOS(tmpFile: string): Promise<boolean> {
+  // Prefer pngpaste when available: it is the most reliable way to preserve
+  // image clipboard bytes on macOS.
+  try {
+    await execFileAsync("pngpaste", [tmpFile], { timeout: 10_000 });
+    if (existsSync(tmpFile)) return true;
+  } catch {
+    cleanupTempFile(tmpFile);
+  }
+
+  // Fallback for stock macOS without Homebrew dependencies.
+  const script = String.raw`
+on run argv
+  set outPath to item 1 of argv
+  try
+    set imageData to the clipboard as «class PNGf»
+  on error
+    try
+      set imageData to the clipboard as «class JPEG»
+    on error
+      return "NO_IMAGE"
+    end try
+  end try
+
+  try
+    set outFile to open for access (POSIX file outPath) with write permission
+    set eof outFile to 0
+    write imageData to outFile
+    close access outFile
+    return "OK"
+  on error
+    try
+      close access (POSIX file outPath)
+    end try
+    return "NO_IMAGE"
+  end try
+end run`;
+
+  const { stdout } = await execFileAsync("osascript", ["-e", script, tmpFile], {
+    timeout: 10_000,
+  });
+  return stdout.trim() === "OK";
+}
+
+async function readClipboardImageLinux(tmpFile: string): Promise<boolean> {
+  for (const candidate of [
+    { command: "wl-paste", args: ["--type", "image/png"] },
+    { command: "xclip", args: ["-selection", "clipboard", "-t", "image/png", "-o"] },
+  ]) {
+    try {
+      const { stdout } = await execFileAsync(candidate.command, candidate.args, {
+        encoding: "buffer",
+        maxBuffer: CLIPBOARD_IMAGE_MAX_BYTES,
+        timeout: 10_000,
+      });
+      if (Buffer.isBuffer(stdout) && stdout.length > 0) {
+        writeFileSync(tmpFile, stdout);
+        return true;
+      }
+    } catch {
+      cleanupTempFile(tmpFile);
+    }
+  }
+  return false;
+}
 
 /** Locate Windows PowerShell (Desktop edition, not Core). */
 async function findPowerShell(): Promise<string | null> {
@@ -234,7 +320,7 @@ async function findPowerShell(): Promise<string | null> {
   return null;
 }
 
-/** Short random hex suffix for unique temp filenames. */
+/** Short cryptographically-random hex suffix for unique temp filenames. */
 function randomHex(): string {
-  return Math.random().toString(16).slice(2, 10);
+  return randomBytes(4).toString("hex");
 }

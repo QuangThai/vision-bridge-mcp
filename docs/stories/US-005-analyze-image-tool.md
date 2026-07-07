@@ -39,8 +39,8 @@ normal
 | --- | --- |
 | Unit | yes — schema, normalization |
 | Integration | yes — mocked provider end-to-end |
-| E2E | no |
-| Platform | no |
+| E2E | yes — live provider calls for local path, URL image, complex diagrams, and golden fixtures |
+| Platform | yes — exercised through built CLI and agent hook subprocess |
 | Release | no |
 
 ## Harness Delta
@@ -52,3 +52,4 @@ None expected.
 - `tests/tools/analyze-image.test.ts` — handler with mocked provider
 - `tests/extraction/normalize.test.ts` — evidence normalization
 - Verified 2026-06-24: full suite pass (79 tests)
+- Verified 2026-06-28: `pnpm test` (48 files, 434 tests), `pnpm test:e2e` (2 files, 32 tests), `pnpm test:golden` (16/16 snapshots)

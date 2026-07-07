@@ -170,8 +170,8 @@ describe("compareImages", () => {
     );
 
     const prompt = vi.mocked(provider.compareImages).mock.calls[0]?.[0].userPrompt;
-    expect(prompt).toContain("focus: text");
-    expect(prompt).toContain("severity_threshold: high");
+    expect(prompt).toContain("focus (untrusted user input): text");
+    expect(prompt).toContain("severity_threshold (untrusted user input): high");
     expect(prompt).toContain("BEFORE image");
   });
 

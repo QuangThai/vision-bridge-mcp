@@ -40,6 +40,25 @@ import {
   analyzeUiScreenshot,
 } from "./tools/analyze-ui-screenshot.js";
 import {
+  ANALYZE_CLIPBOARD_TOOL_DESCRIPTION,
+  ANALYZE_CLIPBOARD_TOOL_NAME,
+  ANALYZE_UI_CLIPBOARD_TOOL_DESCRIPTION,
+  ANALYZE_UI_CLIPBOARD_TOOL_NAME,
+  type AnalyzeClipboardDependencies,
+  type AnalyzeUiClipboardDependencies,
+  ClipboardImageError,
+  DIAGNOSE_CLIPBOARD_TOOL_DESCRIPTION,
+  DIAGNOSE_CLIPBOARD_TOOL_NAME,
+  type DiagnoseClipboardDependencies,
+  OCR_CLIPBOARD_TOOL_DESCRIPTION,
+  OCR_CLIPBOARD_TOOL_NAME,
+  type OcrClipboardDependencies,
+  analyzeClipboard,
+  analyzeUiClipboard,
+  diagnoseClipboard,
+  ocrClipboard,
+} from "./tools/clipboard.js";
+import {
   COMPARE_IMAGES_TOOL_DESCRIPTION,
   COMPARE_IMAGES_TOOL_NAME,
   type CompareImagesDependencies,
@@ -99,9 +118,38 @@ export const ocrImageMcpInputSchema = {
   extract_code: z.boolean().default(false),
 } as const;
 
+export const analyzeClipboardMcpInputSchema = {
+  prompt: z.string().optional(),
+  mode: analyzeImageModeSchema.default("general"),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+  output_format: z.literal("markdown_json").default("markdown_json"),
+} as const;
+
+export const diagnoseClipboardMcpInputSchema = {
+  prompt: z.string().optional(),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+  output_format: z.literal("markdown_json").default("markdown_json"),
+} as const;
+
+export const ocrClipboardMcpInputSchema = {
+  preserve_layout: z.boolean().default(true),
+  extract_tables: z.boolean().default(false),
+  extract_code: z.boolean().default(false),
+} as const;
+
 export const analyzeUiScreenshotMcpInputSchema = {
   image_path: z.string().min(1).optional(),
   image_url: z.string().url().optional(),
+  target_framework: z
+    .enum(["react", "vue", "svelte", "flutter", "swiftui", "android", "unknown"])
+    .default("unknown"),
+  style_system: z
+    .enum(["tailwind", "css_modules", "shadcn", "mui", "native", "unknown"])
+    .default("unknown"),
+  goal: z.enum(["describe", "implement", "debug", "accessibility_review"]).default("describe"),
+} as const;
+
+export const analyzeUiClipboardMcpInputSchema = {
   target_framework: z
     .enum(["react", "vue", "svelte", "flutter", "swiftui", "android", "unknown"])
     .default("unknown"),
@@ -166,22 +214,58 @@ export interface AtlasServerDependencies {
   extractRegion?: typeof extractRegion;
   ocr?: typeof ocrImage;
   analyzeUiScreenshot?: typeof analyzeUiScreenshot;
+  analyzeClipboard?: typeof analyzeClipboard;
+  ocrClipboard?: typeof ocrClipboard;
+  analyzeUiClipboard?: typeof analyzeUiClipboard;
+  diagnoseClipboard?: typeof diagnoseClipboard;
   compareImages?: typeof compareImages;
   shouldUseAtlasVision?: typeof shouldUseAtlasVision;
 }
 
 function formatToolFailure(error: unknown): string {
-  if (
-    error instanceof ConfigError ||
-    error instanceof ImageError ||
-    error instanceof PathPolicyError ||
-    error instanceof ProviderError
-  ) {
-    return error.message;
+  if (error instanceof ClipboardImageError) {
+    return "Clipboard does not contain an image. Copy a screenshot/image first, then ask Atlas to analyze the clipboard without using native image attachment.";
+  }
+
+  if (error instanceof ConfigError || error instanceof PathPolicyError) {
+    // Sanitize internal path/configuration details from error messages
+    return "Configuration or path policy error. Check your setup and allowed directories.";
+  }
+
+  if (error instanceof ImageError) {
+    // Return safe subset of image errors without leaking file paths
+    if (error.message.includes("not found") || error.message.includes("not_allowed")) {
+      return "Image file not found or path not allowed.";
+    }
+    if (error.message.includes("timeout") || error.message.includes("interrupted")) {
+      return "Failed to download image: connection timed out or interrupted.";
+    }
+    if (error.message.includes("Content-Type") || error.message.includes("not an image")) {
+      return "The URL does not point to a supported image format.";
+    }
+    if (error.message.includes("exceeded maximum size")) {
+      return "The downloaded image exceeds the maximum allowed size.";
+    }
+    // Generic image error with no sensitive details
+    return "An image processing error occurred.";
+  }
+
+  if (error instanceof ProviderError) {
+    // Return safe error without leaking provider/model details
+    if (error.code === "auth") {
+      return "Vision provider authentication failed. Check your API key configuration.";
+    }
+    if (error.code === "timeout") {
+      return "Vision provider request timed out. Check network connectivity.";
+    }
+    if (error.code === "rate_limit") {
+      return "Rate limited by vision provider. Retry later or reduce request frequency.";
+    }
+    return "A vision provider error occurred. Check your provider configuration.";
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return "An unexpected error occurred.";
   }
 
   return "Unknown error";
@@ -353,6 +437,150 @@ export function registerOcrImageTool(
   );
 }
 
+export function registerAnalyzeClipboardTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    ANALYZE_CLIPBOARD_TOOL_NAME,
+    {
+      description: ANALYZE_CLIPBOARD_TOOL_DESCRIPTION,
+      inputSchema: analyzeClipboardMcpInputSchema,
+      outputSchema: analyzeImageOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const config = dependencies.config ?? loadConfig();
+        const analyze = dependencies.analyzeClipboard ?? analyzeClipboard;
+        const clipboardDeps: AnalyzeClipboardDependencies = {
+          config,
+          cwd: dependencies.cwd,
+          fetch: dependencies.fetch,
+        };
+        const result = await analyze(args, clipboardDeps);
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
+export function registerDiagnoseClipboardTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    DIAGNOSE_CLIPBOARD_TOOL_NAME,
+    {
+      description: DIAGNOSE_CLIPBOARD_TOOL_DESCRIPTION,
+      inputSchema: diagnoseClipboardMcpInputSchema,
+      outputSchema: analyzeImageOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const config = dependencies.config ?? loadConfig();
+        const diagnose = dependencies.diagnoseClipboard ?? diagnoseClipboard;
+        const clipboardDeps: DiagnoseClipboardDependencies = {
+          config,
+          cwd: dependencies.cwd,
+          fetch: dependencies.fetch,
+        };
+        const result = await diagnose(args, clipboardDeps);
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
+export function registerOcrClipboardTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    OCR_CLIPBOARD_TOOL_NAME,
+    {
+      description: OCR_CLIPBOARD_TOOL_DESCRIPTION,
+      inputSchema: ocrClipboardMcpInputSchema,
+      outputSchema: ocrImageOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const config = dependencies.config ?? loadConfig();
+        const ocr = dependencies.ocrClipboard ?? ocrClipboard;
+        const clipboardDeps: OcrClipboardDependencies = {
+          config,
+          cwd: dependencies.cwd,
+          fetch: dependencies.fetch,
+        };
+        const result = await ocr(args, clipboardDeps);
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
+export function registerAnalyzeUiClipboardTool(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  server.registerTool(
+    ANALYZE_UI_CLIPBOARD_TOOL_NAME,
+    {
+      description: ANALYZE_UI_CLIPBOARD_TOOL_DESCRIPTION,
+      inputSchema: analyzeUiClipboardMcpInputSchema,
+      outputSchema: analyzeUiScreenshotOutputSchema.shape,
+    },
+    async (args) => {
+      try {
+        const config = dependencies.config ?? loadConfig();
+        const analyzeUi = dependencies.analyzeUiClipboard ?? analyzeUiClipboard;
+        const clipboardDeps: AnalyzeUiClipboardDependencies = {
+          config,
+          cwd: dependencies.cwd,
+          fetch: dependencies.fetch,
+        };
+        const result = await analyzeUi(args, clipboardDeps);
+
+        return {
+          content: [{ type: "text" as const, text: result.markdown }],
+          structuredContent: result.structured,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: formatToolFailure(error) }],
+        };
+      }
+    },
+  );
+}
+
 export function registerAnalyzeUiScreenshotTool(
   server: McpServer,
   dependencies: AtlasServerDependencies = {},
@@ -458,18 +686,29 @@ export function registerShouldUseAtlasVisionTool(
   );
 }
 
+export function registerAtlasVisionTools(
+  server: McpServer,
+  dependencies: AtlasServerDependencies = {},
+): void {
+  registerAnalyzeImageTool(server, dependencies);
+  registerExtractRegionTool(server, dependencies);
+  registerAnalyzeImageBatchTool(server, dependencies);
+  registerOcrImageTool(server, dependencies);
+  registerAnalyzeClipboardTool(server, dependencies);
+  registerDiagnoseClipboardTool(server, dependencies);
+  registerOcrClipboardTool(server, dependencies);
+  registerAnalyzeUiScreenshotTool(server, dependencies);
+  registerAnalyzeUiClipboardTool(server, dependencies);
+  registerCompareImagesTool(server, dependencies);
+}
+
 export function createAtlasMcpServer(dependencies: AtlasServerDependencies = {}): McpServer {
   const server = new McpServer({
     name: PACKAGE_NAME,
     version: VERSION,
   });
 
-  registerAnalyzeImageTool(server, dependencies);
-  registerExtractRegionTool(server, dependencies);
-  registerAnalyzeImageBatchTool(server, dependencies);
-  registerOcrImageTool(server, dependencies);
-  registerAnalyzeUiScreenshotTool(server, dependencies);
-  registerCompareImagesTool(server, dependencies);
+  registerAtlasVisionTools(server, dependencies);
   registerShouldUseAtlasVisionTool(server, dependencies);
   registerVisionInstructionsPrompt(server);
 
@@ -524,12 +763,7 @@ export async function serveStdio(dependencies: AtlasServerDependencies = {}): Pr
   });
 
   if (!suppressTools) {
-    registerAnalyzeImageTool(server, dependencies);
-    registerExtractRegionTool(server, dependencies);
-    registerAnalyzeImageBatchTool(server, dependencies);
-    registerOcrImageTool(server, dependencies);
-    registerAnalyzeUiScreenshotTool(server, dependencies);
-    registerCompareImagesTool(server, dependencies);
+    registerAtlasVisionTools(server, dependencies);
   }
 
   registerShouldUseAtlasVisionTool(server, dependencies);

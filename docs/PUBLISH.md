@@ -20,6 +20,19 @@ With valid `VISION_API_KEY`, optionally smoke-test:
 npx atlas-vision-mcp analyze ./path/to/image.png --json
 ```
 
+Live provider checks are intentionally local/manual by default to control API
+spend. Do not add `VISION_API_KEY` as a GitHub Actions secret unless a maintainer
+explicitly opts into provider-spend CI. Before release, run these locally when a
+valid provider key is available:
+
+```bash
+pnpm test:e2e
+pnpm test:golden
+```
+
+In GitHub Actions, `e2e-tests` and `golden-eval` are expected to skip when the
+secret is absent; the required non-provider gate is `check`.
+
 ## Versioning
 
 1. Bump `version` in `package.json` and `src/constants.ts` together.

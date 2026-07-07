@@ -14,7 +14,13 @@ const detailLevelSchema = z.enum(["brief", "standard", "detailed"]);
 
 const rawEnvSchema = z.object({
   VISION_PROVIDER: visionProviderSchema.default("openai-compatible"),
-  VISION_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
+  VISION_BASE_URL: z
+    .string()
+    .url()
+    .default("https://api.openai.com/v1")
+    .refine((val) => val.startsWith("https://"), {
+      message: "VISION_BASE_URL must use https:// scheme (TLS is required for API key transport).",
+    }),
   VISION_API_KEY: z.string().default(""),
   VISION_MODEL: z.string().min(1).default("gpt-4o-mini"),
   VISION_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.1),
@@ -71,7 +77,13 @@ const rawEnvSchema = z.object({
   // Fallback provider (optional)
   VISION_FALLBACK_PROVIDER: visionProviderSchema.optional(),
   VISION_FALLBACK_API_KEY: z.string().optional(),
-  VISION_FALLBACK_BASE_URL: z.string().url().optional(),
+  VISION_FALLBACK_BASE_URL: z
+    .string()
+    .url()
+    .refine((val) => val.startsWith("https://"), {
+      message: "VISION_FALLBACK_BASE_URL must use https:// scheme.",
+    })
+    .optional(),
   VISION_FALLBACK_MODEL: z.string().optional(),
 });
 

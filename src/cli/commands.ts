@@ -20,6 +20,7 @@ import {
   uiStyleSystemSchema,
   uiTargetFrameworkSchema,
 } from "../extraction/schemas.js";
+import { parseDotenv } from "../harness/hook-env.js";
 import { ImageError } from "../image/errors.js";
 import { ProviderError } from "../providers/errors.js";
 import { createVisionProvider } from "../providers/router.js";
@@ -323,6 +324,32 @@ function checkDotenvFile(): { exists: boolean; path?: string } {
     }
   }
   return { exists: false };
+}
+
+export function loadCliDotenvEnv(
+  cwd: string = process.cwd(),
+  baseEnv: NodeJS.ProcessEnv = process.env,
+): NodeJS.ProcessEnv {
+  const merged: NodeJS.ProcessEnv = { ...baseEnv };
+  const candidates = [resolve(cwd, ".env"), resolve(cwd, "../.env")];
+
+  for (const p of candidates) {
+    if (!existsSync(p)) {
+      continue;
+    }
+
+    const parsed = parseDotenv(readFileSync(p, "utf8"));
+    for (const [key, value] of Object.entries(parsed)) {
+      if (merged[key]?.trim()) {
+        continue;
+      }
+      if (value.trim()) {
+        merged[key] = value;
+      }
+    }
+  }
+
+  return merged;
 }
 
 function checkEnvVars(env: NodeJS.ProcessEnv): { key: string; present: boolean }[] {
@@ -731,6 +758,7 @@ export interface EvalCommandDependencies {
   loadConfig?: typeof loadConfig;
   log?: typeof console;
   goldenDir?: string;
+  cwd?: string;
 }
 
 export async function runEvalCommand(
@@ -791,7 +819,7 @@ export async function runEvalCommand(
     const modelOverride = getFlagString(flags, "model");
     const providerOverride = getFlagString(flags, "provider");
 
-    const config = loadCfg();
+    const config = loadCfg(loadCliDotenvEnv(dependencies.cwd ?? process.cwd()));
     validateProviderConfig(config);
 
     // Apply overrides

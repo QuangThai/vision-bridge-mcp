@@ -23,11 +23,11 @@ src/
   providers/        # OpenAI-compatible, Responses API, Gemini, fallback
   security/         # path policy, redaction, injection guards
   tools/            # analyze_image, ocr_image, compare_images, eval, …
-  server.ts         # MCP stdio server (6 tools)
+  server.ts         # MCP stdio server and tool registration
 
 extensions/         # Pi before_agent_start auto-intercept
 hooks/              # shell wrappers for agent hook JSON
-tests/              # unit, integration, e2e (43 files, 366 tests)
+tests/              # unit, integration, e2e (count drifts; run pnpm test)
 ```
 
 ## Data flow

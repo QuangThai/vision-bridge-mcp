@@ -15,7 +15,6 @@ const DETAIL_TARGET_SHORT_SIDE: Record<string, number> = {
   low: 512,
   medium: 1024,
   high: 2048,
-  xhigh: 4096,
   original: 99999,
 };
 
@@ -109,6 +108,9 @@ export async function autoDetectDetailLevel(
   return "high";
 }
 
+/** Maximum total pixels before we skip full raw buffer allocation (avoids OOM). */
+const MAX_PIXELS_FOR_RAW_BUFFER = 10_000_000; // ~40 MB for RGBA buffer
+
 /** Estimate the ratio of unique colors by sampling random pixels. */
 async function estimateUniqueColorRatio(
   buffer: Buffer,
@@ -119,6 +121,12 @@ async function estimateUniqueColorRatio(
   if (!width || !height) return null;
 
   const totalPixels = width * height;
+
+  // Skip full raw buffer allocation for very large images to prevent OOM
+  if (totalPixels > MAX_PIXELS_FOR_RAW_BUFFER) {
+    return null;
+  }
+
   const sampleSize = Math.min(SCREENSHOT_SAMPLE_PIXELS, totalPixels);
   const step = Math.max(1, Math.floor(totalPixels / sampleSize));
 

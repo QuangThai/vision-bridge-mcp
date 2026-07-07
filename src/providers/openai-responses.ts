@@ -22,6 +22,13 @@ export interface OpenAIResponsesProviderConfig {
 
 // --- Response input item types ---
 
+// Wire-level detail values accepted by this Responses-API-compatible endpoint.
+// Volcengine Ark rejects the shared `ImageDetailLevel` value "original" (only
+// accepts low|high|xhigh) — see `toResponsesDetail()` below, which remaps just
+// for this provider instead of leaking "xhigh" into the shared vocabulary that
+// openai-compatible/gemini/claude also use.
+type ResponsesApiDetail = "auto" | "low" | "high" | "xhigh";
+
 interface ResponseInputTextParam {
   type: "input_text";
   text: string;
@@ -30,7 +37,7 @@ interface ResponseInputTextParam {
 interface ResponseInputImageParam {
   type: "input_image";
   image_url: string;
-  detail?: ImageDetailLevel;
+  detail?: ResponsesApiDetail;
 }
 
 type ResponseInputContentParam = ResponseInputTextParam | ResponseInputImageParam;
@@ -105,20 +112,32 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
+// Volcengine Ark's Responses-API-compatible endpoint rejects the shared
+// ImageDetailLevel value "original" — it only accepts low|high|xhigh, using
+// "xhigh" for what every other provider calls "original" (full resolution,
+// no downscale). Remap here, scoped to this provider only.
+function toResponsesDetail(detailLevel?: ImageDetailLevel): ResponsesApiDetail | undefined {
+  if (detailLevel === "original") {
+    return "xhigh";
+  }
+  return detailLevel;
+}
+
 function buildContent(
   userPrompt: string,
   images: Array<{ mimeType: string; base64: string }>,
   detailLevel?: ImageDetailLevel,
 ): ResponseInputContentParam[] {
   const content: ResponseInputContentParam[] = [{ type: "input_text", text: userPrompt }];
+  const wireDetail = toResponsesDetail(detailLevel);
 
   for (const image of images) {
     const imgParam: ResponseInputImageParam = {
       type: "input_image",
       image_url: toDataUrl(image),
     };
-    if (detailLevel && detailLevel !== "auto") {
-      imgParam.detail = detailLevel;
+    if (wireDetail && wireDetail !== "auto") {
+      imgParam.detail = wireDetail;
     }
     content.push(imgParam);
   }

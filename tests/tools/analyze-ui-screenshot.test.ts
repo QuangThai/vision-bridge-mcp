@@ -155,9 +155,9 @@ describe("analyzeUiScreenshot", () => {
     );
 
     const prompt = vi.mocked(provider.analyzeImage).mock.calls[0]?.[0].userPrompt;
-    expect(prompt).toContain("target_framework: vue");
-    expect(prompt).toContain("style_system: shadcn");
-    expect(prompt).toContain("goal: accessibility_review");
+    expect(prompt).toContain("target_framework (untrusted user input): vue");
+    expect(prompt).toContain("style_system (untrusted user input): shadcn");
+    expect(prompt).toContain("goal (untrusted user input): accessibility_review");
     expect(prompt).toContain("Do not invent hidden state");
   });
 

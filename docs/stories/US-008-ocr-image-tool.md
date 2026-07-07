@@ -38,8 +38,8 @@ normal
 | --- | --- |
 | Unit | yes |
 | Integration | yes |
-| E2E | no |
-| Platform | no |
+| E2E | yes — live OCR over simple screenshots and complex diagrams |
+| Platform | yes — CLI command and built package exercised in release checks |
 | Release | no |
 
 ## Harness Delta
@@ -52,3 +52,4 @@ None expected.
 - `tests/server/mcp-server.test.ts` — MCP `ocr_image` round-trip
 - `tests/cli/commands.test.ts` — CLI `ocr` json output
 - Verified 2026-06-24: full suite pass (79 tests)
+- Verified 2026-06-28: `pnpm test` (48 files, 434 tests), `pnpm test:e2e` (2 files, 32 tests)
