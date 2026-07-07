@@ -98,8 +98,9 @@ export class ClaudeProvider implements VisionProvider {
       { type: "text", text: input.userPrompt },
     ];
 
+    const model = input.modelOverride?.trim() || this.visionConfig.model;
     const body: AnthropicRequest = {
-      model: this.visionConfig.model,
+      model,
       max_tokens: this.visionConfig.maxOutputTokens,
       system: input.systemPrompt ?? VISION_SYSTEM_PROMPT,
       messages: [{ role: "user", content }],
@@ -131,8 +132,9 @@ export class ClaudeProvider implements VisionProvider {
       { type: "text", text: input.userPrompt },
     ];
 
+    const model = input.modelOverride?.trim() || this.visionConfig.model;
     const body: AnthropicRequest = {
-      model: this.visionConfig.model,
+      model,
       max_tokens: this.visionConfig.maxOutputTokens,
       system: input.systemPrompt ?? VISION_SYSTEM_PROMPT,
       messages: [{ role: "user", content }],
@@ -248,7 +250,7 @@ export class ClaudeProvider implements VisionProvider {
         return {
           text,
           provider: this.name,
-          model: this.visionConfig.model,
+          model: body.model,
           raw: payload,
         };
       },

@@ -9,6 +9,7 @@ import type {
   ImageDetailLevel,
   ProviderHealth,
   RawVisionResult,
+  ReasoningEffort,
   VisionProvider,
 } from "./types.js";
 
@@ -91,6 +92,7 @@ interface CreateResponseRequest {
   instructions?: string;
   temperature?: number;
   thinking?: { type: "enabled" | "disabled" | "auto" };
+  reasoning?: { effort: ReasoningEffort };
   store?: boolean;
   text?: {
     format?: { type: "text" | "json_object" };
@@ -169,7 +171,10 @@ export class OpenAIResponsesProvider implements VisionProvider {
       },
     ];
 
-    return this.createResponse(messages, input.systemPrompt ?? VISION_SYSTEM_PROMPT);
+    return this.createResponse(messages, input.systemPrompt ?? VISION_SYSTEM_PROMPT, {
+      effort: input.effort,
+      modelOverride: input.modelOverride,
+    });
   }
 
   async compareImages(input: CompareImagesInput): Promise<RawVisionResult> {
@@ -181,7 +186,10 @@ export class OpenAIResponsesProvider implements VisionProvider {
       },
     ];
 
-    return this.createResponse(messages, input.systemPrompt ?? VISION_SYSTEM_PROMPT);
+    return this.createResponse(messages, input.systemPrompt ?? VISION_SYSTEM_PROMPT, {
+      effort: input.effort,
+      modelOverride: input.modelOverride,
+    });
   }
 
   async healthCheck(): Promise<ProviderHealth> {
@@ -245,18 +253,30 @@ export class OpenAIResponsesProvider implements VisionProvider {
   private async createResponse(
     inputMessages: EasyInputMessageParam[],
     systemPrompt: string,
+    overrides: { effort?: ReasoningEffort; modelOverride?: string } = {},
   ): Promise<RawVisionResult> {
+    const model = overrides.modelOverride?.trim() || this.visionConfig.model;
+    const thinkingType = this.visionConfig.responsesThinking;
+    const effort = overrides.effort ?? this.visionConfig.responsesEffort;
+
     const body: CreateResponseRequest = {
-      model: this.visionConfig.model,
+      model,
       input: inputMessages,
       instructions: systemPrompt,
       temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
-      thinking: { type: this.visionConfig.responsesThinking },
+      thinking: { type: thinkingType },
       store: this.visionConfig.responsesStore,
       text: {
         format: { type: "json_object" },
       },
     };
+
+    // `reasoning.effort` only applies when thinking is enabled. Send it for every
+    // level including "minimal" — otherwise the provider falls back to its own
+    // default (medium/high on Volcengine), which is the opposite of minimal.
+    if (thinkingType !== "disabled") {
+      body.reasoning = { effort };
+    }
 
     const retryableRequest = withRetry(
       async () => {
@@ -304,7 +324,7 @@ export class OpenAIResponsesProvider implements VisionProvider {
         return {
           text,
           provider: this.name,
-          model: this.visionConfig.model,
+          model,
           raw: payload,
         };
       },

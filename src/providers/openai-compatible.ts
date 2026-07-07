@@ -107,7 +107,7 @@ export class OpenAICompatibleProvider implements VisionProvider {
       },
     ];
 
-    return this.createChatCompletion(messages);
+    return this.createChatCompletion(messages, input.modelOverride);
   }
 
   async compareImages(input: CompareImagesInput): Promise<RawVisionResult> {
@@ -132,7 +132,7 @@ export class OpenAICompatibleProvider implements VisionProvider {
       },
     ];
 
-    return this.createChatCompletion(messages);
+    return this.createChatCompletion(messages, input.modelOverride);
   }
 
   async healthCheck(): Promise<ProviderHealth> {
@@ -174,9 +174,13 @@ export class OpenAICompatibleProvider implements VisionProvider {
     }
   }
 
-  private async createChatCompletion(messages: ChatCompletionMessage[]): Promise<RawVisionResult> {
+  private async createChatCompletion(
+    messages: ChatCompletionMessage[],
+    modelOverride?: string,
+  ): Promise<RawVisionResult> {
+    const model = modelOverride?.trim() || this.visionConfig.model;
     const body: ChatCompletionRequest = {
-      model: this.visionConfig.model,
+      model,
       messages,
       temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
       max_tokens: this.visionConfig.maxOutputTokens,
@@ -223,7 +227,7 @@ export class OpenAICompatibleProvider implements VisionProvider {
         return {
           text,
           provider: this.name,
-          model: this.visionConfig.model,
+          model,
           raw: payload,
         };
       },

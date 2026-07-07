@@ -168,7 +168,13 @@ export class CacheStore {
   /**
    * Build a deterministic cache key from the vision request parameters.
    */
-  buildKey(imageBase64: string, model: string, prompt: string, detailLevel?: string): string {
+  buildKey(
+    imageBase64: string,
+    model: string,
+    prompt: string,
+    detailLevel?: string,
+    variant?: string,
+  ): string {
     const hash = createHash("sha256");
     hash.update(imageBase64);
     hash.update("\0");
@@ -178,6 +184,13 @@ export class CacheStore {
     if (detailLevel) {
       hash.update("\0");
       hash.update(detailLevel);
+    }
+    // `variant` distinguishes otherwise-identical requests that differ in
+    // reasoning effort or a per-call model override, so an escalated retry does
+    // not collide with the cached lower-effort result.
+    if (variant) {
+      hash.update("\0");
+      hash.update(variant);
     }
     return hash.digest("hex");
   }
@@ -362,9 +375,10 @@ export class CachedVisionProvider implements VisionProvider {
 
     const key = this.store.buildKey(
       input.image.base64,
-      this.model,
+      input.modelOverride?.trim() || this.model,
       input.userPrompt,
       input.detailLevel,
+      input.effort,
     );
 
     const cached = await this.store.get(key);
@@ -392,9 +406,10 @@ export class CachedVisionProvider implements VisionProvider {
     const combinedBase64 = `${input.before.base64}\0${input.after.base64}`;
     const key = this.store.buildKey(
       combinedBase64,
-      this.model,
+      input.modelOverride?.trim() || this.model,
       input.userPrompt,
       input.detailLevel,
+      input.effort,
     );
 
     const cached = await this.store.get(key);

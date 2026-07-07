@@ -13,6 +13,7 @@ import {
   analyzeUiScreenshotOutputSchema,
   compareImagesOutputSchema,
   ocrImageOutputSchema,
+  reasoningEffortSchema,
   shouldUseAtlasVisionOutputSchema,
 } from "./extraction/schemas.js";
 import { ImageError } from "./image/errors.js";
@@ -88,6 +89,24 @@ export const analyzeImageMcpInputSchema = {
   prompt: z.string().optional(),
   mode: analyzeImageModeSchema.default("general"),
   detail_level: analyzeImageDetailLevelSchema.default("standard"),
+  reasoning_effort: reasoningEffortSchema
+    .optional()
+    .describe(
+      "How hard the vision model should think. Omit to use the fast configured default — " +
+        "enough unless the task needs actual REASONING about what's visible (not just " +
+        "describing/transcribing it), e.g. explaining why, inferring intent, cross-referencing " +
+        "clues. Escalating costs real time with no guaranteed gain otherwise, so don't reach " +
+        "for it reflexively. If you do escalate, retry the SAME call with a higher level — " +
+        "low → medium → high — before switching model.",
+    ),
+  model: z
+    .string()
+    .optional()
+    .describe(
+      "Override the vision model id. Leave UNSET in normal use. Only set this as a LAST RESORT — " +
+        "after reasoning_effort=high still gives an inadequate result — to switch to a more " +
+        "capable (slower, costlier) model. See the tool description for the model to escalate to.",
+    ),
   output_format: z.literal("markdown_json").default("markdown_json"),
 } as const;
 
@@ -252,6 +271,22 @@ function formatToolFailure(error: unknown): string {
   return "Unknown error";
 }
 
+/**
+ * Build the analyze_image description, appending an escalation policy so the
+ * calling model knows how to get a better result when the default is not enough.
+ * The escalation model is read from VISION_ESCALATION_MODEL so the model id is
+ * not hard-coded into this provider-agnostic project.
+ */
+function buildAnalyzeImageDescription(env: NodeJS.ProcessEnv): string {
+  const escalationModel = env.VISION_ESCALATION_MODEL?.trim();
+  const policy = `\n\nQuality escalation: this tool defaults to a fast, low-effort pass, which is enough unless the task needs actual reasoning over the image (explaining why, inferring intent, cross-referencing clues) rather than plain description — raising effort rarely helps the latter and costs real time. If a result IS too shallow, incomplete, or wrong, retry the SAME image with a higher \`reasoning_effort\` — escalate low → medium → high. Always prefer raising reasoning_effort (cheaper) before changing the model.${
+    escalationModel
+      ? ` Only if reasoning_effort=high is still inadequate, set \`model\` to "${escalationModel}" for a more capable (slower, costlier) pass.`
+      : ""
+  }`;
+  return ANALYZE_IMAGE_TOOL_DESCRIPTION + policy;
+}
+
 export function registerAnalyzeImageTool(
   server: McpServer,
   dependencies: AtlasServerDependencies = {},
@@ -259,7 +294,7 @@ export function registerAnalyzeImageTool(
   server.registerTool(
     ANALYZE_IMAGE_TOOL_NAME,
     {
-      description: ANALYZE_IMAGE_TOOL_DESCRIPTION,
+      description: buildAnalyzeImageDescription(dependencies.env ?? process.env),
       inputSchema: analyzeImageMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },

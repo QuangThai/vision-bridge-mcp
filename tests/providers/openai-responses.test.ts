@@ -98,6 +98,111 @@ describe("OpenAIResponsesProvider", () => {
     expect(result.model).toBe("gpt-4o");
   });
 
+  it("sends reasoning.effort when thinking is enabled, including 'minimal'", async () => {
+    const fetch = createMockFetch((_url, init) => {
+      const body = JSON.parse(String(init.body)) as {
+        thinking: { type: string };
+        reasoning?: { effort: string };
+      };
+      expect(body.thinking).toEqual({ type: "enabled" });
+      // Must be sent even at "minimal" — omitting it lets the provider fall back
+      // to its own (slower) default, defeating the point of "minimal".
+      expect(body.reasoning).toEqual({ effort: "minimal" });
+
+      return jsonResponse({
+        id: "resp_test",
+        object: "response",
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: "ok", annotations: [] }],
+            status: "completed",
+          },
+        ],
+      });
+    });
+
+    const config = loadConfig({
+      ...testEnv,
+      VISION_RESPONSES_THINKING: "enabled",
+      VISION_RESPONSES_EFFORT: "minimal",
+    });
+    const provider = new OpenAIResponsesProvider({ config: config.vision, fetch });
+
+    await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "abc123" },
+      userPrompt: "Describe this.",
+    });
+  });
+
+  it("omits reasoning.effort when thinking is disabled", async () => {
+    const fetch = createMockFetch((_url, init) => {
+      const body = JSON.parse(String(init.body)) as { reasoning?: unknown };
+      expect(body.reasoning).toBeUndefined();
+
+      return jsonResponse({
+        id: "resp_test",
+        object: "response",
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: "ok", annotations: [] }],
+            status: "completed",
+          },
+        ],
+      });
+    });
+
+    const config = loadConfig(testEnv); // thinking defaults to "disabled"
+    const provider = new OpenAIResponsesProvider({ config: config.vision, fetch });
+
+    await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "abc123" },
+      userPrompt: "Describe this.",
+    });
+  });
+
+  it("applies per-call effort and model overrides", async () => {
+    const fetch = createMockFetch((_url, init) => {
+      const body = JSON.parse(String(init.body)) as {
+        model: string;
+        reasoning?: { effort: string };
+      };
+      expect(body.model).toBe("gpt-4o-override");
+      expect(body.reasoning).toEqual({ effort: "high" });
+
+      return jsonResponse({
+        id: "resp_test",
+        object: "response",
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: "ok", annotations: [] }],
+            status: "completed",
+          },
+        ],
+      });
+    });
+
+    const config = loadConfig({ ...testEnv, VISION_RESPONSES_THINKING: "enabled" });
+    const provider = new OpenAIResponsesProvider({ config: config.vision, fetch });
+
+    const result = await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "abc123" },
+      userPrompt: "Describe this.",
+      effort: "high",
+      modelOverride: "gpt-4o-override",
+    });
+
+    expect(result.model).toBe("gpt-4o-override");
+  });
+
   it("sends compare_images request with two images", async () => {
     const fetch = createMockFetch((_url, init) => {
       const body = JSON.parse(String(init.body)) as {

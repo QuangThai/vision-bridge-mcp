@@ -113,7 +113,8 @@ export class GeminiProvider implements VisionProvider {
       },
     ];
 
-    const mediaResolution = mapDetailToMediaResolution(input.detailLevel, this.visionConfig.model);
+    const model = input.modelOverride?.trim() || this.visionConfig.model;
+    const mediaResolution = mapDetailToMediaResolution(input.detailLevel, model);
 
     const body: GeminiRequest = {
       contents,
@@ -128,7 +129,7 @@ export class GeminiProvider implements VisionProvider {
       },
     };
 
-    return this.generateContent(body);
+    return this.generateContent(body, model);
   }
 
   async compareImages(input: CompareImagesInput): Promise<RawVisionResult> {
@@ -155,7 +156,8 @@ export class GeminiProvider implements VisionProvider {
       },
     ];
 
-    const mediaResolution = mapDetailToMediaResolution(input.detailLevel, this.visionConfig.model);
+    const model = input.modelOverride?.trim() || this.visionConfig.model;
+    const mediaResolution = mapDetailToMediaResolution(input.detailLevel, model);
 
     const body: GeminiRequest = {
       contents,
@@ -170,7 +172,7 @@ export class GeminiProvider implements VisionProvider {
       },
     };
 
-    return this.generateContent(body);
+    return this.generateContent(body, model);
   }
 
   async healthCheck(): Promise<ProviderHealth> {
@@ -234,8 +236,8 @@ export class GeminiProvider implements VisionProvider {
     }
   }
 
-  private async generateContent(body: GeminiRequest): Promise<RawVisionResult> {
-    const url = buildGeminiUrl(this.visionConfig.baseUrl, this.visionConfig.model);
+  private async generateContent(body: GeminiRequest, model: string): Promise<RawVisionResult> {
+    const url = buildGeminiUrl(this.visionConfig.baseUrl, model);
 
     const retryableRequest = withRetry(
       async () => {
@@ -276,7 +278,7 @@ export class GeminiProvider implements VisionProvider {
         return {
           text,
           provider: this.name,
-          model: this.visionConfig.model,
+          model,
           raw: payload,
         };
       },

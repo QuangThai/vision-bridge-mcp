@@ -178,4 +178,29 @@ describe("GeminiProvider", () => {
     expect(provider.name).toBe("gemini");
     expect(provider).toBeInstanceOf(GeminiProvider);
   });
+
+  it("uses the per-call model override instead of the configured model", async () => {
+    const fetch = mockFetch({
+      candidates: [{ content: { parts: [{ text: "ok" }] }, finishReason: "STOP" }],
+    });
+
+    const provider = new GeminiProvider({
+      config: loadConfig(visionConfig).vision,
+      fetch,
+    });
+
+    const result = await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "fake" },
+      userPrompt: "Describe.",
+      modelOverride: "gemini-3-pro",
+    });
+
+    // The result reports the actually-used model, not the configured default
+    expect(result.model).toBe("gemini-3-pro");
+
+    // The request URL must target the overridden model, not gemini-2.0-flash
+    const callArgs = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const url = callArgs[0] as string;
+    expect(url).toContain("/models/gemini-3-pro:generateContent");
+  });
 });
