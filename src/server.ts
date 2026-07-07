@@ -10,10 +10,10 @@ import {
   analyzeImageDetailLevelSchema,
   analyzeImageModeSchema,
   analyzeImageOutputSchema,
-  reasoningEffortSchema,
   analyzeUiScreenshotOutputSchema,
   compareImagesOutputSchema,
   ocrImageOutputSchema,
+  reasoningEffortSchema,
   shouldUseAtlasVisionOutputSchema,
 } from "./extraction/schemas.js";
 import { ImageError } from "./image/errors.js";
@@ -279,17 +279,11 @@ function formatToolFailure(error: unknown): string {
  */
 function buildAnalyzeImageDescription(env: NodeJS.ProcessEnv): string {
   const escalationModel = env.VISION_ESCALATION_MODEL?.trim();
-  const policy =
-    "\n\nQuality escalation: this tool defaults to a fast, low-effort pass, which is enough " +
-    "unless the task needs actual reasoning over the image (explaining why, inferring intent, " +
-    "cross-referencing clues) rather than plain description — raising effort rarely helps the " +
-    "latter and costs real time. If a result IS too shallow, incomplete, or wrong, retry the " +
-    "SAME image with a higher `reasoning_effort` — escalate low → medium → high. Always prefer " +
-    "raising reasoning_effort (cheaper) before changing the model." +
-    (escalationModel
-      ? ` Only if reasoning_effort=high is still inadequate, set \`model\` to "${escalationModel}" ` +
-        "for a more capable (slower, costlier) pass."
-      : "");
+  const policy = `\n\nQuality escalation: this tool defaults to a fast, low-effort pass, which is enough unless the task needs actual reasoning over the image (explaining why, inferring intent, cross-referencing clues) rather than plain description — raising effort rarely helps the latter and costs real time. If a result IS too shallow, incomplete, or wrong, retry the SAME image with a higher \`reasoning_effort\` — escalate low → medium → high. Always prefer raising reasoning_effort (cheaper) before changing the model.${
+    escalationModel
+      ? ` Only if reasoning_effort=high is still inadequate, set \`model\` to "${escalationModel}" for a more capable (slower, costlier) pass.`
+      : ""
+  }`;
   return ANALYZE_IMAGE_TOOL_DESCRIPTION + policy;
 }
 

@@ -288,4 +288,27 @@ describe("ClaudeProvider", () => {
       code: "invalid_response",
     });
   });
+
+  it("uses the per-call model override instead of the configured model", async () => {
+    const fetch = createMockFetch((_url, init) => {
+      const body = JSON.parse(String(init.body)) as { model: string };
+      expect(body.model).toBe("claude-opus-4");
+
+      return jsonResponse({
+        content: [{ type: "text", text: "ok" }],
+      });
+    });
+
+    const config = loadConfig(testEnv);
+    const provider = new ClaudeProvider({ config: config.vision, fetch });
+
+    const result = await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "abc" },
+      userPrompt: "test",
+      modelOverride: "claude-opus-4",
+    });
+
+    // The result reports the actually-used model, not the configured default
+    expect(result.model).toBe("claude-opus-4");
+  });
 });
