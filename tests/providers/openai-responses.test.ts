@@ -44,13 +44,15 @@ describe("OpenAIResponsesProvider", () => {
         input: Array<{ type: string; role: string; content: unknown }>;
         instructions: string;
         temperature: number;
-        max_output_tokens: number;
+        thinking: { type: string };
+        store: boolean;
         text: { format: { type: string } };
       };
 
       expect(body.model).toBe("gpt-4o");
       expect(body.temperature).toBe(0.1);
-      expect(body.max_output_tokens).toBe(4_000);
+      expect(body.thinking).toEqual({ type: "disabled" });
+      expect(body.store).toBe(true);
       expect(body.instructions).toBeTruthy();
       expect(body.text.format.type).toBe("json_object");
 
@@ -129,6 +131,72 @@ describe("OpenAIResponsesProvider", () => {
     });
 
     expect(result.text).toBe("diff summary");
+  });
+
+  it("remaps 'original' detail to Volcengine's 'xhigh' (it rejects 'original')", async () => {
+    const fetch = createMockFetch((_url, init) => {
+      const body = JSON.parse(String(init.body)) as {
+        input: Array<{ content: Array<{ type: string; detail?: string }> }>;
+      };
+      const image = body.input[0]?.content.find((part) => part.type === "input_image");
+      expect(image?.detail).toBe("xhigh");
+
+      return jsonResponse({
+        id: "resp_test",
+        object: "response",
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: "ok", annotations: [] }],
+            status: "completed",
+          },
+        ],
+      });
+    });
+
+    const config = loadConfig(testEnv);
+    const provider = new OpenAIResponsesProvider({ config: config.vision, fetch });
+
+    await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "abc123" },
+      userPrompt: "test",
+      detailLevel: "original",
+    });
+  });
+
+  it("passes 'low'/'high' detail through unchanged", async () => {
+    const fetch = createMockFetch((_url, init) => {
+      const body = JSON.parse(String(init.body)) as {
+        input: Array<{ content: Array<{ type: string; detail?: string }> }>;
+      };
+      const image = body.input[0]?.content.find((part) => part.type === "input_image");
+      expect(image?.detail).toBe("low");
+
+      return jsonResponse({
+        id: "resp_test",
+        object: "response",
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: "ok", annotations: [] }],
+            status: "completed",
+          },
+        ],
+      });
+    });
+
+    const config = loadConfig(testEnv);
+    const provider = new OpenAIResponsesProvider({ config: config.vision, fetch });
+
+    await provider.analyzeImage({
+      image: { mimeType: "image/png", base64: "abc123" },
+      userPrompt: "test",
+      detailLevel: "low",
+    });
   });
 
   it("handles failed response status", async () => {

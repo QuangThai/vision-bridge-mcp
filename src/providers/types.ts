@@ -45,7 +45,13 @@ export interface VisionProvider {
 
 export type FetchFn = typeof fetch;
 
-// Map Atlas detail_level ("brief" | "standard" | "detailed") to provider ImageDetailLevel
+// Map Atlas detail_level ("brief" | "standard" | "detailed") to provider ImageDetailLevel.
+// This is shared across ALL providers (openai-compatible, openai-responses, gemini,
+// claude) — it must stay in the generic "auto|low|high|original" vocabulary that every
+// provider understands. Volcengine's Responses-API-compatible endpoint rejects
+// "original" (it wants "xhigh" instead), but that's a wire-format quirk of ONE
+// provider — see `openai-responses.ts`'s own detail remapping, scoped to just that
+// provider, instead of leaking "xhigh" into every provider's request here.
 export function mapDetailLevel(atlasLevel: string): ImageDetailLevel | undefined {
   switch (atlasLevel) {
     case "brief":

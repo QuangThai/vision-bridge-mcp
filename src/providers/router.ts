@@ -106,6 +106,8 @@ function createInnerProvider(
       maxImageMb: 10,
       maxOutputTokens: 4_000,
       retryMax: 3,
+      responsesThinking: "disabled",
+      responsesStore: true,
     },
     fetch,
   );

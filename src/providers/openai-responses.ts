@@ -21,6 +21,13 @@ export interface OpenAIResponsesProviderConfig {
 
 // --- Response input item types ---
 
+// Wire-level detail values accepted by this Responses-API-compatible endpoint.
+// Volcengine Ark rejects the shared `ImageDetailLevel` value "original" (only
+// accepts low|high|xhigh) — see `toResponsesDetail()` below, which remaps just
+// for this provider instead of leaking "xhigh" into the shared vocabulary that
+// openai-compatible/gemini/claude also use.
+type ResponsesApiDetail = "auto" | "low" | "high" | "xhigh";
+
 interface ResponseInputTextParam {
   type: "input_text";
   text: string;
@@ -29,7 +36,7 @@ interface ResponseInputTextParam {
 interface ResponseInputImageParam {
   type: "input_image";
   image_url: string;
-  detail?: ImageDetailLevel;
+  detail?: ResponsesApiDetail;
 }
 
 type ResponseInputContentParam = ResponseInputTextParam | ResponseInputImageParam;
@@ -61,17 +68,6 @@ interface ResponseUsage {
   total_tokens: number;
 }
 
-interface CreateResponseRequest {
-  model: string;
-  input: EasyInputMessageParam[];
-  instructions?: string;
-  temperature?: number;
-  max_output_tokens?: number;
-  text?: {
-    format?: { type: "text" | "json_object" };
-  };
-}
-
 interface CreateResponseResponse {
   id: string;
   object: string;
@@ -82,6 +78,23 @@ interface CreateResponseResponse {
     code?: string;
   };
   usage?: ResponseUsage;
+}
+
+// Fields sent to the Responses API. Deliberately has no `max_output_tokens`:
+// capping output truncates long "thinking" responses mid-stream, which makes
+// the caller retry (a full extra round-trip) rather than let the model finish
+// on its own. Modern models rarely loop indefinitely, so the cap does more
+// harm (truncation-driven retries) than good (runaway-output prevention).
+interface CreateResponseRequest {
+  model: string;
+  input: EasyInputMessageParam[];
+  instructions?: string;
+  temperature?: number;
+  thinking?: { type: "enabled" | "disabled" | "auto" };
+  store?: boolean;
+  text?: {
+    format?: { type: "text" | "json_object" };
+  };
 }
 
 function joinBaseUrl(baseUrl: string, path: string): string {
@@ -97,20 +110,32 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
+// Volcengine Ark's Responses-API-compatible endpoint rejects the shared
+// ImageDetailLevel value "original" — it only accepts low|high|xhigh, using
+// "xhigh" for what every other provider calls "original" (full resolution,
+// no downscale). Remap here, scoped to this provider only.
+function toResponsesDetail(detailLevel?: ImageDetailLevel): ResponsesApiDetail | undefined {
+  if (detailLevel === "original") {
+    return "xhigh";
+  }
+  return detailLevel;
+}
+
 function buildContent(
   userPrompt: string,
   images: Array<{ mimeType: string; base64: string }>,
   detailLevel?: ImageDetailLevel,
 ): ResponseInputContentParam[] {
   const content: ResponseInputContentParam[] = [{ type: "input_text", text: userPrompt }];
+  const wireDetail = toResponsesDetail(detailLevel);
 
   for (const image of images) {
     const imgParam: ResponseInputImageParam = {
       type: "input_image",
       image_url: toDataUrl(image),
     };
-    if (detailLevel && detailLevel !== "auto") {
-      imgParam.detail = detailLevel;
+    if (wireDetail && wireDetail !== "auto") {
+      imgParam.detail = wireDetail;
     }
     content.push(imgParam);
   }
@@ -172,7 +197,8 @@ export class OpenAIResponsesProvider implements VisionProvider {
           },
         ],
         temperature: 0,
-        max_output_tokens: 20,
+        thinking: { type: "disabled" },
+        store: false,
       };
 
       const response = await this.rawRequest("/responses", {
@@ -225,7 +251,8 @@ export class OpenAIResponsesProvider implements VisionProvider {
       input: inputMessages,
       instructions: systemPrompt,
       temperature: this.visionConfig.temperature ?? DEFAULT_TEMPERATURE,
-      max_output_tokens: this.visionConfig.maxOutputTokens,
+      thinking: { type: this.visionConfig.responsesThinking },
+      store: this.visionConfig.responsesStore,
       text: {
         format: { type: "json_object" },
       },
