@@ -4,9 +4,14 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { describe, expect, it, vi } from "vitest";
 import { runServeCommand } from "../../src/cli/commands.js";
 import { loadConfig } from "../../src/config.js";
-import { createAtlasMcpServer, registerAnalyzeImageTool } from "../../src/server.js";
+import {
+  createAtlasMcpServer,
+  registerAnalyzeClipboardTool,
+  registerAnalyzeImageTool,
+} from "../../src/server.js";
 import type { AnalyzeImageResult } from "../../src/tools/analyze-image.js";
 import type { AnalyzeUiScreenshotResult } from "../../src/tools/analyze-ui-screenshot.js";
+import { ClipboardImageError } from "../../src/tools/clipboard.js";
 import type { CompareImagesResult } from "../../src/tools/compare-images.js";
 import type { OcrImageResult } from "../../src/tools/ocr-image.js";
 
@@ -220,6 +225,63 @@ describe("createAtlasMcpServer", () => {
     expect(text).toContain("ocr_image");
   });
 
+  it("registers clipboard-first tools for copied screenshots", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const analyzeClipboard = vi.fn(async () => mockAnalyzeResult);
+    const ocrClipboard = vi.fn(async () => mockOcrResult);
+    const server = createAtlasMcpServer({ config: testConfig, analyzeClipboard, ocrClipboard });
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+
+    const tools = await client.listTools();
+    const toolNames = tools.tools.map((tool) => tool.name);
+    expect(toolNames).toContain("analyze_clipboard");
+    expect(toolNames).toContain("ocr_clipboard");
+    expect(toolNames).toContain("analyze_ui_clipboard");
+    expect(toolNames).toContain("diagnose_clipboard");
+
+    const analyzeTool = tools.tools.find((tool) => tool.name === "analyze_clipboard");
+    expect(analyzeTool?.description).toContain("OpenCode/Droid");
+
+    const result = await client.callTool({
+      name: "analyze_clipboard",
+      arguments: { prompt: "what is in my copied screenshot?" },
+    });
+
+    expect(analyzeClipboard).toHaveBeenCalledOnce();
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      summary: "A login form is visible.",
+    });
+  });
+
+  it("returns an actionable message when clipboard tools find no image", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const analyzeClipboard = vi.fn(async () => {
+      throw new ClipboardImageError();
+    });
+    const server = createAtlasMcpServer({ config: testConfig, analyzeClipboard });
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+
+    const result = await client.callTool({
+      name: "analyze_clipboard",
+      arguments: {},
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.content).toEqual([
+      {
+        type: "text",
+        text: "Clipboard does not contain an image. Copy a screenshot/image first, then ask Atlas to analyze the clipboard without using native image attachment.",
+      },
+    ]);
+  });
+
   it("registers ocr_image and returns structured OCR output", async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const ocr = vi.fn(async () => mockOcrResult);
@@ -358,7 +420,25 @@ describe("createAtlasMcpServer", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.content).toEqual([{ type: "text", text: "Provider timeout" }]);
+    expect(result.content).toEqual([{ type: "text", text: "An unexpected error occurred." }]);
+  });
+});
+
+describe("registerAnalyzeClipboardTool", () => {
+  it("can register analyze_clipboard on a fresh server instance", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = new McpServer({ name: "test-server", version: "0.0.0" });
+    registerAnalyzeClipboardTool(server, {
+      config: testConfig,
+      analyzeClipboard: vi.fn(async () => mockAnalyzeResult),
+    });
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    await client.connect(clientTransport);
+
+    const tools = await client.listTools();
+    expect(tools.tools.map((tool) => tool.name)).toContain("analyze_clipboard");
   });
 });
 

@@ -17,7 +17,7 @@ const SECRET_PATTERNS: Array<{ name: string; regex: RegExp }> = [
   { name: "aws_access_key", regex: /\b(AKIA[0-9A-Z]{16})\b/g },
   {
     name: "generic_secret_assignment",
-    regex: /\b(api[_-]?key|token|secret|password|passwd|pwd)\s*[:=]\s*([^\s'"`,]+)/gi,
+    regex: /\b(api[_-]?key|token|secret|password|passwd|pwd)\s*[:=]\s*([^\n'"`,]+)/gi,
   },
   { name: "jwt", regex: /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g },
   { name: "npm_token", regex: /\bnpm_[A-Za-z0-9]{10,}\b/g },
@@ -36,11 +36,20 @@ const SECRET_PATTERNS: Array<{ name: string; regex: RegExp }> = [
   {
     name: "ssh_private_key",
     regex:
-      /-----BEGIN\s+(RSA|EC|DSA|OPENSSH)\s+PRIVATE\s+KEY-----[\s\S]*?-----END\s+(RSA|EC|DSA|OPENSSH)\s+PRIVATE\s+KEY-----/g,
+      /-----BEGIN\s+(RSA|EC|DSA|OPENSSH|PRIVATE|ENCRYPTED)\s+PRIVATE\s+KEY-----[\s\S]*?-----END\s+(RSA|EC|DSA|OPENSSH|PRIVATE|ENCRYPTED)\s+PRIVATE\s+KEY-----/g,
   },
   {
     name: "pem_certificate",
     regex: /-----BEGIN\s+CERTIFICATE-----[\s\S]*?-----END\s+CERTIFICATE-----/g,
+  },
+  {
+    name: "pgp_private_key",
+    regex:
+      /-----BEGIN\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----[\s\S]*?-----END\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----/g,
+  },
+  {
+    name: "ssh_dsa_private_key",
+    regex: /-----BEGIN\s+DSA\s+PRIVATE\s+KEY-----[\s\S]*?-----END\s+DSA\s+PRIVATE\s+KEY-----/g,
   },
 ];
 
@@ -67,10 +76,16 @@ export function redactSecrets(text: string, enabled = true): RedactionResult {
       return REDACTION_PLACEHOLDER;
     });
 
-    findings.push({
-      pattern: pattern.name,
-      count: matches.length,
-    });
+    // Deduplicate findings by pattern name
+    const existing = findings.find((f) => f.pattern === pattern.name);
+    if (existing) {
+      existing.count += matches.length;
+    } else {
+      findings.push({
+        pattern: pattern.name,
+        count: matches.length,
+      });
+    }
   }
 
   return {

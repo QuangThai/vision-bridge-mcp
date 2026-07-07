@@ -138,6 +138,33 @@ export type OcrVisibleTextBlock = z.infer<typeof ocrVisibleTextBlockSchema>;
 export type OcrImageInput = z.infer<typeof ocrImageInputSchema>;
 export type OcrImageOutput = z.infer<typeof ocrImageOutputSchema>;
 
+// ── clipboard-first tools ─────────────────────────────────────────────────────
+
+export const analyzeClipboardInputSchema = z.object({
+  prompt: z.string().optional(),
+  mode: analyzeImageModeSchema.default("general"),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+  output_format: z.literal("markdown_json").default("markdown_json"),
+});
+
+export type AnalyzeClipboardInput = z.infer<typeof analyzeClipboardInputSchema>;
+
+export const diagnoseClipboardInputSchema = z.object({
+  prompt: z.string().optional(),
+  detail_level: analyzeImageDetailLevelSchema.default("standard"),
+  output_format: z.literal("markdown_json").default("markdown_json"),
+});
+
+export type DiagnoseClipboardInput = z.infer<typeof diagnoseClipboardInputSchema>;
+
+export const ocrClipboardInputSchema = z.object({
+  preserve_layout: z.boolean().default(true),
+  extract_tables: z.boolean().default(false),
+  extract_code: z.boolean().default(false),
+});
+
+export type OcrClipboardInput = z.infer<typeof ocrClipboardInputSchema>;
+
 export const uiTargetFrameworkSchema = z.enum([
   "react",
   "vue",
@@ -251,6 +278,14 @@ export type UiElement = z.infer<typeof uiElementSchema>;
 export type UiLayout = z.infer<typeof uiLayoutSchema>;
 export type AnalyzeUiScreenshotInput = z.infer<typeof analyzeUiScreenshotInputSchema>;
 export type AnalyzeUiScreenshotOutput = z.infer<typeof analyzeUiScreenshotOutputSchema>;
+
+export const analyzeUiClipboardInputSchema = z.object({
+  target_framework: uiTargetFrameworkSchema.default("unknown"),
+  style_system: uiStyleSystemSchema.default("unknown"),
+  goal: uiScreenshotGoalSchema.default("describe"),
+});
+
+export type AnalyzeUiClipboardInput = z.infer<typeof analyzeUiClipboardInputSchema>;
 
 export const compareImagesFocusSchema = z.enum(["layout", "text", "color", "component", "general"]);
 

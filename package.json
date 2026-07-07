@@ -1,13 +1,13 @@
 {
   "name": "atlas-vision-mcp",
-  "version": "1.0.0",
+  "version": "1.0.7",
   "description": "MCP vision bridge for text-only coding agents",
   "type": "module",
   "author": "QuangThai",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/QuangThai/vision-bridge-mcp"
+    "url": "git+https://github.com/QuangThai/vision-bridge-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/QuangThai/vision-bridge-mcp/issues"
@@ -17,7 +17,8 @@
     "node": ">=20"
   },
   "bin": {
-    "atlas-vision": "dist/cli/main.js"
+    "atlas-vision": "dist/cli/main.js",
+    "atlas-vision-mcp": "dist/cli/main.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -29,7 +30,8 @@
   },
   "files": ["dist", "extensions", "hooks", "README.md"],
   "pi": {
-    "extensions": ["./extensions"]
+    "extensions": ["./extensions"],
+    "image": "https://raw.githubusercontent.com/QuangThai/vision-bridge-mcp/main/docs/images/pi-gallery-preview.png"
   },
   "scripts": {
     "snapshot:update": "node dist/cli/main.js eval --gate --threshold 0.8 --gate-elements --elements-threshold 0.25 --tier core --snapshot update",
@@ -46,7 +48,16 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
-  "keywords": ["mcp", "vision", "coding-agent", "model-context-protocol", "pi-package"],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "mcp",
+    "vision",
+    "ocr",
+    "screenshot",
+    "coding-agent",
+    "model-context-protocol"
+  ],
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },

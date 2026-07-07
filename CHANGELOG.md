@@ -1,5 +1,150 @@
 # Changelog
 
+## 1.0.7 - 2026-06-30
+
+### Fixed
+
+- **Pi pasted image temp paths** — auto-intercept now safely allows Pi CLI
+  clipboard temp images such as `pi-clipboard-*.png` under the current OS temp
+  directory, fixing `Image path is outside allowed directories` after users move
+  `%TEMP%` / `%TMP%` to another drive.
+- **Internal temp image handling** — Atlas-created attached-image and clipboard
+  temp files are allowed per planned vision call without globally widening
+  `ATLAS_ALLOWED_DIRS`; arbitrary temp image paths remain blocked.
+
+### Validation
+
+- `pnpm build`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm vitest run tests/harness/intercept-images.test.ts`
+- `pnpm test` - 49 files, 444 tests
+- `npm pack --dry-run --json`
+
+## 1.0.6 - 2026-06-30
+
+### Added
+
+- **Pi package gallery preview** — added a clean `pi.image` preview asset for
+  `https://pi.dev/packages/atlas-vision-mcp` so the package renders with a clear,
+  non-overflowing UI card in the Pi gallery.
+- **Pi package discoverability** — expanded npm keywords with `pi-extension`,
+  `ocr`, and `screenshot`.
+
+### Documentation
+
+- Added a Pi-specific security note explaining local extension permissions, image
+  and clipboard reads, provider upload behavior, and config review points.
+- Clarified that `pi install npm:atlas-vision-mcp` is the supported distribution
+  path; git install is not currently supported because the extension imports
+  built files from the npm tarball.
+- Converted README docs/examples links to GitHub absolute links so they work
+  correctly from npm and Pi package pages.
+
+### Validation
+
+- `pnpm build`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test` - 49 files, 442 tests
+- `npm pack --dry-run --json`
+
+## 1.0.5 - 2026-06-29
+
+### Fixed
+
+- **`npx atlas-vision-mcp` package execution** — added the `atlas-vision-mcp`
+  bin alias alongside `atlas-vision`, so MCP clients can run the package by name
+  on Windows and other platforms.
+- **Cross-platform clipboard image reads** — clipboard tools now support macOS
+  (`pngpaste` or AppleScript fallback) and Linux (`wl-paste` or `xclip`) in
+  addition to Windows PowerShell Desktop.
+- **Clipboard platform documentation** — README and product docs now list the
+  Windows/macOS/Linux backends and limitations.
+
+### Validation
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test` - 49 files, 442 tests
+- `pnpm build`
+- `npm publish --dry-run`
+
+## 1.0.4 - 2026-06-29
+
+### Added
+
+- **Clipboard-first MCP tools** — `analyze_clipboard`, `ocr_clipboard`,
+  `diagnose_clipboard`, and `analyze_ui_clipboard` let text-only agents read the
+  current OS clipboard image directly instead of relying on native image
+  attachments.
+- **OpenCode/Droid clipboard workflow docs** — documented that native `Alt+V`
+  attachments are still client-internal, while Atlas clipboard tools read the OS
+  clipboard directly.
+
+### Fixed
+
+- **Windows clipboard image reads** — PowerShell clipboard extraction now runs in
+  STA mode so `Get-Clipboard -Format Image` works reliably from the MCP server.
+- **MCP stdio registration parity** — `serveStdio()` now registers the same
+  vision tools as `createAtlasMcpServer()`, including clipboard tools.
+
+### Validation
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test` - 49 files, 442 tests
+- `pnpm build`
+- E2E verified with OpenCode DeepSeek/GLM and Droid DeepSeek/GLM calling
+  clipboard tools against a real Windows clipboard image.
+
+## 1.0.3 - 2026-06-29
+
+### Fixed
+
+- **Gemini `media_resolution` enum format** — `mapDetailToMediaResolution()` now
+  uses correct proto enum names (`MEDIA_RESOLUTION_LOW`, `MEDIA_RESOLUTION_ORIGINAL`)
+  instead of lowercase strings that were rejected by the API.
+- **Gemini model version gate** — `media_resolution` is now only sent for
+  Gemini 3+ models (where the API supports it). Older models (gemini-2.x)
+  skip the parameter entirely, avoiding `Invalid value` errors.
+
+### Added
+
+- **`supportsMediaResolution(model)`** — exported helper to check Gemini model
+  version compatibility.
+- **Gemini E2E tests** — `tests/e2e/gemini-e2e.test.ts` (24 tests) covering
+  all 7 tools against real Gemini models. Plus multi-model smoke suite
+  `tests/e2e/gemini-multi-model.test.ts` for cross-version verification.
+
+### Validation
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test` - 48 files, 434 tests
+- `pnpm build`
+- E2E verified on `gemini-3.5-flash` (17/24 pass, 7 quota-skipped)
+- E2E verified on `gemini-3.1-flash-lite` (4/4 core tools pass)
+
+## 1.0.2 - 2026-06-28
+
+### Fixed
+
+- **CLI eval env loading** - `atlas-vision eval` now loads local `.env` values
+  before resolving provider config, matching E2E hook behavior. This lets
+  `pnpm test:golden` run directly in local release checks without a shell env
+  wrapper.
+- **Version metadata sync** - CLI/package version constant now matches the npm
+  package version.
+
+### Validation
+
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test` - 48 files, 434 tests
+- `pnpm build`
+- `pnpm test:golden` - 16/16 snapshots, zero gate failures
+
 ## 1.0.0 — 2026-06-27
 
 ### Added

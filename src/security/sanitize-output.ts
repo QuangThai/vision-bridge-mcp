@@ -80,8 +80,10 @@ export function sanitizeAnalyzeOutput(
   options: SanitizeOutputOptions,
 ): AnalyzeImageOutput {
   const textsForInjection: string[] = [output.summary];
+  const redactionFindings: RedactionFinding[] = [];
+
   const observations = output.observations.map((observation) => {
-    const content = redactField(observation.content, options.redactSecrets, []);
+    const content = redactField(observation.content, options.redactSecrets, redactionFindings);
     textsForInjection.push(content);
     return {
       ...observation,
@@ -90,15 +92,14 @@ export function sanitizeAnalyzeOutput(
   });
 
   const inferences = output.inferences.map((inference) => {
-    const content = redactField(inference.content, options.redactSecrets, []);
+    const content = redactField(inference.content, options.redactSecrets, redactionFindings);
     textsForInjection.push(content);
     return {
       ...inference,
-      content,
+      content: tagUntrustedText(content),
     };
   });
 
-  const redactionFindings: RedactionFinding[] = [];
   const summaryRedacted = redactField(output.summary, options.redactSecrets, redactionFindings);
 
   const securityNotes = new Set(output.security_notes);
@@ -106,7 +107,7 @@ export function sanitizeAnalyzeOutput(
   addRedactionWarnings(redactionFindings, securityNotes);
   addPiiWarnings(
     [
-      output.summary,
+      summaryRedacted,
       ...observations.map((o) => o.content),
       ...inferences.map((i) => i.content),
     ].join(" "),
@@ -137,7 +138,7 @@ export function sanitizeUiScreenshotOutput(
     return {
       ...element,
       label: tagUntrustedText(label),
-      implementation_hint: hint,
+      implementation_hint: tagUntrustedText(hint),
     };
   });
 

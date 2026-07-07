@@ -19,11 +19,15 @@ vi.mock("../../src/cli/commands.js", async (importOriginal) => {
 });
 
 const TOOL_NAMES = [
+  "analyze_clipboard",
   "analyze_image",
   "analyze_image_batch",
+  "analyze_ui_clipboard",
   "analyze_ui_screenshot",
   "compare_images",
+  "diagnose_clipboard",
   "extract_region",
+  "ocr_clipboard",
   "ocr_image",
   "should_use_atlas_vision",
 ];
@@ -38,11 +42,12 @@ describe("publish smoke", () => {
     ) as { bin?: Record<string, string>; files?: string[] };
 
     expect(packageJson.bin?.["atlas-vision"]).toBe("dist/cli/main.js");
+    expect(packageJson.bin?.["atlas-vision-mcp"]).toBe("dist/cli/main.js");
     expect(packageJson.files).toContain("dist");
     expect(packageJson.files).toContain("README.md");
   });
 
-  it("registers all seven MCP tools", async () => {
+  it("registers all MCP tools", async () => {
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createAtlasMcpServer();
     await server.connect(serverTransport);

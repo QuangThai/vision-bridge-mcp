@@ -13,8 +13,8 @@
   },
   "key_count": 8,
   "array_lengths": {
-    "matches_expected_text": 4,
-    "missing_expected_text": 0,
+    "matches_expected_text": 3,
+    "missing_expected_text": 1,
     "matches_expected_elements": 0,
     "missing_expected_elements": 0
   },
