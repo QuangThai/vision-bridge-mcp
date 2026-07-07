@@ -420,7 +420,8 @@ export function registerAnalyzeClipboardTool(
       inputSchema: analyzeClipboardMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyze = dependencies.analyzeClipboard ?? analyzeClipboard;
@@ -440,6 +441,8 @@ export function registerAnalyzeClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -456,7 +459,8 @@ export function registerDiagnoseClipboardTool(
       inputSchema: diagnoseClipboardMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const diagnose = dependencies.diagnoseClipboard ?? diagnoseClipboard;
@@ -476,6 +480,8 @@ export function registerDiagnoseClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -492,7 +498,8 @@ export function registerOcrClipboardTool(
       inputSchema: ocrClipboardMcpInputSchema,
       outputSchema: ocrImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const ocr = dependencies.ocrClipboard ?? ocrClipboard;
@@ -512,6 +519,8 @@ export function registerOcrClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -528,7 +537,8 @@ export function registerAnalyzeUiClipboardTool(
       inputSchema: analyzeUiClipboardMcpInputSchema,
       outputSchema: analyzeUiScreenshotOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyzeUi = dependencies.analyzeUiClipboard ?? analyzeUiClipboard;
@@ -548,10 +558,13 @@ export function registerAnalyzeUiClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
 }
+
 
 export function registerAnalyzeUiScreenshotTool(
   server: McpServer,

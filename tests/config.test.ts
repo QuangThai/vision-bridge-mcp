@@ -14,7 +14,7 @@ describe("loadConfig", () => {
     expect(config.vision.provider).toBe("openai-compatible");
     expect(config.vision.baseUrl).toBe("https://api.openai.com/v1");
     expect(config.vision.model).toBe("gpt-4o-mini");
-    expect(config.vision.timeoutMs).toBe(60_000);
+    expect(config.vision.timeoutMs).toBe(300_000);
     expect(config.vision.maxImageMb).toBe(10);
     expect(config.vision.maxOutputTokens).toBe(4_000);
     expect(config.atlas.allowedDirs).toEqual(["."]);

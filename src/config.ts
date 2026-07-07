@@ -24,7 +24,11 @@ const rawEnvSchema = z.object({
   VISION_API_KEY: z.string().default(""),
   VISION_MODEL: z.string().min(1).default("gpt-4o-mini"),
   VISION_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.1),
-  VISION_TIMEOUT_MS: z.coerce.number().int().positive().max(600_000).default(60_000),
+  // Default 300s, not 60s: reasoning/"thinking" vision models routinely take
+  // 100-250s for a single call. A 60s default silently aborts those mid-flight
+  // even when the client keeps the request alive, surfacing as "The operation
+  // was aborted due to timeout".
+  VISION_TIMEOUT_MS: z.coerce.number().int().positive().max(600_000).default(300_000),
   VISION_MAX_IMAGE_MB: z.coerce.number().positive().max(100).default(10),
   VISION_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().max(128_000).default(4_000),
   VISION_RETRY_MAX: z.coerce.number().int().min(0).max(10).default(3),

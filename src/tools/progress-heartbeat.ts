@@ -1,7 +1,11 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type { ServerNotification, ServerRequest } from "@modelcontextprotocol/sdk/types.js";
 
-const HEARTBEAT_INTERVAL_MS = 30_000;
+// Must be COMFORTABLY shorter than the client's request timeout. The MCP SDK
+// default is 60s; a 30s interval lands the second beat right on the deadline —
+// a dead heat the timeout can win. 15s gives a 4x margin so a beat always lands
+// well before the deadline.
+const HEARTBEAT_INTERVAL_MS = 15_000;
 
 /**
  * Keep a long-running tool call alive by periodically emitting MCP progress
