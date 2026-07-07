@@ -76,6 +76,7 @@ import {
   type OcrImageDependencies,
   ocrImage,
 } from "./tools/ocr-image.js";
+import { startProgressHeartbeat } from "./tools/progress-heartbeat.js";
 import {
   SHOULD_USE_ATLAS_VISION_TOOL_DESCRIPTION,
   SHOULD_USE_ATLAS_VISION_TOOL_NAME,
@@ -298,7 +299,8 @@ export function registerAnalyzeImageTool(
       inputSchema: analyzeImageMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyze = dependencies.analyze ?? analyzeImage;
@@ -318,6 +320,8 @@ export function registerAnalyzeImageTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -334,7 +338,8 @@ export function registerExtractRegionTool(
       inputSchema: extractRegionMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const extract = dependencies.extractRegion ?? extractRegion;
@@ -354,6 +359,8 @@ export function registerExtractRegionTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -370,7 +377,8 @@ export function registerAnalyzeImageBatchTool(
       inputSchema: analyzeImageBatchMcpInputSchema,
       outputSchema: analyzeImageBatchOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyzeBatch = dependencies.analyzeImageBatch ?? analyzeImageBatch;
@@ -390,6 +398,8 @@ export function registerAnalyzeImageBatchTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -406,7 +416,8 @@ export function registerOcrImageTool(
       inputSchema: ocrImageMcpInputSchema,
       outputSchema: ocrImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const ocr = dependencies.ocr ?? ocrImage;
@@ -426,6 +437,8 @@ export function registerOcrImageTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -442,7 +455,8 @@ export function registerAnalyzeClipboardTool(
       inputSchema: analyzeClipboardMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyze = dependencies.analyzeClipboard ?? analyzeClipboard;
@@ -462,6 +476,8 @@ export function registerAnalyzeClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -478,7 +494,8 @@ export function registerDiagnoseClipboardTool(
       inputSchema: diagnoseClipboardMcpInputSchema,
       outputSchema: analyzeImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const diagnose = dependencies.diagnoseClipboard ?? diagnoseClipboard;
@@ -498,6 +515,8 @@ export function registerDiagnoseClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -514,7 +533,8 @@ export function registerOcrClipboardTool(
       inputSchema: ocrClipboardMcpInputSchema,
       outputSchema: ocrImageOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const ocr = dependencies.ocrClipboard ?? ocrClipboard;
@@ -534,6 +554,8 @@ export function registerOcrClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -550,7 +572,8 @@ export function registerAnalyzeUiClipboardTool(
       inputSchema: analyzeUiClipboardMcpInputSchema,
       outputSchema: analyzeUiScreenshotOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyzeUi = dependencies.analyzeUiClipboard ?? analyzeUiClipboard;
@@ -570,6 +593,8 @@ export function registerAnalyzeUiClipboardTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -586,7 +611,8 @@ export function registerAnalyzeUiScreenshotTool(
       inputSchema: analyzeUiScreenshotMcpInputSchema,
       outputSchema: analyzeUiScreenshotOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const analyzeUi = dependencies.analyzeUiScreenshot ?? analyzeUiScreenshot;
@@ -606,6 +632,8 @@ export function registerAnalyzeUiScreenshotTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -622,7 +650,8 @@ export function registerCompareImagesTool(
       inputSchema: compareImagesMcpInputSchema,
       outputSchema: compareImagesOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const config = dependencies.config ?? loadConfig();
         const compare = dependencies.compareImages ?? compareImages;
@@ -642,6 +671,8 @@ export function registerCompareImagesTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
@@ -658,7 +689,8 @@ export function registerShouldUseAtlasVisionTool(
       inputSchema: shouldUseAtlasVisionMcpInputSchema,
       outputSchema: shouldUseAtlasVisionOutputSchema.shape,
     },
-    async (args) => {
+    async (args, extra) => {
+      const stopHeartbeat = startProgressHeartbeat(extra);
       try {
         const check = dependencies.shouldUseAtlasVision ?? shouldUseAtlasVision;
         const result = await check(args, {
@@ -675,6 +707,8 @@ export function registerShouldUseAtlasVisionTool(
           isError: true,
           content: [{ type: "text" as const, text: formatToolFailure(error) }],
         };
+      } finally {
+        stopHeartbeat();
       }
     },
   );
