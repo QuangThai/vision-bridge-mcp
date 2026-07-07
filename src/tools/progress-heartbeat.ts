@@ -22,30 +22,30 @@ const HEARTBEAT_INTERVAL_MS = 15_000;
  * so this is safe for a stdio server.)
  */
 export function startProgressHeartbeat(
-	extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
+  extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
 ): () => void {
-	const progressToken = extra._meta?.progressToken;
-	if (progressToken === undefined) {
-		console.warn(
-			"[heartbeat] no progressToken on request — progress heartbeat DISABLED; " +
-				"long calls (>60s) may be aborted by the client's default request timeout. " +
-				"The client must pass an onprogress callback to callTool for the token to exist.",
-		);
-		return () => {};
-	}
+  const progressToken = extra._meta?.progressToken;
+  if (progressToken === undefined) {
+    console.warn(
+      "[heartbeat] no progressToken on request — progress heartbeat DISABLED; " +
+        "long calls (>60s) may be aborted by the client's default request timeout. " +
+        "The client must pass an onprogress callback to callTool for the token to exist.",
+    );
+    return () => {};
+  }
 
-	let step = 0;
-	const interval = setInterval(() => {
-		step++;
-		extra
-			.sendNotification({
-				method: "notifications/progress",
-				params: { progressToken, progress: step, total: 100 },
-			} as ServerNotification)
-			.catch((err) => {
-				console.warn(`[heartbeat] sendNotification failed (step ${step}): ${String(err)}`);
-			});
-	}, HEARTBEAT_INTERVAL_MS);
+  let step = 0;
+  const interval = setInterval(() => {
+    step++;
+    extra
+      .sendNotification({
+        method: "notifications/progress",
+        params: { progressToken, progress: step, total: 100 },
+      } as ServerNotification)
+      .catch((err) => {
+        console.warn(`[heartbeat] sendNotification failed (step ${step}): ${String(err)}`);
+      });
+  }, HEARTBEAT_INTERVAL_MS);
 
-	return () => clearInterval(interval);
+  return () => clearInterval(interval);
 }

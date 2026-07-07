@@ -2,7 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { z } from "zod";
-import { startProgressHeartbeat } from "./tools/progress-heartbeat.js";
 import { getModelCapabilities, parseModelRef } from "./capabilities/index.js";
 import { type AtlasConfig, ConfigError, loadConfig } from "./config.js";
 import { PACKAGE_NAME, VERSION } from "./constants.js";
@@ -76,6 +75,7 @@ import {
   type OcrImageDependencies,
   ocrImage,
 } from "./tools/ocr-image.js";
+import { startProgressHeartbeat } from "./tools/progress-heartbeat.js";
 import {
   SHOULD_USE_ATLAS_VISION_TOOL_DESCRIPTION,
   SHOULD_USE_ATLAS_VISION_TOOL_NAME,
@@ -564,7 +564,6 @@ export function registerAnalyzeUiClipboardTool(
     },
   );
 }
-
 
 export function registerAnalyzeUiScreenshotTool(
   server: McpServer,
