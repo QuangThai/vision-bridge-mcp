@@ -204,6 +204,8 @@ export async function analyzeImage(
     detailLevel: providerDetailLevel as
       | import("../providers/types.js").ImageDetailLevel
       | undefined,
+    effort: parsedInput.reasoning_effort,
+    modelOverride: parsedInput.model,
   });
 
   const parsedJson = extractJsonFromText(raw.text);

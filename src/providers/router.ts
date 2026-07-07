@@ -107,6 +107,7 @@ function createInnerProvider(
       maxOutputTokens: 4_000,
       retryMax: 3,
       responsesThinking: "disabled",
+      responsesEffort: "minimal",
       responsesStore: true,
     },
     fetch,

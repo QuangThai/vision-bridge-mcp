@@ -23,6 +23,12 @@ const rawEnvSchema = z.object({
   VISION_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().max(128_000).default(4_000),
   VISION_RETRY_MAX: z.coerce.number().int().min(0).max(10).default(3),
   VISION_RESPONSES_THINKING: z.enum(["enabled", "disabled", "auto"]).default("disabled"),
+  // Reasoning effort for the Responses API (`reasoning.effort`), sent only when
+  // thinking is enabled. Volcengine accepts minimal | low | medium | high
+  // (server default is medium, or high for some models). We default to minimal
+  // so simple images stay fast; callers escalate per-call via the tool's
+  // `reasoning_effort` arg (low → medium → high).
+  VISION_RESPONSES_EFFORT: z.enum(["minimal", "low", "medium", "high"]).default("minimal"),
   VISION_RESPONSES_STORE: z
     .enum(["true", "false", "1", "0"])
     .default("true")
@@ -85,6 +91,7 @@ export interface AtlasConfig {
     maxOutputTokens: number;
     retryMax: number;
     responsesThinking: "enabled" | "disabled" | "auto";
+    responsesEffort: "minimal" | "low" | "medium" | "high";
     responsesStore: boolean;
     /** Optional fallback provider config */
     fallback?: {
@@ -151,6 +158,7 @@ function toRawEnv(env: NodeJS.ProcessEnv): Record<string, string | undefined> {
     "VISION_MAX_OUTPUT_TOKENS",
     "VISION_RETRY_MAX",
     "VISION_RESPONSES_THINKING",
+    "VISION_RESPONSES_EFFORT",
     "VISION_RESPONSES_STORE",
     "ATLAS_ALLOWED_DIRS",
     "ATLAS_STORE_HISTORY",
@@ -200,6 +208,7 @@ function toAtlasConfig(parsed: z.infer<typeof rawEnvSchema>): AtlasConfig {
       maxOutputTokens: parsed.VISION_MAX_OUTPUT_TOKENS,
       retryMax: parsed.VISION_RETRY_MAX,
       responsesThinking: parsed.VISION_RESPONSES_THINKING,
+      responsesEffort: parsed.VISION_RESPONSES_EFFORT,
       responsesStore: parsed.VISION_RESPONSES_STORE,
       fallback:
         parsed.VISION_FALLBACK_PROVIDER && parsed.VISION_FALLBACK_API_KEY

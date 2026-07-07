@@ -11,6 +11,11 @@ export const analyzeImageModeSchema = z.enum([
 
 export const analyzeImageDetailLevelSchema = z.enum(["brief", "standard", "detailed"]);
 
+// Per-call reasoning-effort override. Excludes "minimal" from the tool surface:
+// minimal is the resting default (fast, for simple images), and callers escalate
+// within low → medium → high when a result needs more depth.
+export const reasoningEffortSchema = z.enum(["low", "medium", "high"]);
+
 export const analyzeImageInputSchema = z
   .object({
     image_path: z.string().min(1).optional(),
@@ -18,6 +23,8 @@ export const analyzeImageInputSchema = z
     prompt: z.string().optional(),
     mode: analyzeImageModeSchema.default("general"),
     detail_level: analyzeImageDetailLevelSchema.default("standard"),
+    reasoning_effort: reasoningEffortSchema.optional(),
+    model: z.string().min(1).optional(),
     output_format: z.literal("markdown_json").default("markdown_json"),
   })
   .superRefine((value, context) => {

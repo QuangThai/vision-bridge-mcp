@@ -5,11 +5,18 @@ export interface EncodedImage {
 
 export type ImageDetailLevel = "auto" | "low" | "high" | "xhigh" | "original";
 
+/** Reasoning effort for Responses-API "thinking" models (Volcengine values). */
+export type ReasoningEffort = "minimal" | "low" | "medium" | "high";
+
 export interface AnalyzeImageInput {
   image: EncodedImage;
   userPrompt: string;
   systemPrompt?: string;
   detailLevel?: ImageDetailLevel;
+  /** Per-call override of reasoning effort (falls back to config default). */
+  effort?: ReasoningEffort;
+  /** Per-call override of the model id (falls back to config default). */
+  modelOverride?: string;
 }
 
 export interface CompareImagesInput {
@@ -18,6 +25,10 @@ export interface CompareImagesInput {
   userPrompt: string;
   systemPrompt?: string;
   detailLevel?: ImageDetailLevel;
+  /** Per-call override of reasoning effort (falls back to config default). */
+  effort?: ReasoningEffort;
+  /** Per-call override of the model id (falls back to config default). */
+  modelOverride?: string;
 }
 
 export interface RawVisionResult {

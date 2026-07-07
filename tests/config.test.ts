@@ -26,16 +26,19 @@ describe("loadConfig", () => {
     expect(config.atlas.defaultDetailLevel).toBe("standard");
     expect(config.vision.responsesThinking).toBe("disabled");
     expect(config.vision.responsesStore).toBe(true);
+    expect(config.vision.responsesEffort).toBe("minimal");
   });
 
   it("parses Responses-API-specific env values", () => {
     const config = loadConfig({
       VISION_RESPONSES_THINKING: "enabled",
       VISION_RESPONSES_STORE: "false",
+      VISION_RESPONSES_EFFORT: "high",
     });
 
     expect(config.vision.responsesThinking).toBe("enabled");
     expect(config.vision.responsesStore).toBe(false);
+    expect(config.vision.responsesEffort).toBe("high");
   });
 
   it("parses custom env values", () => {
