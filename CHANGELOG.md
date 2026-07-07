@@ -1,5 +1,54 @@
 # Changelog
 
+## 1.1.0 - 2026-07-07
+
+### Added
+
+- **Volcengine Ark Responses API compatibility** - the `openai-responses`
+  provider now supports OpenAI-compatible Responses endpoints that require
+  provider-specific image detail handling and optional `thinking` / `store`
+  request fields.
+- **Per-call reasoning escalation** - `analyze_image` now accepts optional
+  `reasoning_effort` and `model` overrides so callers can retry a hard image
+  with deeper reasoning or a stronger model without reconfiguring the whole
+  server.
+- **Long-call MCP heartbeat protection** - long-running vision tools now emit
+  periodic MCP progress notifications so compliant clients can keep requests
+  alive past the SDK's default 60s request timeout.
+- **Build safety guard** - `prebuild` now refuses to rebuild while a live
+  Atlas MCP server process is still running from `dist/`, preventing accidental
+  mid-request crashes during local development.
+
+### Changed
+
+- **Responses API controls** - added `VISION_RESPONSES_THINKING`,
+  `VISION_RESPONSES_EFFORT`, and `VISION_RESPONSES_STORE` config support with
+  conservative defaults.
+- **Timeout default** - `VISION_TIMEOUT_MS` now defaults to `300000` so
+  reasoning-enabled vision calls do not abort prematurely under the default
+  local configuration.
+- **Cache key scoping** - cache entries now distinguish per-call reasoning
+  effort and model overrides to avoid returning lower-effort cached results for
+  escalated retries.
+
+### Fixed
+
+- **Provider-specific detail mapping** - Volcengine's `xhigh` image detail is
+  now scoped to the Responses provider path instead of changing the shared
+  provider mapper globally.
+- **Cross-provider model override correctness** - per-call model overrides now
+  propagate across Gemini, OpenAI-compatible, Claude, and Responses providers,
+  matching the public MCP tool contract.
+- **Release gate compliance** - merged PR fixes include Biome formatting and
+  import-order cleanup so the release branch is CI-clean again.
+
+### Validation
+
+- `pnpm build`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`
+
 ## 1.0.7 - 2026-06-30
 
 ### Fixed
