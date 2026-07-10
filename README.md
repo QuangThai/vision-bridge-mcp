@@ -417,6 +417,10 @@ VISION_PROVIDER=openai-compatible
 | `ATLAS_INTERCEPT_MODE` | `auto` | `auto`, `text-only-only`, `always`, `never` — v0.4.0 |
 | `VISION_PROVIDER` | `openai-compatible` | Vision adapter — `openai-compatible`, `gemini`, `openai-responses` |
 
+During an interactive Pi session, use `/atlas off` to disable interception,
+`/atlas on` to force it, or `/atlas auto` to restore capability-based routing.
+This session override does not modify environment-file defaults.
+
 ### Verify
 
 ```bash
@@ -470,7 +474,7 @@ npx atlas-vision-mcp install-hooks claude
 
 Use the Pi extension on Pi; use the plugin on opencode-go; use hooks on other agents; use MCP for on-demand tools everywhere.
 
-Full Pi integration guide: [`examples/PI_INTEGRATION.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/examples/PI_INTEGRATION.md)
+Full Pi integration guide: [`docs/product/pi-integration.md`](https://github.com/QuangThai/vision-bridge-mcp/blob/main/docs/product/pi-integration.md)
 
 ### OpenCode Go — Plugin (auto-intercept, recommended)
 

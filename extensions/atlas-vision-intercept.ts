@@ -59,6 +59,20 @@ function envFlag(name: string): boolean {
   return value === "1" || value === "true" || value === "yes";
 }
 
+type InterceptMode = "auto" | "on" | "off";
+
+function initialInterceptMode(): InterceptMode {
+  if (envFlag("ATLAS_SKIP_INTERCEPT")) return "off";
+  if (envFlag("ATLAS_FORCE_INTERCEPT")) return "on";
+  return "auto";
+}
+
+function interceptStatus(mode: InterceptMode): string {
+  if (mode === "off") return "atlas: disabled";
+  if (mode === "on") return "atlas: force intercept";
+  return "atlas: auto intercept";
+}
+
 function resolveMainModelRef(model: { provider: string; id: string } | undefined): string | null {
   // Active pi model is authoritative — matches harness user-prompt-hook routing.
   if (model?.provider?.trim() && model?.id?.trim()) {
@@ -78,22 +92,54 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
   // User's existing process.env always takes priority.
   loadAtlasEnvFiles(process.cwd());
 
+  // The command changes this session-only override. Environment flags remain the
+  // durable default for new Pi sessions.
+  let interceptMode = initialInterceptMode();
+  let hasSessionOverride = false;
+
+  const updateStatus = (ctx: { ui: { setStatus: (key: string, value: string) => void } }) => {
+    ctx.ui.setStatus("atlas-vision", interceptStatus(interceptMode));
+  };
+
+  pi.registerCommand("atlas", {
+    description: "Set Atlas Vision image interception: on, off, auto, or status",
+    handler: async (args, ctx) => {
+      const action = args.trim().toLowerCase();
+
+      if (!action || action === "status") {
+        ctx.ui.notify(`Atlas vision interception is ${interceptMode}.`, "info");
+        return;
+      }
+
+      if (action === "on" || action === "enable") {
+        interceptMode = "on";
+      } else if (action === "off" || action === "disable") {
+        interceptMode = "off";
+      } else if (action === "auto") {
+        interceptMode = "auto";
+      } else {
+        ctx.ui.notify("Usage: /atlas [on|off|auto|status]", "warning");
+        return;
+      }
+
+      hasSessionOverride = true;
+      updateStatus(ctx);
+      ctx.ui.notify(
+        `Atlas vision interception is ${interceptMode === "off" ? "disabled" : interceptMode === "on" ? "forced on" : "automatic"}.`,
+        "info",
+      );
+    },
+  });
+
   pi.on("session_start", (_event, ctx) => {
     // Re-check with session cwd (e.g. if pi was started in a different directory)
     loadAtlasEnvFiles(ctx.cwd);
-
-    if (envFlag("ATLAS_SKIP_INTERCEPT")) {
-      return;
-    }
-
-    ctx.ui.setStatus(
-      "atlas-vision",
-      envFlag("ATLAS_FORCE_INTERCEPT") ? "atlas: force intercept" : "atlas: auto intercept",
-    );
+    if (!hasSessionOverride) interceptMode = initialInterceptMode();
+    updateStatus(ctx);
   });
 
   pi.on("before_agent_start", async (event, ctx) => {
-    if (envFlag("ATLAS_SKIP_INTERCEPT")) {
+    if (interceptMode === "off") {
       return;
     }
 
@@ -102,7 +148,7 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
     // "image", the model can see images natively. No need for atlas at all.
     // This check runs BEFORE any work (no status set, no image persist)
     // to guarantee zero overhead for vision-capable models.
-    if (ctx.model?.input?.includes("image") && !envFlag("ATLAS_FORCE_INTERCEPT")) {
+    if (ctx.model?.input?.includes("image") && interceptMode !== "on") {
       return;
     }
 
@@ -136,8 +182,8 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
           env: process.env,
         },
         {
-          forceIntercept: envFlag("ATLAS_FORCE_INTERCEPT"),
-          skipIntercept: envFlag("ATLAS_SKIP_INTERCEPT"),
+          forceIntercept: interceptMode === "on",
+          skipIntercept: interceptMode === "off",
         },
         { cwd: ctx.cwd },
       );
@@ -158,7 +204,7 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
       ctx.ui.notify(`Atlas vision intercept failed: ${message}`, "warning");
       return;
     } finally {
-      ctx.ui.setStatus("atlas-vision", undefined);
+      updateStatus(ctx);
     }
   });
 }

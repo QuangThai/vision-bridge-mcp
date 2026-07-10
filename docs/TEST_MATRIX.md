@@ -38,6 +38,7 @@ Mark a row `implemented` after tests or validation evidence exist locally.
 | Proxy routing / MAIN_MODEL_REF | composer* skips intercept; hook model wins over env | implemented | `tests/capabilities/proxy-resolver.test.ts`, `tests/integration/agent-routing.test.ts` |
 | Multi-agent hooks | Cursor, Codex, Droid, Claude user-prompt routing | implemented | `tests/harness/user-prompt-hook.test.ts`, `tests/e2e/agent-hooks.e2e.test.ts` |
 | Pi extension parity | `ctx.model.input` runtime signal | implemented | `tests/capabilities/pi-extension-smoke.test.ts` |
+| Pi intercept session override | `/atlas on`, `off`, `auto`, and `status` control in-process image interception without changing env defaults | implemented | `tests/capabilities/pi-extension-command.test.ts` |
 | Golden eval gate | Core fixtures @ 80% with snapshot verification | implemented | `tests/tools/eval.test.ts`, CI `pnpm test:golden`; 2026-06-28 `pnpm test:golden` passed with 16/16 snapshots |
 | Batch / region tools | `analyze_image_batch`, `extract_region` | implemented | `tests/tools/analyze-image-batch.test.ts`, `tests/tools/extract-region.test.ts` |
 

@@ -113,6 +113,23 @@ User prompt + attached images
   ↓ Main model continues with text evidence
 ```
 
+### Session Override Command
+
+Pi has no Atlas MCP server to enable or disable here: its Atlas package is an
+in-process extension. Use the `/atlas` command to control only image
+interception for the current Pi session:
+
+```text
+/atlas off     # Disable Atlas interception; native model vision is used directly
+/atlas on      # Force Atlas interception, even when Pi reports native vision
+/atlas auto    # Restore the default capability-based decision
+/atlas status  # Show the active session mode
+```
+
+`on`/`off` are also accepted as `enable`/`disable`. The command does not edit
+`.env`; restart Pi to return to `ATLAS_SKIP_INTERCEPT` / `ATLAS_FORCE_INTERCEPT`
+defaults.
+
 ### Automatic Model Detection
 
 The extension uses Pi's runtime model context for authoritative capability detection:
@@ -408,9 +425,10 @@ VISION_PROVIDER=openai-compatible
 ```
 
 ### Status Indicators
-- `atlas: auto intercept` - Extension loaded, ready
-- `atlas: analyzing image(s)...` - Processing images  
-- `atlas: force intercept` - Force mode enabled
+- `atlas: auto intercept` - Extension loaded; it follows the active model capability
+- `atlas: analyzing image(s)...` - Processing images
+- `atlas: force intercept` - `/atlas on` or `ATLAS_FORCE_INTERCEPT=true`
+- `atlas: disabled` - `/atlas off` or `ATLAS_SKIP_INTERCEPT=true`
 
 ### Model Capability Check
 ```bash

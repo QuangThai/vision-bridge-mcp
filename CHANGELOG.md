@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.0 - 2026-07-10
+
+### Added
+
+- **Pi Atlas interception command** — interactive Pi users can now run
+  `/atlas off`, `/atlas on`, `/atlas auto`, or `/atlas status` to control
+  in-process Atlas image interception for the current session. `auto` keeps the
+  existing capability-based routing, while `on` and `off` provide explicit
+  overrides without editing environment files.
+
+### Validation
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test` — 51 files, 461 tests
+- `pnpm build`
+
 ## 1.1.0 - 2026-07-07
 
 ### Added
