@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Plain-http base URLs for loopback/private-network providers** — `VISION_BASE_URL`
+  and `VISION_FALLBACK_BASE_URL` now accept `http://` when the endpoint is on the
+  loopback or a private network (e.g. a local [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
+  instance), so Atlas can talk to local proxies without a TLS terminator. Public
+  hosts still require `https://` so API keys are never sent in plaintext.
+
+### Validation
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`
+
 ## 1.2.0 - 2026-07-10
 
 ### Added
