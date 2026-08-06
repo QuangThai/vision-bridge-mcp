@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.3.0 - 2026-08-06
+
 ### Added
 
 - **Plain-http base URLs for loopback/private-network providers** — `VISION_BASE_URL`
@@ -10,8 +12,16 @@
   instance), so Atlas can talk to local proxies without a TLS terminator. Public
   hosts still require `https://` so API keys are never sent in plaintext.
 
+### Fixed
+
+- **Symlinked allowed-directory paths** — `ATLAS_ALLOWED_DIRS` roots are now
+  resolved through symlinks before they are compared with image paths, fixing
+  valid images being rejected on platforms where directories such as `/tmp` or
+  `/var` resolve to a different physical path.
+
 ### Validation
 
+- `pnpm build`
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm test`
