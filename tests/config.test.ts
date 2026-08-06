@@ -83,6 +83,73 @@ describe("loadConfig", () => {
   });
 });
 
+describe("base URL scheme policy", () => {
+  it("accepts https for public hosts", () => {
+    const config = loadConfig({
+      VISION_BASE_URL: "https://api.openai.com/v1",
+    });
+    expect(config.vision.baseUrl).toBe("https://api.openai.com/v1");
+  });
+
+  it("accepts http for loopback hosts", () => {
+    for (const url of [
+      "http://127.0.0.1:18317/v1",
+      "http://localhost:8317/v1",
+      "http://[::1]:8317/v1",
+      "http://0.0.0.0:8317/v1",
+    ]) {
+      const config = loadConfig({ VISION_BASE_URL: url });
+      expect(config.vision.baseUrl).toBe(url);
+    }
+  });
+
+  it("accepts http for private-network hosts", () => {
+    for (const url of [
+      "http://10.0.0.5:8080/v1",
+      "http://192.168.1.10:8080/v1",
+      "http://172.16.4.2:8080/v1",
+      "http://172.31.255.254:8080/v1",
+      "http://169.254.169.254:8080/v1",
+    ]) {
+      const config = loadConfig({ VISION_BASE_URL: url });
+      expect(config.vision.baseUrl).toBe(url);
+    }
+  });
+
+  it("rejects http for public hosts", () => {
+    for (const url of [
+      "http://api.openai.com/v1",
+      "http://example.com/v1",
+      "http://8.8.8.8/v1",
+      "http://172.15.0.1/v1",
+      "http://172.32.0.1/v1",
+    ]) {
+      expect(() => loadConfig({ VISION_BASE_URL: url })).toThrow(ConfigError);
+    }
+  });
+
+  it("rejects non-http(s) schemes", () => {
+    expect(() => loadConfig({ VISION_BASE_URL: "ftp://example.com/v1" })).toThrow(ConfigError);
+  });
+
+  it("applies the same policy to the fallback base URL", () => {
+    const accepted = loadConfig({
+      VISION_FALLBACK_PROVIDER: "openai-compatible",
+      VISION_FALLBACK_API_KEY: "sk-test",
+      VISION_FALLBACK_BASE_URL: "http://127.0.0.1:18317/v1",
+    });
+    expect(accepted.vision.fallback?.baseUrl).toBe("http://127.0.0.1:18317/v1");
+
+    expect(() =>
+      loadConfig({
+        VISION_FALLBACK_PROVIDER: "openai-compatible",
+        VISION_FALLBACK_API_KEY: "sk-test",
+        VISION_FALLBACK_BASE_URL: "http://api.openai.com/v1",
+      }),
+    ).toThrow(ConfigError);
+  });
+});
+
 describe("validateProviderConfig", () => {
   it("requires API key for provider calls", () => {
     const config = loadConfig({ VISION_API_KEY: "" });

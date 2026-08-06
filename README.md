@@ -187,7 +187,7 @@ Deeper schemas: [`docs/product/mcp-tools.md`](https://github.com/QuangThai/visio
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `VISION_PROVIDER` | `openai-compatible` | Vision adapter — `openai-compatible`, `openai-responses`, `gemini`, `claude` |
-| `VISION_BASE_URL` | `https://api.openai.com/v1` | Provider API base |
+| `VISION_BASE_URL` | `https://api.openai.com/v1` | Provider API base. `https://` is required for public hosts; `http://` is accepted for loopback/private-network hosts (e.g. a local [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) instance) |
 | `VISION_API_KEY` | _(required for live calls)_ | Provider credential |
 | `VISION_MODEL` | `gpt-4o-mini` | Vision model id |
 | `VISION_TEMPERATURE` | `0.1` | Generation temperature |

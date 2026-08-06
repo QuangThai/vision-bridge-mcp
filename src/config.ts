@@ -5,6 +5,7 @@ import {
   getConfigFilePath,
   loadConfigFileSync,
 } from "./config-file.js";
+import { isLoopbackOrPrivateHostname } from "./security/net.js";
 
 const visionProviderSchema = z.enum(["openai-compatible", "gemini", "openai-responses", "claude"]);
 
@@ -12,15 +13,28 @@ const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 
 const detailLevelSchema = z.enum(["brief", "standard", "detailed"]);
 
+/**
+ * Base URLs must use https:// so API keys are never sent in plaintext, except
+ * when the endpoint is on the loopback or a private network (e.g. a local
+ * CLIProxyAPI / Ollama instance) where traffic never leaves the machine or the
+ * trusted LAN.
+ */
+function isAllowedBaseUrl(value: string): boolean {
+  if (value.startsWith("https://")) return true;
+  if (!value.startsWith("http://")) return false;
+  try {
+    return isLoopbackOrPrivateHostname(new URL(value).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 const rawEnvSchema = z.object({
   VISION_PROVIDER: visionProviderSchema.default("openai-compatible"),
-  VISION_BASE_URL: z
-    .string()
-    .url()
-    .default("https://api.openai.com/v1")
-    .refine((val) => val.startsWith("https://"), {
-      message: "VISION_BASE_URL must use https:// scheme (TLS is required for API key transport).",
-    }),
+  VISION_BASE_URL: z.string().url().default("https://api.openai.com/v1").refine(isAllowedBaseUrl, {
+    message:
+      "VISION_BASE_URL must use https:// scheme (or http:// for loopback/private-network hosts).",
+  }),
   VISION_API_KEY: z.string().default(""),
   VISION_MODEL: z.string().min(1).default("gpt-4o-mini"),
   VISION_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.1),
@@ -84,8 +98,9 @@ const rawEnvSchema = z.object({
   VISION_FALLBACK_BASE_URL: z
     .string()
     .url()
-    .refine((val) => val.startsWith("https://"), {
-      message: "VISION_FALLBACK_BASE_URL must use https:// scheme.",
+    .refine(isAllowedBaseUrl, {
+      message:
+        "VISION_FALLBACK_BASE_URL must use https:// scheme (or http:// for loopback/private-network hosts).",
     })
     .optional(),
   VISION_FALLBACK_MODEL: z.string().optional(),
