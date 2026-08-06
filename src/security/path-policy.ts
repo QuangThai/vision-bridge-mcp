@@ -35,8 +35,22 @@ export class PathPolicyError extends Error {
   }
 }
 
-function resolveAllowedRoot(dir: string, cwd: string): string {
-  return isAbsolute(dir) ? normalize(resolve(dir)) : normalize(resolve(cwd, dir));
+async function resolveAllowedRoots(dirs: string[], cwd: string): Promise<string[]> {
+  const roots: string[] = [];
+  for (const dir of dirs) {
+    const resolved = isAbsolute(dir) ? normalize(resolve(dir)) : normalize(resolve(cwd, dir));
+    try {
+      // Realpath the root so it matches the realpath'd image path: on macOS
+      // /tmp and /var are symlinks to /private/tmp and /private/var, so a
+      // prefix comparison against the un-resolved root would reject every
+      // image under them.
+      roots.push(await realpath(resolved));
+    } catch {
+      // Root doesn't exist yet (e.g. a relative ./assets) — keep the resolved path.
+      roots.push(resolved);
+    }
+  }
+  return roots;
 }
 
 function pathsEqual(left: string, right: string): boolean {
@@ -86,7 +100,7 @@ export async function assertPathAllowed(
     realPath = absolutePath;
   }
 
-  const allowedRoots = options.allowedDirs.map((dir) => resolveAllowedRoot(dir, cwd));
+  const allowedRoots = await resolveAllowedRoots(options.allowedDirs, cwd);
   const allowed = allowedRoots.some((root) => isPathInsideRoot(realPath, root));
 
   if (!allowed) {
