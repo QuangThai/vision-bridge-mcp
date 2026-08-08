@@ -23,6 +23,12 @@ export {
   type InterceptImagesResult,
 } from "./intercept-images.js";
 export {
+  interceptToolResultImage,
+  type ToolResultContentPart,
+  type ToolResultImageInterceptInput,
+  type ToolResultImageInterceptResult,
+} from "./tool-result-intercept.js";
+export {
   hookEnvFileCandidates,
   loadHookEnv,
   parseDotenv,

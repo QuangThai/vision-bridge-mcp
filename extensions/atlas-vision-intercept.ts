@@ -5,6 +5,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import {
   buildInterceptMessageText,
   interceptImagesForTextModel,
+  interceptToolResultImage,
   persistAttachedImages,
 } from "../dist/index.js";
 
@@ -202,6 +203,54 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Atlas vision intercept failed.";
       ctx.ui.notify(`Atlas vision intercept failed: ${message}`, "warning");
+      return;
+    } finally {
+      updateStatus(ctx);
+    }
+  });
+
+  pi.on("tool_result", async (event, ctx) => {
+    if (interceptMode === "off") {
+      return;
+    }
+
+    // Native-vision short-circuit, same as before_agent_start: when the
+    // model sees images natively the client attaches the image parts
+    // itself, so there is nothing to intercept.
+    if (ctx.model?.input?.includes("image") && interceptMode !== "on") {
+      return;
+    }
+
+    const mainModelRef = resolveMainModelRef(ctx.model);
+    if (!mainModelRef) {
+      return;
+    }
+
+    ctx.ui.setStatus("atlas-vision", "atlas: analyzing tool image(s)...");
+
+    try {
+      const result = await interceptToolResultImage(
+        {
+          mainModelRef,
+          toolInput: event.input,
+          content: event.content,
+          runtimeSupportsVision: ctx.model?.input?.includes("image") ?? undefined,
+          sessionId: ctx.sessionManager.getLeafId() ?? "session",
+          env: process.env,
+          forceIntercept: interceptMode === "on",
+        },
+        { cwd: ctx.cwd },
+      );
+
+      if (!result.intercepted || !result.content) {
+        return;
+      }
+
+      return { content: result.content as unknown as typeof event.content };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Atlas tool-result intercept failed.";
+      ctx.ui.notify(`Atlas tool-result intercept failed: ${message}`, "warning");
       return;
     } finally {
       updateStatus(ctx);

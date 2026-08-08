@@ -346,6 +346,13 @@ User prompt (+ attached images)
   → atlas-vision analyzes image(s) in-process
   → injects <atlas-vision-evidence> message
   → main model continues with text evidence
+
+Tool result containing image content (e.g. `read` on a screenshot)
+  → pi extension: tool_result
+  → model lacks "image" capability?
+  → atlas-vision analyzes the image file in-process
+  → appends <atlas-vision-evidence> to the tool result
+  → main model sees the image as text evidence
 ```
 
 ### Install

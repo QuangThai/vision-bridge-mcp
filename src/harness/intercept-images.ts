@@ -32,6 +32,13 @@ export interface InterceptImagesDependencies {
   loadConfig?: typeof loadConfig;
   plan?: typeof planImageIntercept;
   execute?: typeof executeVisionCall;
+  /**
+   * Additional directories the vision provider may read images from, on top
+   * of `ATLAS_ALLOWED_DIRS` and atlas-internal temp dirs. Used by the pi
+   * tool-result interception path, where the agent session has already read
+   * the image files itself. Scoped to the exact parent directories.
+   */
+  extraAllowedDirs?: string[];
 }
 
 const IMAGE_EXTENSIONS = new Set([
@@ -103,6 +110,29 @@ function withAllowedInternalTempImage(config: AtlasConfig, imagePath: string): A
   };
 }
 
+function withExtraAllowedDirs(
+  config: AtlasConfig,
+  extraAllowedDirs: string[] | undefined,
+): AtlasConfig {
+  if (!extraAllowedDirs || extraAllowedDirs.length === 0) {
+    return config;
+  }
+
+  const existing = new Set(config.atlas.allowedDirs);
+  const additions = extraAllowedDirs.filter((dir) => !existing.has(dir));
+  if (additions.length === 0) {
+    return config;
+  }
+
+  return {
+    ...config,
+    atlas: {
+      ...config.atlas,
+      allowedDirs: [...config.atlas.allowedDirs, ...additions],
+    },
+  };
+}
+
 export async function interceptImagesForTextModel(
   input: InterceptImagesInput,
   options: InterceptImagesOptions = {},
@@ -138,7 +168,10 @@ export async function interceptImagesForTextModel(
 
   for (const call of plan.plannedCalls) {
     const result = await execute(call, {
-      config: withAllowedInternalTempImage(config, call.imagePath),
+      config: withExtraAllowedDirs(
+        withAllowedInternalTempImage(config, call.imagePath),
+        dependencies.extraAllowedDirs,
+      ),
       cwd: dependencies.cwd,
       fetch: dependencies.fetch,
     });
