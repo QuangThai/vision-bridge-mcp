@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { detectImagesInText } from "../capabilities/detect-images.js";
@@ -7,6 +7,11 @@ export interface AttachedImageLike {
   type: "image";
   data: string;
   mimeType: string;
+}
+
+export interface TemporaryAttachedImages {
+  paths: string[];
+  cleanup: () => Promise<void>;
 }
 
 function extensionForMimeType(mimeType: string): string {
@@ -56,6 +61,50 @@ export async function persistAttachedImages(
   }
 
   return paths;
+}
+
+export async function persistTemporaryAttachedImages(
+  images: AttachedImageLike[],
+  scopeId?: string,
+): Promise<TemporaryAttachedImages> {
+  if (images.length === 0) {
+    return { paths: [], cleanup: async () => undefined };
+  }
+
+  const root = join(tmpdir(), "atlas-vision-mcp");
+  await mkdir(root, { recursive: true });
+  const safeScope = scopeId?.replace(/[^a-zA-Z0-9_-]+/gu, "_").slice(0, 48);
+  const prefix = safeScope ? `tool-result-${safeScope}-` : "intercept-";
+  const dir = await mkdtemp(join(root, prefix));
+
+  try {
+    const paths: string[] = [];
+    for (const [index, image] of images.entries()) {
+      if (!image.data.trim()) {
+        continue;
+      }
+
+      const extension = extensionForMimeType(image.mimeType);
+      const filePath = join(dir, `attached-${index + 1}${extension}`);
+      await writeFile(filePath, Buffer.from(image.data, "base64"));
+      paths.push(filePath);
+    }
+
+    let cleaned = false;
+    return {
+      paths,
+      cleanup: async () => {
+        if (cleaned) {
+          return;
+        }
+        await rm(dir, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
+        cleaned = true;
+      },
+    };
+  } catch (error) {
+    await rm(dir, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
+    throw error;
+  }
 }
 
 export function buildInterceptMessageText(prompt: string, attachedImagePaths: string[]): string {

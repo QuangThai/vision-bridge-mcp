@@ -29,6 +29,7 @@ export interface InterceptImagesResult {
 export interface InterceptImagesDependencies {
   cwd?: string;
   fetch?: FetchFn;
+  signal?: AbortSignal;
   loadConfig?: typeof loadConfig;
   plan?: typeof planImageIntercept;
   execute?: typeof executeVisionCall;
@@ -103,6 +104,45 @@ function withAllowedInternalTempImage(config: AtlasConfig, imagePath: string): A
   };
 }
 
+function combineAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
+  if (typeof AbortSignal.any === "function") {
+    return AbortSignal.any([primary, secondary]);
+  }
+  if (primary.aborted) {
+    return primary;
+  }
+  if (secondary.aborted) {
+    return secondary;
+  }
+
+  const controller = new AbortController();
+  const abortFrom = (source: AbortSignal) => {
+    controller.abort(source.reason);
+  };
+  primary.addEventListener("abort", () => abortFrom(primary), { once: true });
+  secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
+  return controller.signal;
+}
+
+function withAbortSignal(
+  fetchFn: FetchFn | undefined,
+  signal: AbortSignal | undefined,
+): FetchFn | undefined {
+  if (!signal) {
+    return fetchFn;
+  }
+
+  const baseFetch = fetchFn ?? globalThis.fetch;
+  return (input, init = {}) => {
+    const requestSignal = init.signal;
+    const combinedSignal =
+      requestSignal && requestSignal !== signal
+        ? combineAbortSignals(signal, requestSignal)
+        : signal;
+    return baseFetch(input, { ...init, signal: combinedSignal });
+  };
+}
+
 export async function interceptImagesForTextModel(
   input: InterceptImagesInput,
   options: InterceptImagesOptions = {},
@@ -112,6 +152,7 @@ export async function interceptImagesForTextModel(
   const execute = dependencies.execute ?? executeVisionCall;
   const load = dependencies.loadConfig ?? loadConfig;
 
+  dependencies.signal?.throwIfAborted();
   const plan = await planFn(
     {
       mainModelRef: input.mainModelRef,
@@ -133,14 +174,18 @@ export async function interceptImagesForTextModel(
     };
   }
 
+  dependencies.signal?.throwIfAborted();
+
   const config = load(input.env);
   const evidenceBlocks: string[] = [];
+  const requestFetch = withAbortSignal(dependencies.fetch, dependencies.signal);
 
   for (const call of plan.plannedCalls) {
+    dependencies.signal?.throwIfAborted();
     const result = await execute(call, {
       config: withAllowedInternalTempImage(config, call.imagePath),
       cwd: dependencies.cwd,
-      fetch: dependencies.fetch,
+      fetch: requestFetch,
     });
     evidenceBlocks.push(buildInjectedVisionContext(result.imagePath, result.markdown));
   }

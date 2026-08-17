@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- **Pi tool-result image interception** — the Pi extension now intercepts explicit
+  images produced mid-turn by tools (e.g. `read` on a screenshot), analyzes each
+  unique image once, and appends `<atlas-vision-evidence>` to the tool result so
+  text-only models can use it. Temporary image-block copies are concurrency-safe,
+  abort-aware, and deleted after interception. Atlas does not scan arbitrary tool
+  output for paths or widen `ATLAS_ALLOWED_DIRS`; the path-only fallback is limited
+  to successful `read` results and retains the configured path policy. New
+  `interceptToolResultImage()` harness API.
+
 ## 1.3.0 - 2026-08-06
 
 ### Added

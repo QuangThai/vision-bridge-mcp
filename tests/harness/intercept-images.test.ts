@@ -223,6 +223,62 @@ describe("interceptImagesForTextModel", () => {
     );
   });
 
+  it("combines the Pi abort signal with provider request signals", async () => {
+    const controller = new AbortController();
+    let capturedSignal: AbortSignal | null = null;
+    const fetchFn = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      capturedSignal = init?.signal ?? null;
+      return new Response("{}", { status: 200 });
+    });
+    const imagePath = "./shot.png";
+    const plan: ImageInterceptPlan = {
+      shouldIntercept: true,
+      reason: "No native vision.",
+      capabilities: null,
+      images: [{ path: imagePath, source: "path", start: 0, end: imagePath.length }],
+      plannedCalls: [
+        {
+          tool: "analyze_image",
+          imagePath,
+          args: { image_path: imagePath, mode: "general" },
+          reason: "default",
+        },
+      ],
+    };
+
+    await interceptImagesForTextModel(
+      {
+        mainModelRef: "deepseek/deepseek-v4-flash",
+        messageText: `check ${imagePath}`,
+      },
+      {},
+      {
+        signal: controller.signal,
+        fetch: fetchFn as typeof fetch,
+        plan: vi.fn(async () => plan),
+        loadConfig: () =>
+          ({
+            vision: {},
+            atlas: { allowedDirs: ["."] },
+          }) as never,
+        execute: vi.fn(async (call, dependencies) => {
+          controller.abort();
+          await dependencies.fetch?.("https://example.com", {
+            signal: AbortSignal.timeout(10_000),
+          });
+          return {
+            tool: "analyze_image",
+            imagePath: call.imagePath,
+            markdown: "## Summary\nCancelled request proof.",
+          };
+        }),
+      },
+    );
+
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
   it("executes planned calls and injects evidence", async () => {
     const plan: ImageInterceptPlan = {
       shouldIntercept: true,
