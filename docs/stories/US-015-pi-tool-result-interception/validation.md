@@ -46,6 +46,8 @@ pnpm test:e2e
 - Full unit run: 483 passed; 2 pre-existing path-policy tests could not create
   Windows directory symlinks (`EPERM`) on this non-elevated host.
 - `pnpm typecheck`, `pnpm lint`, `pnpm build`, and `git diff --check` passed.
-- Live E2E run: agent-hook and primary vision suites passed; Gemini suites were
-  partially blocked by external free-tier quota/high-demand responses (59 passed,
-  9 provider-dependent failures). No failure involved the Pi tool-result path.
+- Local live E2E run: agent-hook and primary vision suites passed; Gemini suites
+  were partially blocked by external free-tier quota/high-demand responses. No
+  failure involved the Pi tool-result path.
+- GitHub Actions run `32011322602`: `check`, `e2e-tests`, and `golden-eval` all
+  passed on the pushed PR head.
