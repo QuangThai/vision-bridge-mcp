@@ -38,7 +38,8 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Publish to npm
+      - name: Publish to npm (opt-in)
+        if: ${{ vars.NPM_PUBLISH_FROM_CI == 'true' }}
         run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
