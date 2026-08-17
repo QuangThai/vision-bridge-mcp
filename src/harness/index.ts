@@ -2,7 +2,9 @@ export {
   buildInterceptMessageText,
   collectImagePathsFromPrompt,
   persistAttachedImages,
+  persistTemporaryAttachedImages,
   type AttachedImageLike,
+  type TemporaryAttachedImages,
 } from "./attached-images.js";
 export {
   extractCapturedImagePath,
@@ -23,10 +25,13 @@ export {
   type InterceptImagesResult,
 } from "./intercept-images.js";
 export {
+  hasToolResultImageCandidate,
   interceptToolResultImage,
   type ToolResultContentPart,
+  type ToolResultImageContentPart,
   type ToolResultImageInterceptInput,
   type ToolResultImageInterceptResult,
+  type ToolResultTextContentPart,
 } from "./tool-result-intercept.js";
 export {
   hookEnvFileCandidates,

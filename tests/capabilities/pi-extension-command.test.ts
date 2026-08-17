@@ -1,5 +1,21 @@
+import { existsSync } from "node:fs";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { interceptImagesForTextModelMock, interceptToolResultImageMock } = vi.hoisted(() => ({
+  interceptImagesForTextModelMock: vi.fn(async () => ({
+    intercepted: false,
+    evidenceBlocks: [],
+  })),
+  interceptToolResultImageMock: vi.fn(async () => ({ intercepted: false })),
+}));
+
+vi.mock("../../dist/index.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../dist/index.js")>()),
+  interceptImagesForTextModel: interceptImagesForTextModelMock,
+  interceptToolResultImage: interceptToolResultImageMock,
+}));
+
 import atlasVisionInterceptExtension from "../../extensions/atlas-vision-intercept.js";
 
 type AtlasCommand = {
@@ -14,12 +30,34 @@ type CommandContext = {
 };
 
 type BeforeAgentStartHandler = (
-  event: { images: never[]; prompt: string },
+  event: {
+    images: Array<{ type: "image"; data: string; mimeType: string }>;
+    prompt: string;
+  },
   ctx: {
     model: { provider: string; id: string; input: string[] };
     sessionManager: { getLeafId: () => string };
     ui: CommandContext["ui"];
     cwd: string;
+    signal?: AbortSignal;
+  },
+) => Promise<unknown>;
+
+type ToolResultHandler = (
+  event: {
+    toolName: string;
+    toolCallId: string;
+    input: Record<string, unknown>;
+    content: Array<
+      { type: "text"; text: string } | { type: "image"; data: string; mimeType: string }
+    >;
+    isError: boolean;
+  },
+  ctx: {
+    model: { provider: string; id: string; input: string[] };
+    ui: CommandContext["ui"];
+    cwd: string;
+    signal?: AbortSignal;
   },
 ) => Promise<unknown>;
 
@@ -38,6 +76,8 @@ describe("Pi Atlas intercept command", () => {
   beforeEach(() => {
     process.env.ATLAS_SKIP_INTERCEPT = "";
     process.env.ATLAS_FORCE_INTERCEPT = "";
+    interceptImagesForTextModelMock.mockClear();
+    interceptToolResultImageMock.mockClear();
   });
 
   afterEach(() => {
@@ -95,5 +135,59 @@ describe("Pi Atlas intercept command", () => {
 
     await atlas?.handler("auto", ctx);
     expect(notices.at(-1)).toContain("automatic");
+
+    let attachedPath = "";
+    interceptImagesForTextModelMock.mockImplementationOnce(async (input) => {
+      attachedPath = input.messageText.match(/^Attached image: (.+)$/mu)?.[1] ?? "";
+      expect(existsSync(attachedPath)).toBe(true);
+      return {
+        intercepted: true,
+        evidenceBlocks: ["<atlas-vision-evidence>proof</atlas-vision-evidence>"],
+      };
+    });
+    await beforeAgentStart(
+      {
+        images: [{ type: "image", data: "aGVsbG8=", mimeType: "image/png" }],
+        prompt: "Analyze this image",
+      },
+      {
+        model: { provider: "deepseek", id: "deepseek-v4-flash", input: ["text"] },
+        sessionManager: { getLeafId: () => "session" },
+        ui: ctx.ui,
+        cwd: process.cwd(),
+      },
+    );
+    expect(attachedPath).not.toBe("");
+    expect(existsSync(attachedPath)).toBe(false);
+
+    const toolResult = handlers.get("tool_result") as unknown as ToolResultHandler | undefined;
+    expect(toolResult).toBeDefined();
+    if (!toolResult) throw new Error("Atlas tool_result handler was not registered.");
+
+    const signal = new AbortController().signal;
+    await toolResult(
+      {
+        toolName: "read",
+        toolCallId: "tool-call-1",
+        input: { path: "screenshot.png" },
+        content: [{ type: "image", data: "aGVsbG8=", mimeType: "image/png" }],
+        isError: false,
+      },
+      {
+        model: { provider: "deepseek", id: "deepseek-v4-flash", input: ["text"] },
+        ui: ctx.ui,
+        cwd: process.cwd(),
+        signal,
+      },
+    );
+
+    expect(interceptToolResultImageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolName: "read",
+        toolCallId: "tool-call-1",
+        isError: false,
+      }),
+      expect.objectContaining({ cwd: process.cwd(), signal }),
+    );
   });
 });

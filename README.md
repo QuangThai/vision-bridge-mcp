@@ -337,7 +337,7 @@ Hook env file (no shell export): create `~/.config/atlas-vision/env` from the [`
 
 ## Pi integration
 
-The Pi extension auto-intercepts attached images when the main model lacks native vision support — no manual MCP tool calls needed. Vision analysis runs **in-process** via the `atlas-vision-mcp` library API.
+The Pi extension auto-intercepts attached images and explicit images emitted by tools when the main model lacks native vision support — no manual MCP tool calls needed. Vision analysis runs **in-process** via the `atlas-vision-mcp` library API.
 
 ```text
 User prompt (+ attached images)
@@ -350,10 +350,16 @@ User prompt (+ attached images)
 Tool result containing image content (e.g. `read` on a screenshot)
   → pi extension: tool_result
   → model lacks "image" capability?
-  → atlas-vision analyzes the image file in-process
+  → atlas-vision analyzes each unique image block once
   → appends <atlas-vision-evidence> to the tool result
+  → deletes the temporary image copy
   → main model sees the image as text evidence
 ```
+
+Tool-result image blocks are the canonical source. Atlas does not scan `ls`,
+`find`, shell output, or arbitrary result text for image paths. If Pi's `read`
+tool cannot emit an image block, Atlas may fall back to that successful read's
+image path, but the path must still be permitted by `ATLAS_ALLOWED_DIRS`.
 
 ### Install
 
@@ -377,7 +383,7 @@ pi -e npm:atlas-vision-mcp
 
 Git install is not the supported distribution path right now; the Pi extension imports built files included in the npm tarball.
 
-> **Security:** Pi extensions run with local process permissions. Atlas may read attached images, clipboard images, and configured local image paths, then send image content to your configured vision provider. Review `ATLAS_ALLOWED_DIRS`, `.env`, and provider settings before installing or enabling it in a project.
+> **Security:** Pi extensions run with local process permissions. When interception is enabled, Atlas may send attached images, explicit tool-result image blocks, clipboard images, and policy-allowed local image paths to your configured vision provider. Tool-result paths never widen `ATLAS_ALLOWED_DIRS` automatically, and temporary image-block copies are deleted after each intercept. Review `ATLAS_ALLOWED_DIRS`, `.env`, and provider settings before installing or enabling it in a project.
 
 ### Configuration
 

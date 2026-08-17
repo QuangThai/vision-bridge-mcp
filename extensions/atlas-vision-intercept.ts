@@ -4,9 +4,10 @@ import { join } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import {
   buildInterceptMessageText,
+  hasToolResultImageCandidate,
   interceptImagesForTextModel,
   interceptToolResultImage,
-  persistAttachedImages,
+  persistTemporaryAttachedImages,
 } from "../dist/index.js";
 
 /**
@@ -97,9 +98,21 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
   // durable default for new Pi sessions.
   let interceptMode = initialInterceptMode();
   let hasSessionOverride = false;
+  let activeAnalyses = 0;
 
   const updateStatus = (ctx: { ui: { setStatus: (key: string, value: string) => void } }) => {
-    ctx.ui.setStatus("atlas-vision", interceptStatus(interceptMode));
+    ctx.ui.setStatus(
+      "atlas-vision",
+      activeAnalyses > 0 ? "atlas: analyzing image(s)..." : interceptStatus(interceptMode),
+    );
+  };
+  const beginAnalysis = (ctx: Parameters<typeof updateStatus>[0]) => {
+    activeAnalyses += 1;
+    updateStatus(ctx);
+  };
+  const endAnalysis = (ctx: Parameters<typeof updateStatus>[0]) => {
+    activeAnalyses = Math.max(0, activeAnalyses - 1);
+    updateStatus(ctx);
   };
 
   pi.registerCommand("atlas", {
@@ -158,11 +171,8 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
       return;
     }
 
-    const attachedPaths = await persistAttachedImages(
-      event.images,
-      ctx.sessionManager.getLeafId() ?? "session",
-    );
-    const messageText = buildInterceptMessageText(event.prompt, attachedPaths);
+    const temporaryImages = await persistTemporaryAttachedImages(event.images ?? []);
+    const messageText = buildInterceptMessageText(event.prompt, temporaryImages.paths);
     // ── Runtime vision signal from pi SDK ──
     // ctx.model.input is ALWAYS an array per pi-ai Model type: ("text" | "image")[]
     //   ["text", "image"] → CERTAIN vision → true → skip intercept
@@ -172,7 +182,7 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
     // have input: ["text", "image"], while text-only models (deepseek) have input: ["text"].
     const runtimeSupportsVision = ctx.model?.input?.includes("image") ?? undefined;
 
-    ctx.ui.setStatus("atlas-vision", "atlas: analyzing image(s)...");
+    beginAnalysis(ctx);
 
     try {
       const result = await interceptImagesForTextModel(
@@ -186,7 +196,7 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
           forceIntercept: interceptMode === "on",
           skipIntercept: interceptMode === "off",
         },
-        { cwd: ctx.cwd },
+        { cwd: ctx.cwd, signal: ctx.signal },
       );
 
       if (!result.intercepted || result.evidenceBlocks.length === 0) {
@@ -201,11 +211,19 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
         },
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Atlas vision intercept failed.";
-      ctx.ui.notify(`Atlas vision intercept failed: ${message}`, "warning");
+      if (!ctx.signal?.aborted) {
+        const message = error instanceof Error ? error.message : "Atlas vision intercept failed.";
+        ctx.ui.notify(`Atlas vision intercept failed: ${message}`, "warning");
+      }
       return;
     } finally {
-      updateStatus(ctx);
+      endAnalysis(ctx);
+      try {
+        await temporaryImages.cleanup();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "temporary image cleanup failed";
+        ctx.ui.notify(`Atlas temporary image cleanup failed: ${message}`, "warning");
+      }
     }
   });
 
@@ -221,39 +239,54 @@ export default function atlasVisionInterceptExtension(pi: ExtensionAPI) {
       return;
     }
 
+    if (
+      !hasToolResultImageCandidate({
+        toolName: event.toolName,
+        toolInput: event.input,
+        isError: event.isError,
+        content: event.content,
+      })
+    ) {
+      return;
+    }
+
     const mainModelRef = resolveMainModelRef(ctx.model);
     if (!mainModelRef) {
       return;
     }
 
-    ctx.ui.setStatus("atlas-vision", "atlas: analyzing tool image(s)...");
+    beginAnalysis(ctx);
 
     try {
       const result = await interceptToolResultImage(
         {
           mainModelRef,
+          toolName: event.toolName,
+          toolCallId: event.toolCallId,
           toolInput: event.input,
           content: event.content,
+          isError: event.isError,
           runtimeSupportsVision: ctx.model?.input?.includes("image") ?? undefined,
-          sessionId: ctx.sessionManager.getLeafId() ?? "session",
           env: process.env,
           forceIntercept: interceptMode === "on",
         },
-        { cwd: ctx.cwd },
+        { cwd: ctx.cwd, signal: ctx.signal },
       );
 
       if (!result.intercepted || !result.content) {
         return;
       }
 
-      return { content: result.content as unknown as typeof event.content };
+      return { content: result.content };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Atlas tool-result intercept failed.";
-      ctx.ui.notify(`Atlas tool-result intercept failed: ${message}`, "warning");
+      if (!ctx.signal?.aborted) {
+        const message =
+          error instanceof Error ? error.message : "Atlas tool-result intercept failed.";
+        ctx.ui.notify(`Atlas tool-result intercept failed: ${message}`, "warning");
+      }
       return;
     } finally {
-      updateStatus(ctx);
+      endAnalysis(ctx);
     }
   });
 }

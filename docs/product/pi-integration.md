@@ -111,7 +111,30 @@ User prompt + attached images
   ↓ Atlas analyzes images in-process
   ↓ Inject <atlas-vision-evidence> message
   ↓ Main model continues with text evidence
+
+Tool emits explicit image content mid-turn
+  ↓ Pi extension: tool_result
+  ↓ ctx.model.input lacks "image"?
+  ↓ Atlas analyzes each unique image block once
+  ↓ Append <atlas-vision-evidence> to the tool result
+  ↓ Delete the temporary image copy
+  ↓ Main model continues with text evidence
 ```
+
+### Tool-Result Source Rules
+
+- Explicit image content blocks are canonical; a normal Pi `read` image result is
+  analyzed exactly once even though the original tool input also has a path.
+- Atlas does not infer uploads from `ls`, `find`, shell output, or arbitrary
+  tool-result text.
+- If a successful `read` result has no image block, Atlas may fall back to its
+  image path. That path must pass the existing `ATLAS_ALLOWED_DIRS` policy.
+- Failed `read` paths are never retried through Atlas.
+- Temporary copies are unique per interception and deleted on success, planner
+  refusal, provider failure, or Pi cancellation.
+
+See `docs/decisions/0009-pi-tool-result-image-boundary.md` for the security
+boundary and alternatives.
 
 ### Session Override Command
 
@@ -252,9 +275,12 @@ pi -e npm:atlas-vision-mcp
 ```
 
 Try prompting with an image:
-- Attach an image file to your prompt
-- Or reference an image path: "Analyze the error in ./screenshot.png"
-- Look for `<atlas-vision-evidence>` in the conversation
+- Attach an image file to your prompt.
+- Or reference an allowed image path: "Analyze the error in ./screenshot.png".
+- Ask a text-only model to use `read` on a screenshot and verify that one
+  `<atlas-vision-evidence>` block is appended to the tool result.
+- Confirm that `ls`/`find` output containing image filenames does not trigger
+  analysis.
 
 ## Development Setup
 
@@ -387,9 +413,12 @@ npx atlas-vision-mcp costs --today
 npx atlas-vision-mcp costs --session
 ```
 
-### Session Images
+### Temporary Images
 
-Extension automatically persists attached images to session directories for later reference.
+The extension writes attached and tool-result image blocks only to unique Atlas
+internal temp directories needed by the in-process vision pipeline. It deletes
+each directory after the intercept settles; these files are not history or
+cross-session storage.
 
 ## Comparison with Other Integration Methods
 
@@ -438,8 +467,8 @@ MAIN_MODEL_REF=your-model npx atlas-vision-mcp should-intercept your-model
 
 ### Extension Flow
 ```text
-Pi starts → Extension loads env → User attaches image → 
-before_agent_start hook → Check ctx.model.input →
-No "image" capability? → Analyze via Atlas → 
-Inject evidence → Model gets text context
+Pi starts → Extension loads env → Check ctx.model.input
+  ├─ User attachment → before_agent_start → Analyze → Inject evidence
+  └─ Tool image block → tool_result → Analyze once → Append evidence
+Native vision or /atlas off → no Atlas call
 ```
