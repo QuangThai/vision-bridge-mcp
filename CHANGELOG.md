@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.0 - 2026-08-17
+
 ### Added
 
 - **Pi tool-result image interception** — the Pi extension now intercepts explicit
@@ -12,6 +14,12 @@
   output for paths or widen `ATLAS_ALLOWED_DIRS`; the path-only fallback is limited
   to successful `read` results and retains the configured path policy. New
   `interceptToolResultImage()` harness API.
+
+### Changed
+
+- **Pi gallery preview** — redesigned the package-gallery artwork with clearer
+  hierarchy, stronger small-size legibility, and fixed layout zones that prevent
+  overlapping content. The editable SVG source is now included alongside the PNG.
 
 ## 1.3.0 - 2026-08-06
 
