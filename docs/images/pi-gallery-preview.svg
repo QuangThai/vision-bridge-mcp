@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Atlas Vision MCP for Pi</title>
+  <desc id="desc">A clean dark banner showing screenshots flowing through Atlas Vision into structured evidence for text-only coding agents.</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06101D"/>
+      <stop offset="0.58" stop-color="#081522"/>
+      <stop offset="1" stop-color="#09202A"/>
+    </linearGradient>
+    <linearGradient id="surface" x1="56" y1="46" x2="1144" y2="584" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0C1929"/>
+      <stop offset="1" stop-color="#091522"/>
+    </linearGradient>
+    <linearGradient id="accentLine" x1="650" y1="0" x2="1048" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#57D8E5"/>
+      <stop offset="1" stop-color="#7C8CFF"/>
+    </linearGradient>
+    <linearGradient id="intercept" x1="650" y1="294" x2="1048" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102B38"/>
+      <stop offset="1" stop-color="#101B33"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(890 320) rotate(90) scale(250 330)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3BC9DB" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#3BC9DB" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="20" y="20" width="1160" height="600" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#000814" flood-opacity="0.5"/>
+    </filter>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#91B4CB" stroke-opacity="0.055"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#canvas)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <ellipse cx="948" cy="92" rx="300" ry="238" fill="#1AB9C7" opacity="0.055" filter="url(#softGlow)"/>
+  <ellipse cx="194" cy="614" rx="260" ry="170" fill="#6958E8" opacity="0.09" filter="url(#softGlow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="56" y="46" width="1088" height="538" rx="32" fill="url(#surface)"/>
+    <rect x="56.75" y="46.75" width="1086.5" height="536.5" rx="31.25" fill="none" stroke="#28445A" stroke-width="1.5"/>
+  </g>
+  <rect x="57" y="47" width="1086" height="536" rx="31" fill="url(#glow)"/>
+
+  <!-- Header -->
+  <g transform="translate(96 82)">
+    <rect width="48" height="48" rx="14" fill="#0E2634" stroke="#2D6274"/>
+    <path d="M9 24C13.2 16.8 18.2 13 24 13C29.8 13 34.8 16.8 39 24C34.8 31.2 29.8 35 24 35C18.2 35 13.2 31.2 9 24Z" fill="none" stroke="#62E3EA" stroke-width="2.6"/>
+    <circle cx="24" cy="24" r="6.5" fill="#62E3EA"/>
+    <circle cx="26" cy="21" r="2.2" fill="#DFFFFF"/>
+  </g>
+  <text x="160" y="104" fill="#F4F8FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="1.8">ATLAS VISION MCP</text>
+  <text x="160" y="126" fill="#7790A4" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="1.2">PI EXTENSION</text>
+
+  <g transform="translate(928 84)">
+    <rect width="166" height="44" rx="22" fill="#0A2D2C" stroke="#17605A"/>
+    <circle cx="22" cy="22" r="5" fill="#44D7A8"/>
+    <circle cx="22" cy="22" r="10" fill="#44D7A8" opacity="0.08"/>
+    <text x="38" y="27" fill="#C9F9E9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="650">Auto-intercept on</text>
+  </g>
+  <path d="M96 154H1104" stroke="#22374A"/>
+
+  <!-- Left message -->
+  <text x="96" y="204" fill="#62DDE6" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="750" letter-spacing="2">VISION, IN THE SAME TURN</text>
+  <text x="96" y="265" fill="#F7FAFC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="720" letter-spacing="-1.8">Give text-only agents</text>
+  <text x="96" y="326" fill="#F7FAFC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="720" letter-spacing="-1.8">a clear view.</text>
+  <text x="96" y="371" fill="#A9B9C9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="400">Screenshots in. Structured evidence out.</text>
+
+  <!-- Install command -->
+  <g transform="translate(96 421)">
+    <rect width="470" height="70" rx="17" fill="#07111D" stroke="#2A4357"/>
+    <rect x="1" y="1" width="5" height="68" rx="3" fill="#59DCE6"/>
+    <text x="28" y="29" fill="#6D879C" font-family="SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.4">INSTALL WITH PI</text>
+    <text x="28" y="52" fill="#EDF5FA" font-family="SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="16" font-weight="600">pi install npm:atlas-vision-mcp</text>
+  </g>
+  <g transform="translate(96 531)">
+    <circle cx="5" cy="-4" r="4" fill="#44D7A8"/>
+    <text x="18" y="0" fill="#7891A5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13">No manual vision call required</text>
+    <path d="M227 -4H245" stroke="#314A5E"/>
+    <text x="258" y="0" fill="#7891A5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13">Evidence returns before the next turn</text>
+  </g>
+
+  <!-- Right pipeline -->
+  <g>
+    <text x="650" y="204" fill="#71899D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">LIVE FLOW</text>
+    <text x="1048" y="204" fill="#4E687E" text-anchor="end" font-family="SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="11">tool_result</text>
+
+    <rect x="650" y="220" width="398" height="58" rx="15" fill="#0A1725" stroke="#263D51"/>
+    <g transform="translate(670 237)">
+      <rect width="25" height="24" rx="5" fill="none" stroke="#7992A6" stroke-width="1.5"/>
+      <circle cx="17" cy="7" r="2.5" fill="#58DCE6"/>
+      <path d="M4 19L10 13L14 17L18 13L22 18" fill="none" stroke="#7992A6" stroke-width="1.5" stroke-linejoin="round"/>
+    </g>
+    <text x="710" y="244" fill="#71899D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">INPUT</text>
+    <text x="710" y="263" fill="#E8F0F5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="650">Screenshot attached</text>
+    <text x="1024" y="255" fill="#71899D" text-anchor="end" font-family="SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="11">PNG</text>
+
+    <path d="M849 278V294" stroke="#426176" stroke-width="1.5"/>
+    <path d="M845 290L849 294L853 290" fill="none" stroke="#59DCE6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="650" y="294" width="398" height="98" rx="19" fill="url(#intercept)" stroke="url(#accentLine)" stroke-width="1.5"/>
+    <g transform="translate(672 316)">
+      <circle cx="27" cy="27" r="27" fill="#0A1B27" stroke="#2E7282"/>
+      <path d="M11 27C15.5 19.8 20.8 16 27 16C33.2 16 38.5 19.8 43 27C38.5 34.2 33.2 38 27 38C20.8 38 15.5 34.2 11 27Z" fill="none" stroke="#62E3EA" stroke-width="2.4"/>
+      <circle cx="27" cy="27" r="6" fill="#62E3EA"/>
+    </g>
+    <text x="746" y="327" fill="#65DEE7" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" font-weight="750" letter-spacing="1.3">ATLAS INTERCEPT</text>
+    <text x="746" y="351" fill="#F4F8FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Vision analysis</text>
+    <text x="746" y="372" fill="#8EA3B5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">OCR · UI structure · visual evidence</text>
+    <g transform="translate(951 324)" stroke="#7286F4" stroke-width="2" stroke-linecap="round">
+      <path d="M0 19H7" opacity="0.35"/>
+      <path d="M12 19V12" opacity="0.55"/>
+      <path d="M19 19V5" opacity="0.75"/>
+      <path d="M26 19V0"/>
+      <path d="M33 19V8" opacity="0.75"/>
+      <path d="M40 19V14" opacity="0.5"/>
+      <path d="M47 19H54" opacity="0.3"/>
+    </g>
+
+    <path d="M849 392V408" stroke="#426176" stroke-width="1.5"/>
+    <path d="M845 404L849 408L853 404" fill="none" stroke="#7B8CF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="650" y="408" width="398" height="72" rx="15" fill="#0A1725" stroke="#263D51"/>
+    <g transform="translate(671 428)" fill="none" stroke="#8398AA" stroke-width="1.5" stroke-linejoin="round">
+      <path d="M2 1H18L25 8V31H2Z"/>
+      <path d="M18 1V8H25"/>
+      <path d="M7 16H20M7 22H18"/>
+    </g>
+    <text x="710" y="435" fill="#71899D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">EVIDENCE</text>
+    <text x="710" y="457" fill="#E8F0F5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="650">Markdown + structured JSON</text>
+    <g transform="translate(1003 432)">
+      <circle cx="11" cy="11" r="11" fill="#0D382F" stroke="#1C6A57"/>
+      <path d="M6 11L9.5 14.5L16 7.5" fill="none" stroke="#5DE0B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <path d="M650 513H1048" stroke="#1E3446"/>
+    <circle cx="658" cy="539" r="3" fill="#59DCE6"/>
+    <text x="670" y="543" fill="#7891A5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">Read image</text>
+    <circle cx="772" cy="539" r="3" fill="#6074B7"/>
+    <text x="784" y="543" fill="#7891A5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">Analyze once</text>
+    <circle cx="906" cy="539" r="3" fill="#44D7A8"/>
+    <text x="918" y="543" fill="#7891A5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">Continue coding</text>
+  </g>
+</svg>
